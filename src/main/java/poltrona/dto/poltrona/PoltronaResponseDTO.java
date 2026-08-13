@@ -5,8 +5,8 @@ import poltrona.enums.TipoPoltrona;
 public record PoltronaResponseDTO(
 
         Long id,
-        String fileira,
-        String coluna,
+        char fileira,
+        Integer coluna,
         TipoPoltrona tipo,
         Long idSala
 

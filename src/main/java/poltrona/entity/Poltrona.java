@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
@@ -17,10 +18,8 @@ import poltrona.enums.TipoPoltrona;
 @Entity
 @Getter
 @Setter
-@Table(name = "poltronas", uniqueConstraints = @UniqueConstraint(
-    name = "uk_poltronas_salas",
-    columnNames = {"sala_id", "fileira", "coluna"}
-))
+@Table(name = "poltronas", uniqueConstraints = @UniqueConstraint(name = "uk_poltronas_salas", columnNames = { "sala_id",
+        "fileira", "coluna" }))
 public class Poltrona {
 
     @Id
@@ -28,10 +27,10 @@ public class Poltrona {
     private Long id;
 
     @Column(nullable = false)
-    private String fileira;
+    private char fileira;
 
     @Column(nullable = false)
-    private String coluna;
+    private Integer coluna;
 
     @Column(nullable = false)
     private TipoPoltrona tipo;
@@ -39,5 +38,10 @@ public class Poltrona {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "sala_id", nullable = false)
     private Sala sala;
+
+    @PrePersist
+    void prePersist() {
+        this.tipo = TipoPoltrona.COMUM;
+    }
 
 }

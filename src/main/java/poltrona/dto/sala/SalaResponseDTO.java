@@ -9,8 +9,8 @@ public record SalaResponseDTO(
         Integer numero,
         Integer fileiras,
         Integer poltronasPorFileira,
-        List<PoltronaResponseDTO> poltronas,
-        Long cinemaId
+        List<PoltronaResponseDTO> poltronas
+        //Long cinemaId
 
 ) {
 }

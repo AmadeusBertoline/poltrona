@@ -1,7 +1,6 @@
 package poltrona.entity;
 
 import java.util.List;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -40,11 +39,11 @@ public class Sala {
     @Column(nullable = false)
     private Integer poltronasPorFileira;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "sala", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "sala", fetch = FetchType.LAZY)
     private List<Poltrona> poltronas;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "cinema_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "cinema_id", nullable = true)
     private Cinema cinema;
 
 }

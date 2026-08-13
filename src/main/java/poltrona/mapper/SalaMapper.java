@@ -35,7 +35,7 @@ public class SalaMapper {
         if (entidade == null)
             return null;
 
-        Long cinemaId = entidade.getCinema() != null ? entidade.getCinema().getId() : null;
+        //Long cinemaId = entidade.getCinema() != null ? entidade.getCinema().getId() : null;
 
         List<PoltronaResponseDTO> poltronasDTO = entidade.getPoltronas() != null
                 ? entidade.getPoltronas().stream().map(poltronaMapper::toDTO).toList()
@@ -46,7 +46,7 @@ public class SalaMapper {
                 entidade.getNumero(),
                 entidade.getFileiras(),
                 entidade.getPoltronasPorFileira(),
-                poltronasDTO,
-                cinemaId);
+                poltronasDTO/*,
+        cinemaId*/);
     }
 }

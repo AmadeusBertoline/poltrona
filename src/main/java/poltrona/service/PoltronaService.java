@@ -1,0 +1,61 @@
+package poltrona.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import poltrona.dto.poltrona.PoltronaResponseDTO;
+import poltrona.entity.Poltrona;
+import poltrona.entity.Sala;
+import poltrona.mapper.PoltronaMapper;
+import poltrona.repository.PoltronaRepository;
+
+@Service
+public class PoltronaService {
+
+    private final PoltronaRepository poltronaRepository;
+    private final PoltronaMapper poltronaMapper;
+
+    public PoltronaService(PoltronaRepository poltronaRepository, PoltronaMapper poltronaMapper) {
+        this.poltronaRepository = poltronaRepository;
+        this.poltronaMapper = poltronaMapper;
+    }
+
+    public List<PoltronaResponseDTO> cadastrar(Integer fileiras, Integer poltronasPorFileira, Sala sala) {
+
+        List<Poltrona> poltronas = new ArrayList<>();
+
+        for (int i = 0; i <= fileiras; i++) {
+
+            for (int j = 1; j <= poltronasPorFileira; j++) {
+
+                Poltrona poltrona = new Poltrona();
+
+                char letra = (char) ('A' + i);
+                poltrona.setFileira(letra);
+                poltrona.setColuna(j);
+                poltrona.setSala(sala);
+                Poltrona poltronaSalva = poltronaRepository.save(poltrona);
+
+                poltronas.add(poltronaSalva);
+
+            }
+
+        }
+
+        return poltronas.stream().map(poltronaMapper::toDTO).collect(Collectors.toList());
+
+    }
+
+    public List<PoltronaResponseDTO> listarTodas() {
+
+        return poltronaRepository.findAll()
+                .stream()
+                .map(poltronaMapper::toDTO)
+                .collect(Collectors.toList());
+
+    }
+
+}
