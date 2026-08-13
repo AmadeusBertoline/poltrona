@@ -15,7 +15,7 @@ public class CinemaService {
     private final CinemaRepository cinemaRepository;
     private final CinemaMapper cinemaMapper;
 
-    public CinemaService(CinemaRepository cinemaRepository, EnderecoService enderecoService,
+    public CinemaService(CinemaRepository cinemaRepository,
             CinemaMapper cinemaMapper) {
         this.cinemaRepository = cinemaRepository;
         this.cinemaMapper = cinemaMapper;
@@ -24,7 +24,6 @@ public class CinemaService {
     public CinemaResponseDTO cadastrar(CinemaRequestDTO dto) {
 
         Cinema cinema = cinemaMapper.toEntity(dto);
-
         Cinema salvo = cinemaRepository.save(cinema);
 
         return cinemaMapper.toDTO(salvo);
