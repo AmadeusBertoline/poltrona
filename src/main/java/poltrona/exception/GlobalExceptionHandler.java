@@ -3,7 +3,6 @@ package poltrona.exception;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,6 +22,19 @@ public class GlobalExceptionHandler {
         corpo.put("mensagem", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(corpo);
+
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
+
+        Map<String, Object> corpo = new HashMap<>();
+        corpo.put("timestamp", LocalDateTime.now());
+        corpo.put("status", HttpStatus.NOT_FOUND.value());
+        corpo.put("erro", "Recurso não encontrado");
+        corpo.put("mensagem", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(corpo);
 
     }
 

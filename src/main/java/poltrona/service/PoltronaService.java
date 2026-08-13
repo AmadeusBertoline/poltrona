@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import poltrona.dto.poltrona.PoltronaResponseDTO;
+import poltrona.dto.poltrona.TipoPoltronaRequestDTO;
 import poltrona.entity.Poltrona;
 import poltrona.entity.Sala;
+import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.PoltronaMapper;
 import poltrona.repository.PoltronaRepository;
 
@@ -53,6 +55,19 @@ public class PoltronaService {
                 .stream()
                 .map(poltronaMapper::toDTO)
                 .collect(Collectors.toList());
+
+    }
+
+    public PoltronaResponseDTO atualizarTipo(Long id, TipoPoltronaRequestDTO tipo) {
+
+        Poltrona poltrona = poltronaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada"));
+
+        poltrona.setTipo(tipo.tipo());
+
+        Poltrona salva = poltronaRepository.save(poltrona);
+
+        return poltronaMapper.toDTO(salva);
 
     }
 
