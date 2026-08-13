@@ -1,4 +1,4 @@
-package poltrona.validation.DataLancamentoValida;
+package poltrona.validation.dataLancamentoValida;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

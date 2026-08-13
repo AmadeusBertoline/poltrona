@@ -1,4 +1,4 @@
-package poltrona.validation.DuracaoValida;
+package poltrona.validation.duracaoValida;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -9,7 +9,7 @@ import java.lang.annotation.*;
 @Target({ ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DuracaoValida {
-    String message() default "A duração deve estar no formato HH:mm:ss (ex: 02:15:00).";
+    String message() default "A duração deve ser informada em quantidade de minutos";
 
     Class<?>[] groups() default {};
 

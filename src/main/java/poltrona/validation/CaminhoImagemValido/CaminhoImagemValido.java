@@ -1,4 +1,4 @@
-package poltrona.validation.CaminhoImagemValido;
+package poltrona.validation.caminhoImagemValido;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

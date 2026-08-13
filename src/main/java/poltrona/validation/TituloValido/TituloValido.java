@@ -1,4 +1,4 @@
-package poltrona.validation.TituloValido;
+package poltrona.validation.tituloValido;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

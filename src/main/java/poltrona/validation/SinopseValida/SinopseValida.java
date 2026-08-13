@@ -1,4 +1,4 @@
-package poltrona.validation.SinopseValida;
+package poltrona.validation.sinopseValida;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

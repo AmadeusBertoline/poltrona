@@ -1,20 +1,28 @@
 package poltrona.entity;
 
 import java.time.LocalDate;
+import java.util.Set;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import poltrona.enums.GeneroFilme;
 import poltrona.enums.StatusFilme;
 
 @Entity
 @Getter
 @Setter
-public class Filme{
+@Table(name = "filmes")
+public class Filme {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +33,11 @@ public class Filme{
 
     @Column(nullable = false)
     private String sinopse;
+
+    @Column(nullable = false)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "filme")
+    @Enumerated(EnumType.STRING)
+    private Set<GeneroFilme> generos;
 
     @Column(nullable = false)
     private Integer duracao;
@@ -42,12 +55,12 @@ public class Filme{
     private String imagePath;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private StatusFilme status;
 
     @PrePersist
-    void prePersist(){
+    void prePersist() {
         this.status = StatusFilme.EM_BREVE;
     }
-
 
 }

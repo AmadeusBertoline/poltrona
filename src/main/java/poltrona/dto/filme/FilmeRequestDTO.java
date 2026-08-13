@@ -1,15 +1,15 @@
 package poltrona.dto.filme;
 
 import java.time.LocalDate;
+import java.util.Set;
 
-import poltrona.enums.StatusFilme;
-import poltrona.validation.CaminhoImagemValido.CaminhoImagemValido;
-import poltrona.validation.DataLancamentoValida.DataLancamentoValida;
-import poltrona.validation.DuracaoValida.DuracaoValida;
-import poltrona.validation.NomeValido.NomeValido;
-import poltrona.validation.SinopseValida.SinopseValida;
-import poltrona.validation.StatusValido.StatusValido;
-import poltrona.validation.TituloValido.TituloValido;
+import poltrona.enums.GeneroFilme;
+import poltrona.validation.caminhoImagemValido.CaminhoImagemValido;
+import poltrona.validation.dataLancamentoValida.DataLancamentoValida;
+import poltrona.validation.duracaoValida.DuracaoValida;
+import poltrona.validation.nomeValido.NomeValido;
+import poltrona.validation.sinopseValida.SinopseValida;
+import poltrona.validation.tituloValido.TituloValido;
 
 public record FilmeRequestDTO(
 
@@ -18,6 +18,9 @@ public record FilmeRequestDTO(
 
     @SinopseValida
     String sinopse,
+
+    @NomeValido
+    Set<GeneroFilme> generos,
 
     @DuracaoValida
     Integer duracao,
@@ -32,10 +35,6 @@ public record FilmeRequestDTO(
     LocalDate dataLancamento,
 
     @CaminhoImagemValido
-    String imagePath,
+    String imagePath
 
-    @StatusValido
-    StatusFilme status
-
-) {
-}
+) {}

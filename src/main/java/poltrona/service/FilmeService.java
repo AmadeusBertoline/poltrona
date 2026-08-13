@@ -53,7 +53,7 @@ public class FilmeService {
     private FilmeResponseDTO toDTO(Filme filme) {
 
         return new FilmeResponseDTO(
-                filme.getId(), filme.getTitulo(), filme.getSinopse(), filme.getDuracao(), filme.getDiretor(),
+                filme.getId(), filme.getTitulo(), filme.getSinopse(), filme.getGeneros(), filme.getDuracao(), filme.getDiretor(),
                 filme.getDistribuidora(), filme.getDataLancamento(), filme.getImagePath(), filme.getStatus());
 
     }

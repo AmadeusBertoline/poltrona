@@ -1,6 +1,9 @@
 package poltrona.dto.filme;
 
 import java.time.LocalDate;
+import java.util.Set;
+
+import poltrona.enums.GeneroFilme;
 import poltrona.enums.StatusFilme;
 
 public record FilmeResponseDTO(
@@ -10,6 +13,8 @@ public record FilmeResponseDTO(
         String titulo,
 
         String sinopse,
+
+        Set<GeneroFilme> genero,
 
         Integer duracao,
 

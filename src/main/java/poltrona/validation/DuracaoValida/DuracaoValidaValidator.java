@@ -1,15 +1,14 @@
-package poltrona.validation.DuracaoValida;
+package poltrona.validation.duracaoValida;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class DuracaoValidaValidator implements ConstraintValidator<DuracaoValida, String> {
-    private static final String REGEX_DURACAO = "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$";
-
+public class DuracaoValidaValidator implements ConstraintValidator<DuracaoValida, Integer> {
     @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null || value.isBlank())
+    public boolean isValid(Integer value, ConstraintValidatorContext context) {
+        if (value == null)
             return false;
-        return value.matches(REGEX_DURACAO);
+
+        return value > 0 && value <= 600;
     }
 }

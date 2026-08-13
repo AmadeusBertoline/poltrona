@@ -1,4 +1,4 @@
-package poltrona.validation.NomeValido;
+package poltrona.validation.nomeValido;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
