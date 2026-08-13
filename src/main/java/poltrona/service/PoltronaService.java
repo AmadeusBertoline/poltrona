@@ -3,9 +3,7 @@ package poltrona.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Service;
-
 import poltrona.dto.poltrona.PoltronaResponseDTO;
 import poltrona.entity.Poltrona;
 import poltrona.entity.Sala;
@@ -49,9 +47,9 @@ public class PoltronaService {
 
     }
 
-    public List<PoltronaResponseDTO> listarTodas() {
+    public List<PoltronaResponseDTO> listarPorSala(Integer numero) {
 
-        return poltronaRepository.findAll()
+        return poltronaRepository.findAllBySalaNumero(numero)
                 .stream()
                 .map(poltronaMapper::toDTO)
                 .collect(Collectors.toList());
