@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import poltrona.dto.poltrona.PoltronaResponseDTO;
 import poltrona.dto.poltrona.TipoPoltronaRequestDTO;
 import poltrona.service.PoltronaService;
@@ -35,7 +34,7 @@ public class PoltronaController {
     }
 
     @PatchMapping("/{id}/atualizar-tipo")
-    public ResponseEntity<PoltronaResponseDTO> atualizarTipo(@PathVariable Long id, @RequestBody git aTipoPoltronaRequestDTO tipo) {
+    public ResponseEntity<PoltronaResponseDTO> atualizarTipo(@PathVariable Long id, @RequestBody TipoPoltronaRequestDTO tipo) {
 
         PoltronaResponseDTO poltrona = poltronaService.atualizarTipo(id, tipo);
 

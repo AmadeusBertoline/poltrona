@@ -2,12 +2,11 @@ package poltrona.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Service;
-
 import poltrona.dto.sala.SalaRequestDTO;
 import poltrona.dto.sala.SalaResponseDTO;
 import poltrona.entity.Sala;
+import poltrona.exception.RegraNegocioException;
 import poltrona.mapper.SalaMapper;
 import poltrona.repository.SalaRepository;
 
@@ -25,6 +24,10 @@ public class SalaService {
     }
 
     public SalaResponseDTO cadastrar(SalaRequestDTO dto) {
+
+        if (salaRepository.existsByCinemaId(1L)) {
+            throw new RegraNegocioException("Esse cinema já possui uma sala com o número " + dto.numero());
+        }
 
         Sala sala = salaMapper.toEntity(dto);
         Sala salaSalva = salaRepository.save(sala);
