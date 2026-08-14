@@ -8,6 +8,7 @@ public class PoltronaApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(PoltronaApplication.class, args);
+
 	}
 
 }
