@@ -3,8 +3,11 @@ package poltrona.exception;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import javax.security.sasl.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -36,6 +39,60 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(corpo);
 
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
+
+        Map<String, Object> corpo = new HashMap<>();
+
+        corpo.put("timestamp", LocalDateTime.now());
+        corpo.put("status", HttpStatus.FORBIDDEN.value());
+        corpo.put("erro", "Acesso negado");
+        corpo.put("mensagem", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(corpo);
+
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> handleNoAuthentication(AuthenticationException ex) {
+
+        Map<String, Object> corpo = new HashMap<>();
+
+        corpo.put("timestamp", LocalDateTime.now());
+        corpo.put("status", HttpStatus.UNAUTHORIZED.value());
+        corpo.put("erro", "Você não está autenticado");
+        corpo.put("mensagem", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(corpo);
+
+    }
+
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> handleAlreadyExists(ResourceAlreadyExistsException ex) {
+
+        Map<String, Object> corpo = new HashMap<>();
+
+        corpo.put("timestamp", LocalDateTime.now());
+        corpo.put("status", HttpStatus.CONFLICT.value());
+        corpo.put("erro", "Recurso já existe");
+        corpo.put("mensagem", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(corpo);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
+
+        Map<String, Object> corpo = new HashMap<>();
+
+        corpo.put("timestamp", LocalDateTime.now());
+        corpo.put("status", HttpStatus.UNAUTHORIZED.value());
+        corpo.put("erro", "Credenciais inválidas");
+        corpo.put("mensagem", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(corpo);
     }
 
 }

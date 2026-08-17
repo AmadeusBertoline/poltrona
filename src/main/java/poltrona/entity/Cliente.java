@@ -17,6 +17,6 @@ public class Cliente extends Usuario {
     private String telefone;
 
     private LocalDate dataNascimento;
+    
 
-    private Boolean aceitouTermosUso = false;
 }
