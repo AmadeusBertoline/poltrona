@@ -60,4 +60,15 @@ public class JwtService {
         return extrairClaims(token).get("tipo", String.class);
     }
 
+    public boolean tokenValido(String token) {
+
+        try {
+            extrairClaims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+
+    }
+
 }
