@@ -25,7 +25,6 @@ public class ClienteMapper {
         cliente.setNome(dto.usuario().nome());
         cliente.setEmail(dto.usuario().email());
         cliente.setCpf(dto.usuario().cpf());
-        cliente.setSenha(dto.usuario().senha());
         cliente.setTelefone(dto.telefone());
         cliente.setDataNascimento(dto.dataNascimento());
 
