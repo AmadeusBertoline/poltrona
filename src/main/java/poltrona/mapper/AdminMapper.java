@@ -32,6 +32,10 @@ public class AdminMapper {
 
     public AdminResponseDTO toDTO(Admin admin) {
 
+        if(admin == null){
+            return null;
+        }
+
         return new AdminResponseDTO(usuarioMapper.toDTO(admin));
 
     }

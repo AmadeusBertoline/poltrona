@@ -3,7 +3,7 @@ package poltrona.exception;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import javax.security.sasl.AuthenticationException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;

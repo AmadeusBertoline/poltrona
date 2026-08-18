@@ -1,8 +1,9 @@
 package poltrona.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import poltrona.dto.admin.AdminRequestDTO;
 import poltrona.dto.admin.AdminResponseDTO;
 import poltrona.entity.Admin;
@@ -43,6 +44,15 @@ public class AdminService {
         Admin salvo = adminRepository.save(admin);
 
         return adminMapper.toDTO(salvo);
+
+    }
+
+    public List<AdminResponseDTO> listarTodos() {
+
+        return adminRepository.findAll()
+                .stream()
+                .map(adminMapper::toDTO)
+                .collect(Collectors.toList());
 
     }
 

@@ -1,6 +1,5 @@
 package poltrona.entity;
 
-import java.time.LocalDate;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -13,10 +12,7 @@ import lombok.Setter;
 @Setter
 public class Cliente extends Usuario {
 
-    @Column(length = 20)
+    @Column(nullable = false, unique = true)
     private String telefone;
-
-    private LocalDate dataNascimento;
     
-
 }

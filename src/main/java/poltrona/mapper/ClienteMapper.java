@@ -26,7 +26,6 @@ public class ClienteMapper {
         cliente.setEmail(dto.usuario().email());
         cliente.setCpf(dto.usuario().cpf());
         cliente.setTelefone(dto.telefone());
-        cliente.setDataNascimento(dto.dataNascimento());
 
         return cliente;
 
@@ -41,7 +40,7 @@ public class ClienteMapper {
         UsuarioResponseDTO usuario = usuarioMapper.toDTO(cliente);
 
         return new ClienteResponseDTO(
-                usuario, cliente.getTelefone(), cliente.getDataNascimento());
+                usuario, cliente.getTelefone());
 
     }
 
