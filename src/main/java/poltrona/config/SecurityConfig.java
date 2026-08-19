@@ -3,6 +3,7 @@ package poltrona.config;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -42,6 +43,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/admins/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST,"/cinemas/**").hasAnyAuthority("ADMIN", "OPERADOR")
+                        .requestMatchers(HttpMethod.PATCH,"/cinemas/**").hasAnyAuthority("ADMIN", "OPERADOR")
+                        .requestMatchers("/clientes/cadastrar").permitAll()
+                        .requestMatchers("/clientes/**").hasAuthority("CLIENTE")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception

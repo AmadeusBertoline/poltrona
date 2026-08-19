@@ -10,35 +10,37 @@ import poltrona.entity.Filme;
 public class FilmeMapper {
 
     public Filme toEntity(FilmeRequestDTO dto) {
-        if (dto == null) return null;
+        if (dto == null) {
+            return null;
+        }
 
-        Filme entidade = new Filme();
-        entidade.setTitulo(dto.titulo());
-        entidade.setSinopse(dto.sinopse());
-        entidade.setGeneros(dto.generos());
-        entidade.setDuracao(dto.duracao());
-        entidade.setDiretor(dto.diretor());
-        entidade.setDistribuidora(dto.distribuidora());
-        entidade.setDataLancamento(dto.dataLancamento());
-        entidade.setImagePath(dto.imagePath());
-
-        return entidade;
+        return Filme.builder()
+                .titulo(dto.titulo())
+                .sinopse(dto.sinopse())
+                .generos(dto.generos())
+                .duracao(dto.duracao())
+                .diretor(dto.diretor())
+                .distribuidora(dto.distribuidora())
+                .dataLancamento(dto.dataLancamento())
+                .imagePath(dto.imagePath())
+                .build();
     }
 
     public FilmeResponseDTO toDTO(Filme entidade) {
-        if (entidade == null) return null;
+        if (entidade == null) {
+            return null;
+        }
 
         return new FilmeResponseDTO(
-            entidade.getId(),
-            entidade.getTitulo(),
-            entidade.getSinopse(),
-            entidade.getGeneros(),
-            entidade.getDuracao(),
-            entidade.getDiretor(),
-            entidade.getDistribuidora(),
-            entidade.getDataLancamento(),
-            entidade.getImagePath(),
-            entidade.getStatus()
-        );
+                entidade.getId(),
+                entidade.getTitulo(),
+                entidade.getSinopse(),
+                entidade.getGeneros(),
+                entidade.getDuracao(),
+                entidade.getDiretor(),
+                entidade.getDistribuidora(),
+                entidade.getDataLancamento(),
+                entidade.getImagePath(),
+                entidade.getStatus());
     }
 }

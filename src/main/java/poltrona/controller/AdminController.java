@@ -22,7 +22,7 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    @PostMapping("/cadastrar")
+    @PostMapping
     public ResponseEntity<AdminResponseDTO> cadastrar(@RequestBody AdminRequestDTO dto) {
 
         AdminResponseDTO admin = adminService.cadastrar(dto);
@@ -30,7 +30,7 @@ public class AdminController {
 
     }
 
-    @GetMapping("/listar-todos")
+    @GetMapping
     public ResponseEntity<List<AdminResponseDTO>> listarTodos(){
 
         List<AdminResponseDTO> admins = adminService.listarTodos();

@@ -31,12 +31,13 @@ public class PoltronaService {
 
             for (int j = 1; j <= poltronasPorFileira; j++) {
 
-                Poltrona poltrona = new Poltrona();
-
                 char letra = (char) ('A' + i);
-                poltrona.setFileira(letra);
-                poltrona.setColuna(j);
-                poltrona.setSala(sala);
+                Poltrona poltrona = Poltrona.builder()
+                        .fileira(letra)
+                        .coluna(j)
+                        .sala(sala)
+                        .build();
+                
                 Poltrona poltronaSalva = poltronaRepository.save(poltrona);
 
                 poltronas.add(poltronaSalva);
@@ -63,7 +64,7 @@ public class PoltronaService {
         Poltrona poltrona = poltronaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada"));
 
-        poltrona.setTipo(tipo.tipo());
+        poltrona.atualizarTipo(tipo.tipo());
 
         Poltrona salva = poltronaRepository.save(poltrona);
 

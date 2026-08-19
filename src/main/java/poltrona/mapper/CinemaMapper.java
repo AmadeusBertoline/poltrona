@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
 import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
@@ -11,36 +12,30 @@ import poltrona.dto.sala.SalaResponseDTO;
 import poltrona.entity.Cinema;
 
 @Component
+@RequiredArgsConstructor
 public class CinemaMapper {
 
     private final EnderecoMapper enderecoMapper;
     private final SalaMapper salaMapper;
 
-    public CinemaMapper(EnderecoMapper enderecoMapper, SalaMapper salaMapper) {
-        this.enderecoMapper = enderecoMapper;
-        this.salaMapper = salaMapper;
-    }
-
     public Cinema toEntity(CinemaRequestDTO dto) {
-        if (dto == null)
+        if (dto == null) {
             return null;
-
-        Cinema entidade = new Cinema();
-        entidade.setNomeFantasia(dto.nomeFantasia());
-        entidade.setRazaoSocial(dto.razaoSocial());
-        entidade.setCnpj(dto.cnpj());
-        entidade.setTelefone(dto.telefone());
-
-        if (dto.endereco() != null) {
-            entidade.setEndereco(enderecoMapper.toEntity(dto.endereco()));
         }
 
-        return entidade;
+        return Cinema.builder()
+                .nomeFantasia(dto.nomeFantasia())
+                .razaoSocial(dto.razaoSocial())
+                .cnpj(dto.cnpj())
+                .telefone(dto.telefone())
+                .endereco(dto.endereco() != null ? enderecoMapper.toEntity(dto.endereco()) : null)
+                .build();
     }
 
     public CinemaResponseDTO toDTO(Cinema entidade) {
-        if (entidade == null)
+        if (entidade == null) {
             return null;
+        }
 
         List<SalaResponseDTO> salasDTO = entidade.getSalas() != null
                 ? entidade.getSalas().stream().map(salaMapper::toDTO).toList()
@@ -53,6 +48,7 @@ public class CinemaMapper {
                 entidade.getCnpj(),
                 entidade.getTelefone(),
                 enderecoMapper.toDTO(entidade.getEndereco()),
-                salasDTO);
+                salasDTO
+        );
     }
 }

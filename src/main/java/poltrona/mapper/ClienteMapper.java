@@ -1,47 +1,38 @@
 package poltrona.mapper;
 
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 import poltrona.dto.cliente.ClienteRequestDTO;
 import poltrona.dto.cliente.ClienteResponseDTO;
 import poltrona.dto.usuario.UsuarioResponseDTO;
 import poltrona.entity.Cliente;
 
 @Component
+@RequiredArgsConstructor
 public class ClienteMapper {
 
     private final UsuarioMapper usuarioMapper;
 
-    public ClienteMapper(UsuarioMapper usuarioMapper) {
-        this.usuarioMapper = usuarioMapper;
-    }
-
     public Cliente toEntity(ClienteRequestDTO dto) {
-
         if (dto == null) {
             return null;
         }
 
-        Cliente cliente = new Cliente();
-        cliente.setNome(dto.usuario().nome());
-        cliente.setEmail(dto.usuario().email());
-        cliente.setCpf(dto.usuario().cpf());
-        cliente.setTelefone(dto.telefone());
-
-        return cliente;
-
+        return Cliente.builder()
+                .nome(dto.usuario().nome())
+                .email(dto.usuario().email())
+                .cpf(dto.usuario().cpf())
+                .telefone(dto.telefone())
+                .build();
     }
 
     public ClienteResponseDTO toDTO(Cliente cliente) {
-
         if (cliente == null) {
             return null;
         }
 
         UsuarioResponseDTO usuario = usuarioMapper.toDTO(cliente);
 
-        return new ClienteResponseDTO(
-                usuario, cliente.getTelefone());
-
+        return new ClienteResponseDTO(usuario, cliente.getTelefone());
     }
-
 }

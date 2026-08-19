@@ -27,7 +27,7 @@ public class ClienteService {
     }
 
     @Transactional
-    public ClienteResponseDTO cadastrarCliente(ClienteRequestDTO dto) {
+    public ClienteResponseDTO cadastrar(ClienteRequestDTO dto) {
 
         if (clienteRepository.existsByEmail(dto.usuario().email())) {
             throw new ResourceAlreadyExistsException("Email já cadastrado");

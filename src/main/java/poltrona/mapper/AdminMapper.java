@@ -1,43 +1,34 @@
 package poltrona.mapper;
 
 import org.springframework.stereotype.Component;
-
+import lombok.RequiredArgsConstructor;
 import poltrona.dto.admin.AdminRequestDTO;
 import poltrona.dto.admin.AdminResponseDTO;
 import poltrona.entity.Admin;
 
 @Component
+@RequiredArgsConstructor
 public class AdminMapper {
 
     private final UsuarioMapper usuarioMapper;
 
-    public AdminMapper(UsuarioMapper usuarioMapper) {
-        this.usuarioMapper = usuarioMapper;
-    }
-
     public Admin toEntity(AdminRequestDTO dto) {
-
         if (dto == null) {
             return null;
         }
 
-        Admin admin = new Admin();
-        admin.setNome(dto.usuario().nome());
-        admin.setEmail(dto.usuario().email());
-        admin.setCpf(dto.usuario().cpf());
-
-        return admin;
-
+        return Admin.builder()
+                .nome(dto.usuario().nome())
+                .email(dto.usuario().email())
+                .cpf(dto.usuario().cpf())
+                .build();
     }
 
     public AdminResponseDTO toDTO(Admin admin) {
-
-        if(admin == null){
+        if (admin == null) {
             return null;
         }
 
         return new AdminResponseDTO(usuarioMapper.toDTO(admin));
-
     }
-
 }

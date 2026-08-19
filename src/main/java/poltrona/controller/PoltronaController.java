@@ -24,7 +24,7 @@ public class PoltronaController {
         this.poltronaService = poltronaService;
     }
 
-    @GetMapping("/listar-por-sala/{numero}")
+    @GetMapping
     public ResponseEntity<List<PoltronaResponseDTO>> listarPorSala(@PathVariable Integer numero) {
 
         List<PoltronaResponseDTO> poltronas = poltronaService.listarPorSala(numero);
@@ -33,7 +33,7 @@ public class PoltronaController {
 
     }
 
-    @PatchMapping("/{id}/atualizar-tipo")
+    @PatchMapping
     public ResponseEntity<PoltronaResponseDTO> atualizarTipo(@PathVariable Long id, @RequestBody TipoPoltronaRequestDTO tipo) {
 
         PoltronaResponseDTO poltrona = poltronaService.atualizarTipo(id, tipo);

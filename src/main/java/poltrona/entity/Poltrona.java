@@ -11,7 +11,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import poltrona.enums.TipoPoltrona;
 
@@ -20,6 +24,9 @@ import poltrona.enums.TipoPoltrona;
 @Setter
 @Table(name = "poltronas", uniqueConstraints = @UniqueConstraint(name = "uk_poltronas_salas", columnNames = { "sala_id",
         "fileira", "coluna" }))
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Poltrona {
 
     @Id
@@ -38,6 +45,12 @@ public class Poltrona {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "sala_id", nullable = false)
     private Sala sala;
+
+    public void atualizarTipo(TipoPoltrona tipo) {
+        if (tipo != null) {
+            this.tipo = tipo;
+        }
+    }
 
     @PrePersist
     void prePersist() {

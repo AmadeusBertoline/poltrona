@@ -5,6 +5,6 @@ import poltrona.entity.Filme;
 
 public interface FilmeRepository extends JpaRepository<Filme, Long> {
 
-    Boolean existsByTitulo(String nome);
+    Boolean existsByTituloIgnoreCase(String nome);
 
 }

@@ -1,7 +1,6 @@
 package poltrona.controller;
 
 import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +22,7 @@ public class SalaController {
         this.salaService = salaService;
     }
 
-    @PostMapping("/cadastrar")
+    @PostMapping
     public ResponseEntity<SalaResponseDTO> cadastrar(@RequestBody SalaRequestDTO dto) {
 
         SalaResponseDTO sala = salaService.cadastrar(dto);
@@ -32,7 +31,7 @@ public class SalaController {
 
     }
 
-    @GetMapping("/listar-todas")
+    @GetMapping
     public ResponseEntity<List<SalaResponseDTO>> listarTodas() {
 
         List<SalaResponseDTO> salas = salaService.listarTodas();

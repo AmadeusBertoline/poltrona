@@ -1,7 +1,6 @@
 package poltrona.controller;
 
 import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,8 +8,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.validation.Valid;
 import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
 import poltrona.service.CinemaService;
@@ -25,8 +22,8 @@ public class CinemaController {
         this.cinemaService = cinemaService;
     }
 
-    @PostMapping("/cadastrar")
-    public ResponseEntity<CinemaResponseDTO> cadastrar(@RequestBody @Valid CinemaRequestDTO dto) {
+    @PostMapping
+    public ResponseEntity<CinemaResponseDTO> cadastrar(@RequestBody CinemaRequestDTO dto) {
 
         CinemaResponseDTO cinema = cinemaService.cadastrar(dto);
 
@@ -34,7 +31,7 @@ public class CinemaController {
 
     }
     
-    @GetMapping("/listar-todos")
+    @GetMapping
     public ResponseEntity<List<CinemaResponseDTO>> listarTodos() {
 
         List<CinemaResponseDTO> lista = cinemaService.listarTodos();

@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
 import poltrona.dto.poltrona.PoltronaResponseDTO;
 import poltrona.dto.sala.SalaRequestDTO;
@@ -11,31 +12,27 @@ import poltrona.dto.sala.SalaResponseDTO;
 import poltrona.entity.Sala;
 
 @Component
+@RequiredArgsConstructor
 public class SalaMapper {
 
     private final PoltronaMapper poltronaMapper;
 
-    public SalaMapper(PoltronaMapper poltronaMapper) {
-        this.poltronaMapper = poltronaMapper;
-    }
-
     public Sala toEntity(SalaRequestDTO dto) {
-        if (dto == null)
+        if (dto == null) {
             return null;
+        }
 
-        Sala entidade = new Sala();
-        entidade.setNumero(dto.numero());
-        entidade.setFileiras(dto.fileiras());
-        entidade.setPoltronasPorFileira(dto.poltronasPorFileira());
-
-        return entidade;
+        return Sala.builder()
+                .numero(dto.numero())
+                .fileiras(dto.fileiras())
+                .poltronasPorFileira(dto.poltronasPorFileira())
+                .build();
     }
 
     public SalaResponseDTO toDTO(Sala entidade) {
-        if (entidade == null)
+        if (entidade == null) {
             return null;
-
-        //Long cinemaId = entidade.getCinema() != null ? entidade.getCinema().getId() : null;
+        }
 
         List<PoltronaResponseDTO> poltronasDTO = entidade.getPoltronas() != null
                 ? entidade.getPoltronas().stream().map(poltronaMapper::toDTO).toList()
@@ -46,7 +43,7 @@ public class SalaMapper {
                 entidade.getNumero(),
                 entidade.getFileiras(),
                 entidade.getPoltronasPorFileira(),
-                poltronasDTO/*,
-        cinemaId*/);
+                poltronasDTO
+        );
     }
 }

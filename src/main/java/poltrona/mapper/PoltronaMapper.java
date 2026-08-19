@@ -10,18 +10,20 @@ import poltrona.entity.Poltrona;
 public class PoltronaMapper {
 
     public Poltrona toEntity(PoltronaRequestDTO dto) {
-        if (dto == null)
+        if (dto == null) {
             return null;
+        }
 
-        Poltrona entidade = new Poltrona();
-        entidade.setFileira(dto.fileira());
-        entidade.setColuna(dto.coluna());
-        return entidade;
+        return Poltrona.builder()
+                .fileira(dto.fileira())
+                .coluna(dto.coluna())
+                .build();
     }
 
     public PoltronaResponseDTO toDTO(Poltrona entidade) {
-        if (entidade == null)
+        if (entidade == null) {
             return null;
+        }
 
         Long idSala = entidade.getSala() != null ? entidade.getSala().getId() : null;
 
@@ -30,6 +32,7 @@ public class PoltronaMapper {
                 entidade.getFileira(),
                 entidade.getColuna(),
                 entidade.getTipo(),
-                idSala);
+                idSala
+        );
     }
 }

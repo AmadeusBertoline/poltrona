@@ -9,19 +9,20 @@ import poltrona.entity.Endereco;
 @Component
 public class EnderecoMapper {
 
-    public Endereco toEntity(EnderecoRequestDTO endereco) {
+    public Endereco toEntity(EnderecoRequestDTO dto) {
+        if (dto == null) {
+            return null;
+        }
 
-        Endereco entidade = new Endereco();
-        entidade.setBairro(endereco.bairro());
-        entidade.setCep(endereco.cep());
-        entidade.setCidade(endereco.cidade());
-        entidade.setComplemento(endereco.complemento());
-        entidade.setLogradouro(endereco.logradouro());
-        entidade.setNumero(endereco.numero());
-        entidade.setUf(endereco.uf());
-
-        return entidade;
-
+        return Endereco.builder()
+                .logradouro(dto.logradouro())
+                .numero(dto.numero())
+                .complemento(dto.complemento())
+                .bairro(dto.bairro())
+                .cidade(dto.cidade())
+                .uf(dto.uf())
+                .cep(dto.cep())
+                .build();
     }
 
     public EnderecoResponseDTO toDTO(Endereco entidade) {
@@ -30,14 +31,13 @@ public class EnderecoMapper {
         }
 
         return new EnderecoResponseDTO(
-            entidade.getLogradouro(),
-            entidade.getNumero(),
-            entidade.getComplemento(),
-            entidade.getBairro(),
-            entidade.getCidade(),
-            entidade.getUf(),
-            entidade.getCep()
+                entidade.getLogradouro(),
+                entidade.getNumero(),
+                entidade.getComplemento(),
+                entidade.getBairro(),
+                entidade.getCidade(),
+                entidade.getUf(),
+                entidade.getCep()
         );
     }
-
 }

@@ -10,13 +10,20 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "cinemas")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Cinema {
 
     @Id
@@ -37,6 +44,7 @@ public class Cinema {
     @Embedded
     private Endereco endereco;
 
+    @Builder.Default
     @OneToMany(mappedBy = "cinema", orphanRemoval = true)
     private List<Sala> salas = new ArrayList<>();
 
