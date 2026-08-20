@@ -1,8 +1,5 @@
 package poltrona.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -12,6 +9,7 @@ import poltrona.dto.filme.FilmeRequestDTO;
 import poltrona.dto.filme.FilmeResponseDTO;
 import poltrona.entity.Filme;
 import poltrona.exception.RegraNegocioException;
+import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.FilmeMapper;
 import poltrona.repository.FilmeRepository;
 
@@ -46,13 +44,6 @@ public class FilmeService {
 
     }
 
-    @Transactional(readOnly = true)
-    public FilmeResponseDTO buscarPorId(Long id) {
-        Filme filme = filmeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Filme não encontrado com o ID: " + id));
-        return filmeMapper.toDTO(filme);
-    }
-
     @Transactional
     public FilmeResponseDTO atualizar(Long id, FilmeRequestDTO dto) {
         Filme filme = filmeRepository.findById(id)
@@ -65,10 +56,11 @@ public class FilmeService {
 
     @Transactional
     public void deletar(Long id) {
-        if (!filmeRepository.existsById(id)) {
-            throw new EntityNotFoundException("Filme não encontrado com o ID: " + id);
-        }
-        filmeRepository.deleteById(id);
+
+        Filme filme = filmeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado de id " + id));
+
+        filmeRepository.delete(filme);
     }
 
 }

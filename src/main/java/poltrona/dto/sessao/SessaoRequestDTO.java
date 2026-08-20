@@ -4,9 +4,10 @@ import java.time.LocalDateTime;
 
 public record SessaoRequestDTO(
 
-        LocalDateTime dataHoraInicio,
-        Long idFilme,
-        Long idSala
+                LocalDateTime dataHoraInicio,
+                Long idFilme,
+                Long idSala,
+                Long idPreco
 
 ) {
 }

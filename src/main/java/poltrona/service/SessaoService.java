@@ -8,12 +8,14 @@ import org.springframework.stereotype.Service;
 import poltrona.dto.sessao.SessaoRequestDTO;
 import poltrona.dto.sessao.SessaoResponseDTO;
 import poltrona.entity.Filme;
+import poltrona.entity.Preco;
 import poltrona.entity.Sala;
 import poltrona.entity.Sessao;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.SessaoMapper;
 import poltrona.repository.FilmeRepository;
+import poltrona.repository.PrecoRepository;
 import poltrona.repository.SalaRepository;
 import poltrona.repository.SessaoRepository;
 
@@ -24,13 +26,15 @@ public class SessaoService {
     private final FilmeRepository filmeRepository;
     private final SalaRepository salaRepository;
     private final SessaoMapper sessaoMapper;
+    private final PrecoRepository precoRepository;
 
     public SessaoService(SessaoRepository sessaoRepository, FilmeRepository filmeRepository,
-            SalaRepository salaRepository, SessaoMapper sessaoMapper) {
+            SalaRepository salaRepository, SessaoMapper sessaoMapper, PrecoRepository precoRepository) {
         this.sessaoRepository = sessaoRepository;
         this.filmeRepository = filmeRepository;
         this.salaRepository = salaRepository;
         this.sessaoMapper = sessaoMapper;
+        this.precoRepository = precoRepository;
     }
 
     public SessaoResponseDTO cadastrar(SessaoRequestDTO dto) {
@@ -41,11 +45,14 @@ public class SessaoService {
         Sala sala = salaRepository.findById(dto.idSala())
                 .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada"));
 
+        Preco preco = precoRepository.findById(dto.idPreco())
+                .orElseThrow(() -> new ResourceNotFoundException("Preço não encontrado"));
+
         if (dto.dataHoraInicio().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("A data da sessão deve ser futura");
         }
 
-        Sessao sessao = sessaoMapper.toEntity(dto, filme, sala);
+        Sessao sessao = sessaoMapper.toEntity(dto, filme, sala, preco);
 
         if (sessaoRepository.existeConflitoDeHorario(sala.getId(), dto.dataHoraInicio(), sessao.getDataHoraFim())) {
             throw new RegraNegocioException("O horário da sessão cadastrada está em conflito com outra sessão");

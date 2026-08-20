@@ -46,6 +46,10 @@ public class Sessao {
     @JoinColumn(name = "sala_id", nullable = false)
     private Sala sala;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "preco_id", nullable = false)
+    private Preco preco;
+
     @Column(nullable = false)
     private StatusSessao status;
 

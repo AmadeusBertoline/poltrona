@@ -45,8 +45,8 @@ public class Sala {
     @OneToMany(mappedBy = "sala", fetch = FetchType.LAZY)
     private List<Poltrona> poltronas;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "cinema_id", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "cinema_id", nullable = false)
     private Cinema cinema;
 
 }
