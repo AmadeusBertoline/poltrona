@@ -2,10 +2,10 @@ package poltrona.service;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import poltrona.dto.ingresso.IngressoRequestDTO;
 import poltrona.dto.ingresso.IngressoResponseDTO;
 import poltrona.entity.Ingresso;
@@ -44,27 +44,27 @@ public class IngressoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada"));
 
         if (!Objects.equals(poltrona.getSala().getId(), sessao.getSala().getId())) {
-            throw new RegraNegocioException("A poltrona deve estar na mesma sala que a sessão irá ocorrer");
+            throw new RegraNegocioException("A poltrona deve estar na mesma sala em que a sessão irá ocorrer.");
         }
 
         if (ingressoRepository.existsBySessaoIdAndPoltronaId(dto.idSessao(), dto.idPoltrona())) {
-            throw new RegraNegocioException("Esta poltrona já está ocupada nessa sessão");
+            throw new RegraNegocioException("Esta poltrona já está ocupada nesta sessão.");
         }
 
-        if (sessao.getDataHoraFim().isBefore(LocalDateTime.now())) {
-            throw new RegraNegocioException("Não é possível comprar ingressos para sessões já encerradas");
-        }
-
-        if (sessao.getDataHoraInicio().plusMinutes(sessao.getPoliticaVenda().getToleranciaMinutosCompra())
-                .isBefore(LocalDateTime.now())) {
-            throw new RegraNegocioException("Não é possível comprar ingressos após 15 minutos de início das sessões");
-        }
+        sessao.validarPermiteVenda(LocalDateTime.now());
 
         Ingresso ingresso = ingressoMapper.toEntity(dto, sessao, poltrona);
-
         Ingresso salvo = ingressoRepository.save(ingresso);
 
         return ingressoMapper.toDTO(salvo);
 
     }
+
+    @Transactional(readOnly = true)
+    public Page<IngressoResponseDTO> listarTodos(Pageable pageable) {
+
+        return ingressoRepository.findAll(pageable).map(ingressoMapper::toDTO);
+
+    }
+
 }

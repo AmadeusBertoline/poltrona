@@ -25,18 +25,34 @@ public class AuthService {
 
     public LoginResponseDTO logar(LoginRequestDTO dto) {
 
+        System.out.println("1 - iniciando login");
+
         Usuario usuario = usuarioRepository.findByEmailOrCpf(dto.emailOrCpf())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário ou senha inválidos"));
 
+        System.out.println("2 - usuario encontrado: " + usuario.getId());
+
         if (!passwordEncoder.matches(dto.senha(), usuario.getSenha())) {
+            System.out.println("3 - senha inválida");
             throw new BadCredentialsException("Usuário ou senha inválidos");
         }
 
+        System.out.println("4 - senha válida");
+
         String token = jwtService.gerarToken(usuario);
 
-        return new LoginResponseDTO(token, "Bearer", usuario.getId(), usuario.getEmail(),
-                jwtService.extrairTipoUsuario(token));
+        System.out.println("5 - token gerado");
 
+        String tipo = jwtService.extrairTipoUsuario(token);
+
+        System.out.println("6 - tipo extraído: " + tipo);
+
+        return new LoginResponseDTO(
+                token,
+                "Bearer",
+                usuario.getId(),
+                usuario.getEmail(),
+                tipo);
     }
 
 }

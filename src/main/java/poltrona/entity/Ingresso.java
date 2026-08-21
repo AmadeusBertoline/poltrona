@@ -46,6 +46,7 @@ public class Ingresso {
         this.preco = tipo.calcularPrecoFinal(sessao.getPreco().getPrecoBase());
         this.sessao = sessao;
         this.poltrona = poltrona;
+        this.tipo = tipo;
     }
 
 }

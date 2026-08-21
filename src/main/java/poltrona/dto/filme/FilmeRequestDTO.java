@@ -7,6 +7,7 @@ import poltrona.enums.GeneroFilme;
 import poltrona.validation.caminhoImagemValido.CaminhoImagemValido;
 import poltrona.validation.dataLancamentoValida.DataLancamentoValida;
 import poltrona.validation.duracaoValida.DuracaoValida;
+import poltrona.validation.generosValidos.GenerosValidos;
 import poltrona.validation.nomeValido.NomeValido;
 import poltrona.validation.sinopseValida.SinopseValida;
 import poltrona.validation.tituloValido.TituloValido;
@@ -19,7 +20,7 @@ public record FilmeRequestDTO(
     @SinopseValida
     String sinopse,
 
-    @NomeValido
+    @GenerosValidos
     Set<GeneroFilme> generos,
 
     @DuracaoValida
