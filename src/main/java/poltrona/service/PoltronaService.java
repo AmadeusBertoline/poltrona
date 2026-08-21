@@ -32,12 +32,9 @@ public class PoltronaService {
             for (int j = 1; j <= poltronasPorFileira; j++) {
 
                 char letra = (char) ('A' + i);
-                Poltrona poltrona = Poltrona.builder()
-                        .fileira(letra)
-                        .coluna(j)
-                        .sala(sala)
-                        .build();
                 
+                Poltrona poltrona = new Poltrona(letra, j, sala);
+
                 Poltrona poltronaSalva = poltronaRepository.save(poltrona);
 
                 poltronas.add(poltronaSalva);

@@ -39,8 +39,9 @@ public class AdminService {
             throw new RegraNegocioException("As senhas devem ser iguais");
         }
 
-        Admin admin = adminMapper.toEntity(dto);
-        admin.setSenha(passwordEncoder.encode(dto.usuario().senha()));
+        String senha = passwordEncoder.encode(dto.usuario().senha());
+
+        Admin admin = adminMapper.toEntity(dto, senha);
         Admin salvo = adminRepository.save(admin);
 
         return adminMapper.toDTO(salvo);

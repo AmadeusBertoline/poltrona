@@ -12,16 +12,16 @@ public class AdminMapper {
 
     private final UsuarioMapper usuarioMapper;
 
-    public Admin toEntity(AdminRequestDTO dto) {
+    public Admin toEntity(AdminRequestDTO dto, String senha) {
         if (dto == null) {
             return null;
         }
 
-        return Admin.builder()
-                .nome(dto.usuario().nome())
-                .email(dto.usuario().email())
-                .cpf(dto.usuario().cpf())
-                .build();
+        return new Admin(
+                dto.usuario().nome(),
+                dto.usuario().email(),
+                senha,
+                dto.usuario().cpf());
     }
 
     public AdminResponseDTO toDTO(Admin admin) {

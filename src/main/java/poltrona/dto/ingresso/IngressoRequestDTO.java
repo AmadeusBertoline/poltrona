@@ -1,7 +1,12 @@
 package poltrona.dto.ingresso;
 
-public record IngressoRequestDTO (
+import poltrona.enums.TipoIngresso;
 
-    
+public record IngressoRequestDTO(
 
-){}
+        TipoIngresso tipo,
+        Long idSessao,
+        Long idPoltrona
+
+) {
+}

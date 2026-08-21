@@ -14,16 +14,15 @@ public class FilmeMapper {
             return null;
         }
 
-        return Filme.builder()
-                .titulo(dto.titulo())
-                .sinopse(dto.sinopse())
-                .generos(dto.generos())
-                .duracao(dto.duracao())
-                .diretor(dto.diretor())
-                .distribuidora(dto.distribuidora())
-                .dataLancamento(dto.dataLancamento())
-                .imagePath(dto.imagePath())
-                .build();
+        return new Filme(
+                dto.titulo(),
+                dto.sinopse(),
+                dto.generos(),
+                dto.duracao(),
+                dto.diretor(),
+                dto.distribuidora(),
+                dto.dataLancamento(),
+                dto.imagePath());
     }
 
     public FilmeResponseDTO toDTO(Filme entidade) {

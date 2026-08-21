@@ -10,26 +10,31 @@ import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
 import poltrona.dto.sala.SalaResponseDTO;
 import poltrona.entity.Cinema;
+import poltrona.entity.Endereco;
 
 @Component
-@RequiredArgsConstructor
 public class CinemaMapper {
 
     private final EnderecoMapper enderecoMapper;
     private final SalaMapper salaMapper;
 
-    public Cinema toEntity(CinemaRequestDTO dto) {
-        if (dto == null) {
-            return null;
-        }
+    public CinemaMapper(EnderecoMapper enderecoMapper, SalaMapper salaMapper) {
+        this.enderecoMapper = enderecoMapper;
+        this.salaMapper = salaMapper;
+    }
 
-        return Cinema.builder()
-                .nomeFantasia(dto.nomeFantasia())
-                .razaoSocial(dto.razaoSocial())
-                .cnpj(dto.cnpj())
-                .telefone(dto.telefone())
-                .endereco(dto.endereco() != null ? enderecoMapper.toEntity(dto.endereco()) : null)
-                .build();
+    public Cinema toEntity(CinemaRequestDTO dto) {
+        if (dto == null)
+            return null;
+
+        Endereco endereco = dto.endereco() != null ? enderecoMapper.toEntity(dto.endereco()) : null;
+
+        return new Cinema(
+                dto.nomeFantasia(),
+                dto.razaoSocial(),
+                dto.cnpj(),
+                dto.telefone(),
+                endereco);
     }
 
     public CinemaResponseDTO toDTO(Cinema entidade) {
@@ -48,7 +53,6 @@ public class CinemaMapper {
                 entidade.getCnpj(),
                 entidade.getTelefone(),
                 enderecoMapper.toDTO(entidade.getEndereco()),
-                salasDTO
-        );
+                salasDTO);
     }
 }

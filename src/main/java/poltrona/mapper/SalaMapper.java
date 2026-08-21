@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import poltrona.dto.poltrona.PoltronaResponseDTO;
 import poltrona.dto.sala.SalaRequestDTO;
 import poltrona.dto.sala.SalaResponseDTO;
+import poltrona.entity.Cinema;
 import poltrona.entity.Sala;
 
 @Component
@@ -17,16 +18,20 @@ public class SalaMapper {
 
     private final PoltronaMapper poltronaMapper;
 
-    public Sala toEntity(SalaRequestDTO dto) {
+    public Sala toEntity(SalaRequestDTO dto, Cinema cinema) {
         if (dto == null) {
             return null;
         }
 
-        return Sala.builder()
-                .numero(dto.numero())
-                .fileiras(dto.fileiras())
-                .poltronasPorFileira(dto.poltronasPorFileira())
-                .build();
+        return new Sala(
+                dto.numero(),
+                dto.fileiras(),
+                dto.poltronasPorFileira(),
+                cinema);
+    }
+
+    public Sala toEntity(SalaRequestDTO dto) {
+        return toEntity(dto, null);
     }
 
     public SalaResponseDTO toDTO(Sala entidade) {
@@ -43,7 +48,6 @@ public class SalaMapper {
                 entidade.getNumero(),
                 entidade.getFileiras(),
                 entidade.getPoltronasPorFileira(),
-                poltronasDTO
-        );
+                poltronasDTO);
     }
 }

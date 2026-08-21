@@ -4,9 +4,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum StatusSessao {
 
-    EM_BREVE("Em breve"),
+    AGENDADA("Agendada"),
     INICIADA("Iniciada"),
-    FINALIZADA("Finalizada");
+    FINALIZADA("Finalizada"),
+    CANCELADA("Cancelada");
 
     private final String status;
 

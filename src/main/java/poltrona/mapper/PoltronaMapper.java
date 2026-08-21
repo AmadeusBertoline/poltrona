@@ -5,19 +5,24 @@ import org.springframework.stereotype.Component;
 import poltrona.dto.poltrona.PoltronaRequestDTO;
 import poltrona.dto.poltrona.PoltronaResponseDTO;
 import poltrona.entity.Poltrona;
+import poltrona.entity.Sala;
 
 @Component
 public class PoltronaMapper {
 
-    public Poltrona toEntity(PoltronaRequestDTO dto) {
+    public Poltrona toEntity(PoltronaRequestDTO dto, Sala sala) {
         if (dto == null) {
             return null;
         }
 
-        return Poltrona.builder()
-                .fileira(dto.fileira())
-                .coluna(dto.coluna())
-                .build();
+        return new Poltrona(
+                dto.fileira(),
+                dto.coluna(),
+                sala);
+    }
+
+    public Poltrona toEntity(PoltronaRequestDTO dto) {
+        return toEntity(dto, null);
     }
 
     public PoltronaResponseDTO toDTO(Poltrona entidade) {
@@ -32,7 +37,6 @@ public class PoltronaMapper {
                 entidade.getFileira(),
                 entidade.getColuna(),
                 entidade.getTipo(),
-                idSala
-        );
+                idSala);
     }
 }

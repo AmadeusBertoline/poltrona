@@ -12,20 +12,20 @@ public class OperadorMapper {
 
     private final UsuarioMapper usuarioMapper;
 
-    public Operador toEntity(OperadorRequestDTO dto) {
+    public Operador toEntity(OperadorRequestDTO dto, String senha) {
         if (dto == null) {
             return null;
         }
 
-        return Operador.builder()
-                .nome(dto.usuario().nome())
-                .email(dto.usuario().email())
-                .cpf(dto.usuario().cpf())
-                .matricula(dto.matricula())
-                .cargo(dto.cargo())
-                .departamento(dto.departamento())
-                .dataAdmissao(dto.dataAdmissao())
-                .build();
+        return new Operador(
+                dto.usuario().nome(),
+                dto.usuario().email(),
+                senha,
+                dto.usuario().cpf(),
+                dto.matricula(),
+                dto.cargo(),
+                dto.departamento(),
+                dto.dataAdmissao());
     }
 
     public OperadorResponseDTO toDTO(Operador operador) {
@@ -38,7 +38,6 @@ public class OperadorMapper {
                 operador.getMatricula(),
                 operador.getCargo(),
                 operador.getDepartamento(),
-                operador.getDataAdmissao()
-        );
+                operador.getDataAdmissao());
     }
 }

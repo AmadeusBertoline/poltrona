@@ -1,9 +1,10 @@
 package poltrona.entity;
 
 import java.math.BigDecimal;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,12 +15,10 @@ import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import poltrona.enums.TipoIngresso;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 
 public class Ingresso {
@@ -32,6 +31,7 @@ public class Ingresso {
     private BigDecimal preco;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private TipoIngresso tipo;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -42,10 +42,10 @@ public class Ingresso {
     @JoinColumn(name = "poltrona_id", nullable = false)
     private Poltrona poltrona;
 
-    public Ingresso(Sessao sessao, Poltrona poltrona, TipoIngresso tipo) {
+    public Ingresso(TipoIngresso tipo, Sessao sessao, Poltrona poltrona) {
+        this.preco = tipo.calcularPrecoFinal(sessao.getPreco().getPrecoBase());
         this.sessao = sessao;
         this.poltrona = poltrona;
-        this.tipo = tipo;
     }
 
 }

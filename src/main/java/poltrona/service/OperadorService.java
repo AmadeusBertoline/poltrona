@@ -38,8 +38,9 @@ public class OperadorService {
             throw new RegraNegocioException("As senhas devem ser iguais");
         }
 
-        Operador operador = operadorMapper.toEntity(dto);
-        operador.setSenha(passwordEncoder.encode(dto.usuario().senha()));
+        String senha = passwordEncoder.encode(dto.usuario().senha());
+
+        Operador operador = operadorMapper.toEntity(dto, senha);
         Operador salvo = operadorRepository.save(operador);
 
         return operadorMapper.toDTO(salvo);

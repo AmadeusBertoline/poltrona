@@ -10,20 +10,20 @@ import poltrona.entity.Endereco;
 public class EnderecoMapper {
 
     public Endereco toEntity(EnderecoRequestDTO dto) {
-        if (dto == null) {
+        if (dto == null)
             return null;
-        }
 
-        return Endereco.builder()
-                .logradouro(dto.logradouro())
-                .numero(dto.numero())
-                .complemento(dto.complemento())
-                .bairro(dto.bairro())
-                .cidade(dto.cidade())
-                .uf(dto.uf())
-                .cep(dto.cep())
-                .build();
+        return new Endereco(
+                dto.logradouro(),
+                dto.numero(),
+                dto.complemento(),
+                dto.bairro(),
+                dto.cidade(),
+                dto.uf(),
+                dto.cep());
     }
+
+
 
     public EnderecoResponseDTO toDTO(Endereco entidade) {
         if (entidade == null) {
@@ -37,7 +37,6 @@ public class EnderecoMapper {
                 entidade.getBairro(),
                 entidade.getCidade(),
                 entidade.getUf(),
-                entidade.getCep()
-        );
+                entidade.getCep());
     }
 }

@@ -41,8 +41,9 @@ public class ClienteService {
             throw new RegraNegocioException("As senhas devem ser iguais");
         }
 
-        Cliente cliente = clienteMapper.toEntity(dto);
-        cliente.setSenha(passwordEncoder.encode(dto.usuario().senha()));
+        String senha = passwordEncoder.encode(dto.usuario().senha());
+
+        Cliente cliente = clienteMapper.toEntity(dto, senha);
 
         Cliente salvo = clienteRepository.save(cliente);
 

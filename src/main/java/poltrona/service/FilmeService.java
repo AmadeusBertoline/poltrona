@@ -49,7 +49,13 @@ public class FilmeService {
         Filme filme = filmeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Filme não encontrado com o ID: " + id));
 
-        filme.atualizarDados(dto);
+        filme.atualizarDados(dto.titulo(),
+                dto.sinopse(),
+                dto.duracao(),
+                dto.diretor(),
+                dto.distribuidora(),
+                dto.dataLancamento(),
+                dto.imagePath());
 
         return filmeMapper.toDTO(filme);
     }

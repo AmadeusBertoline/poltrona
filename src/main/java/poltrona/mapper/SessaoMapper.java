@@ -1,6 +1,7 @@
 package poltrona.mapper;
 
 import org.springframework.stereotype.Component;
+
 import poltrona.dto.sessao.SessaoRequestDTO;
 import poltrona.dto.sessao.SessaoResponseDTO;
 import poltrona.entity.Filme;
@@ -16,12 +17,13 @@ public class SessaoMapper {
             return null;
         }
 
-        return Sessao.builder()
-                .filme(filme)
-                .sala(sala)
-                .dataHoraInicio(dto.dataHoraInicio())
-                .preco(preco)
-                .build();
+        return new Sessao(
+                dto.dataHoraInicio(),
+                filme,
+                sala,
+                preco,
+                null
+        );
     }
 
     public SessaoResponseDTO toDTO(Sessao entidade) {
@@ -33,8 +35,8 @@ public class SessaoMapper {
                 entidade.getId(),
                 entidade.getDataHoraInicio(),
                 entidade.getDataHoraFim(),
-                entidade.getFilme().getTitulo(),
-                entidade.getSala().getNumero(),
-                entidade.getPreco().getPrecoBase());
+                entidade.getFilme() != null ? entidade.getFilme().getTitulo() : null,
+                entidade.getSala() != null ? entidade.getSala().getNumero() : null,
+                entidade.getPreco() != null ? entidade.getPreco().getPrecoBase() : null);
     }
 }

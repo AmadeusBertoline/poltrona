@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import poltrona.dto.preco.AtualizaPrecoRequestDTO;
 import poltrona.dto.preco.PrecoRequestDTO;
@@ -60,16 +61,19 @@ public class PrecoService {
         Preco preco = precoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Preço não encontrado de id " + id));
 
-        if (dto.precoBase().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RegraNegocioException("O preço deve ser maior que zero");
-        }
-
         if (dto.precoBase() != null) {
-            preco.setPrecoBase(dto.precoBase());
+            if (dto.precoBase().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RegraNegocioException("O preço deve ser maior que zero");
+            }
+            preco.atualizarPrecoBase(dto.precoBase());
         }
 
         if (dto.status() != null) {
-            preco.setAtivo(dto.status());
+            if (Boolean.TRUE.equals(dto.status())) {
+                preco.ativar();
+            } else {
+                preco.desativar();
+            }
         }
 
         Preco salvo = precoRepository.save(preco);

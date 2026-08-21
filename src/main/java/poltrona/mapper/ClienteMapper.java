@@ -13,17 +13,17 @@ public class ClienteMapper {
 
     private final UsuarioMapper usuarioMapper;
 
-    public Cliente toEntity(ClienteRequestDTO dto) {
+    public Cliente toEntity(ClienteRequestDTO dto, String senha) {
         if (dto == null) {
             return null;
         }
 
-        return Cliente.builder()
-                .nome(dto.usuario().nome())
-                .email(dto.usuario().email())
-                .cpf(dto.usuario().cpf())
-                .telefone(dto.telefone())
-                .build();
+        return new Cliente(
+                dto.usuario().nome(),
+                dto.usuario().email(),
+                dto.usuario().cpf(),
+                senha,
+                dto.telefone());
     }
 
     public ClienteResponseDTO toDTO(Cliente cliente) {

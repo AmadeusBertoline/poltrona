@@ -5,15 +5,14 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "administradores")
+@Table(name = "admins")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SuperBuilder
 public class Admin extends Usuario {
 
+    public Admin(String nome, String email, String senha, String cpf) {
+        super(nome, email, senha, cpf);
+    }
 }

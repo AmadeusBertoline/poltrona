@@ -10,25 +10,25 @@ import poltrona.entity.Preco;
 public class PrecoMapper {
 
     public Preco toEntity(PrecoRequestDTO dto) {
+        if (dto == null) {
+            return null;
+        }
 
-        return Preco.builder()
-                .nome(dto.nome())
-                .precoBase(dto.precoBase())
-                .build();
-
+        return new Preco(
+                dto.nome(),
+                dto.precoBase()
+        );
     }
 
     public PrecoResponseDTO toDTO(Preco preco) {
+        if (preco == null) {
+            return null;
+        }
 
         return new PrecoResponseDTO(
-
                 preco.getId(),
                 preco.getNome(),
                 preco.getPrecoBase(),
-                preco.getAtivo()
-
-        );
-
+                preco.getAtivo());
     }
-
 }

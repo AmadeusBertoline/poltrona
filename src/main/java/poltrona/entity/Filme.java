@@ -14,25 +14,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import poltrona.dto.filme.FilmeRequestDTO;
 import poltrona.enums.GeneroFilme;
 import poltrona.enums.StatusFilme;
 
 @Entity
 @Getter
-@Setter
 @Table(name = "filmes")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 public class Filme {
 
     @Id
@@ -49,7 +41,6 @@ public class Filme {
     @CollectionTable(name = "generos", joinColumns = @JoinColumn(name = "filme_id"))
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    @Builder.Default
     private Set<GeneroFilme> generos = new HashSet<>();
 
     @Column(nullable = false)
@@ -71,23 +62,50 @@ public class Filme {
     @Enumerated(EnumType.STRING)
     private StatusFilme status;
 
+    public Filme(String titulo, String sinopse, Set<GeneroFilme> generos, Integer duracao,
+            String diretor, String distribuidora, LocalDate dataLancamento, String imagePath) {
+        this.titulo = titulo;
+        this.sinopse = sinopse;
 
-    @PrePersist
-    void prePersist() {
+        if (generos != null) {
+            this.generos.addAll(generos);
+        }
+
+        this.duracao = duracao;
+        this.diretor = diretor;
+        this.distribuidora = distribuidora;
+        this.dataLancamento = dataLancamento;
+        this.imagePath = imagePath;
         this.status = StatusFilme.EM_BREVE;
     }
 
-    public void atualizarDados(FilmeRequestDTO dto) {
-        if (dto.titulo() != null && !dto.titulo().isBlank()) {
-            this.titulo = dto.titulo();
-        }
-        if (dto.duracao() != null) {
-            this.duracao = dto.duracao();
-        }
+    public void atualizarDados(String titulo, String sinopse, Integer duracao, String diretor,
+            String distribuidora, LocalDate dataLancamento, String imagePath) {
+        if (titulo != null && !titulo.isBlank())
+            this.titulo = titulo;
+        if (sinopse != null && !sinopse.isBlank())
+            this.sinopse = sinopse;
+        if (duracao != null)
+            this.duracao = duracao;
+        if (diretor != null && !diretor.isBlank())
+            this.diretor = diretor;
+        if (distribuidora != null && !distribuidora.isBlank())
+            this.distribuidora = distribuidora;
+        if (dataLancamento != null)
+            this.dataLancamento = dataLancamento;
+        if (imagePath != null && !imagePath.isBlank())
+            this.imagePath = imagePath;
     }
 
     public void adicionarGenero(GeneroFilme genero) {
         this.generos.add(genero);
     }
 
+    public void removerGenero(GeneroFilme genero) {
+        this.generos.remove(genero);
+    }
+
+    public void alterarStatus(StatusFilme novoStatus) {
+        this.status = novoStatus;
+    }
 }
