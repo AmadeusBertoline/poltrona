@@ -2,10 +2,7 @@ package poltrona.mapper;
 
 import java.util.Collections;
 import java.util.List;
-
 import org.springframework.stereotype.Component;
-import lombok.RequiredArgsConstructor;
-
 import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
 import poltrona.dto.sala.SalaResponseDTO;

@@ -54,4 +54,8 @@ public class Poltrona {
             this.tipo = tipo;
         }
     }
+
+    public String getNumero() {
+        return fileira + String.valueOf(coluna);
+    }
 }

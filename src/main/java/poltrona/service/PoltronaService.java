@@ -32,7 +32,7 @@ public class PoltronaService {
             for (int j = 1; j <= poltronasPorFileira; j++) {
 
                 char letra = (char) ('A' + i);
-                
+
                 Poltrona poltrona = new Poltrona(letra, j, sala);
 
                 Poltrona poltronaSalva = poltronaRepository.save(poltrona);
@@ -47,9 +47,9 @@ public class PoltronaService {
 
     }
 
-    public List<PoltronaResponseDTO> listarPorSala(Integer numero) {
+    public List<PoltronaResponseDTO> buscarPorId(Long id) {
 
-        return poltronaRepository.findAllBySalaNumero(numero)
+        return poltronaRepository.findById(id)
                 .stream()
                 .map(poltronaMapper::toDTO)
                 .collect(Collectors.toList());

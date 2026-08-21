@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import poltrona.entity.Poltrona;
 
-public interface PoltronaRepository extends JpaRepository<Poltrona, Long>{
-    
-    List<Poltrona> findAllBySalaNumero(Integer numero);
+public interface PoltronaRepository extends JpaRepository<Poltrona, Long> {
+
+    List<Poltrona> findBySalaId(Long id);
 
 }

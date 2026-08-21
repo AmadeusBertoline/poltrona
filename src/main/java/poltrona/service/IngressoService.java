@@ -67,4 +67,17 @@ public class IngressoService {
 
     }
 
+    @Transactional
+    public void cancelar(Long id) {
+        Ingresso ingresso = ingressoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ingresso não encontrado"));
+
+        if (ingresso.getSessao().getDataHoraInicio().isBefore(LocalDateTime.now())) {
+            throw new RegraNegocioException(
+                    "Não é possível cancelar o ingresso de uma sessão que já iniciou ou ocorreu.");
+        }
+
+        ingressoRepository.delete(ingresso);
+    }
+
 }

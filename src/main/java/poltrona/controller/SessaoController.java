@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
+import poltrona.dto.poltrona.MapaPoltronasResponseDTO;
 import poltrona.dto.sessao.SessaoRequestDTO;
 import poltrona.dto.sessao.SessaoResponseDTO;
 import poltrona.service.SessaoService;
@@ -61,6 +62,15 @@ public class SessaoController {
         sessaoService.deletar(id);
 
         return ResponseEntity.noContent().build();
+
+    }
+
+    @GetMapping("/{id}/mapa-poltronas")
+    public ResponseEntity<MapaPoltronasResponseDTO> obterMapaPoltronas(@PathVariable Long id) {
+
+        MapaPoltronasResponseDTO response = sessaoService.obterMapaPoltronas(id);
+
+        return ResponseEntity.ok(response);
 
     }
 

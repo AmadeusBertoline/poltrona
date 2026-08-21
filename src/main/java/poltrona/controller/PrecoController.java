@@ -40,7 +40,7 @@ public class PrecoController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<PrecoResponseDTO>> listarTodas(
+    public ResponseEntity<Page<PrecoResponseDTO>> listarTodos(
             @PageableDefault(page = 0, size = 10, sort = "precoBase", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<PrecoResponseDTO> precos = precoService.listarTodos(pageable);

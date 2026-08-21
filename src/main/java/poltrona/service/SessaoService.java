@@ -1,13 +1,19 @@
 package poltrona.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import poltrona.dto.poltrona.MapaPoltronasResponseDTO;
+import poltrona.dto.poltrona.PoltronaStatusDTO;
 import poltrona.dto.sessao.SessaoRequestDTO;
 import poltrona.dto.sessao.SessaoResponseDTO;
 import poltrona.entity.Filme;
+import poltrona.entity.Poltrona;
 import poltrona.entity.Preco;
 import poltrona.entity.Sala;
 import poltrona.entity.Sessao;
@@ -15,6 +21,8 @@ import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.SessaoMapper;
 import poltrona.repository.FilmeRepository;
+import poltrona.repository.IngressoRepository;
+import poltrona.repository.PoltronaRepository;
 import poltrona.repository.PrecoRepository;
 import poltrona.repository.SalaRepository;
 import poltrona.repository.SessaoRepository;
@@ -27,16 +35,22 @@ public class SessaoService {
     private final SalaRepository salaRepository;
     private final SessaoMapper sessaoMapper;
     private final PrecoRepository precoRepository;
+    private final PoltronaRepository poltronaRepository;
+    private final IngressoRepository ingressoRepository;
 
     public SessaoService(SessaoRepository sessaoRepository, FilmeRepository filmeRepository,
-            SalaRepository salaRepository, SessaoMapper sessaoMapper, PrecoRepository precoRepository) {
+            SalaRepository salaRepository, SessaoMapper sessaoMapper, PrecoRepository precoRepository,
+            PoltronaRepository poltronaRepository, IngressoRepository ingressoRepository) {
         this.sessaoRepository = sessaoRepository;
         this.filmeRepository = filmeRepository;
         this.salaRepository = salaRepository;
         this.sessaoMapper = sessaoMapper;
         this.precoRepository = precoRepository;
+        this.poltronaRepository = poltronaRepository;
+        this.ingressoRepository = ingressoRepository;
     }
 
+    @Transactional
     public SessaoResponseDTO cadastrar(SessaoRequestDTO dto) {
 
         Filme filme = filmeRepository.findById(dto.idFilme())
@@ -64,6 +78,7 @@ public class SessaoService {
 
     }
 
+    @Transactional(readOnly = true)
     public Page<SessaoResponseDTO> listarTodas(Pageable pageable) {
 
         return sessaoRepository.findAll(pageable)
@@ -71,6 +86,7 @@ public class SessaoService {
 
     }
 
+    @Transactional(readOnly = true)
     public SessaoResponseDTO buscarPorId(Long id) {
 
         Sessao sessao = sessaoRepository.findById(id)
@@ -80,6 +96,7 @@ public class SessaoService {
 
     }
 
+    @Transactional
     public void deletar(Long id) {
 
         if (!sessaoRepository.existsById(id)) {
@@ -88,6 +105,25 @@ public class SessaoService {
 
         sessaoRepository.deleteById(id);
 
+    }
+
+    @Transactional(readOnly = true)
+    public MapaPoltronasResponseDTO obterMapaPoltronas(Long sessaoId) {
+        Sessao sessao = sessaoRepository.findById(sessaoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada"));
+
+        List<Poltrona> poltronasDaSala = poltronaRepository.findBySalaId(sessao.getSala().getId());
+
+        Set<Long> poltronasOcupadasIds = ingressoRepository.findPoltronaIdsBySessaoId(sessaoId);
+
+        List<PoltronaStatusDTO> poltronasStatus = poltronasDaSala.stream()
+                .map(p -> new PoltronaStatusDTO(
+                        p.getId(),
+                        p.getNumero(),
+                        poltronasOcupadasIds.contains(p.getId())))
+                .toList();
+
+        return new MapaPoltronasResponseDTO(sessao.getId(), sessao.getSala().getId(), poltronasStatus);
     }
 
 }
