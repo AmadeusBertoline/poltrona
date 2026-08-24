@@ -10,4 +10,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     @Query("SELECT u FROM Usuario u WHERE u.cpf = :emailOrCpf OR u.email = :emailOrCpf")
     Optional<Usuario> findByEmailOrCpf(@Param("emailOrCpf") String emailOrCpf);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByCpf(String cpf);
 }

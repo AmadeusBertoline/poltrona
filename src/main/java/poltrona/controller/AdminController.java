@@ -1,8 +1,12 @@
 package poltrona.controller;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,9 +37,10 @@ public class AdminController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AdminResponseDTO>> listarTodos() {
+    public ResponseEntity<Page<AdminResponseDTO>> listarTodos(
+            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        List<AdminResponseDTO> admins = adminService.listarTodos();
+        Page<AdminResponseDTO> admins = adminService.listarTodos(pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(admins);
 
@@ -51,7 +56,7 @@ public class AdminController {
     }
 
     @PatchMapping("/me")
-    public ResponseEntity<AdminResponseDTO> atualizar(@RequestBody AtualizaAdminRequestDTO dto){
+    public ResponseEntity<AdminResponseDTO> atualizar(@RequestBody AtualizaAdminRequestDTO dto) {
 
         AdminResponseDTO admin = adminService.atualizar(dto);
 
@@ -59,6 +64,13 @@ public class AdminController {
 
     }
 
-    
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> encerrarConta() {
+
+        adminService.encerrarConta();
+
+        return ResponseEntity.noContent().build();
+
+    }
 
 }

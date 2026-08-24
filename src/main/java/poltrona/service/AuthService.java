@@ -37,7 +37,6 @@ public class AuthService {
             throw new BadCredentialsException("Usuário ou senha inválidos");
         }
 
-        System.out.println("4 - senha válida");
 
         String token = jwtService.gerarToken(usuario);
 
