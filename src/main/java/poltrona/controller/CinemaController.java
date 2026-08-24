@@ -30,7 +30,7 @@ public class CinemaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(cinema);
 
     }
-    
+
     @GetMapping
     public ResponseEntity<List<CinemaResponseDTO>> listarTodos() {
 

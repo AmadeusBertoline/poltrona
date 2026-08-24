@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import jakarta.transaction.Transactional;
 import poltrona.dto.admin.AdminRequestDTO;
 import poltrona.dto.admin.AdminResponseDTO;
+import poltrona.dto.admin.AtualizaAdminRequestDTO;
 import poltrona.entity.Admin;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceAlreadyExistsException;
@@ -18,11 +21,14 @@ public class AdminService {
     private final AdminRepository adminRepository;
     private final AdminMapper adminMapper;
     private final PasswordEncoder passwordEncoder;
+    private final UsuarioService usuarioService;
 
-    public AdminService(AdminRepository adminRepository, AdminMapper adminMapper, PasswordEncoder passwordEncoder) {
+    public AdminService(AdminRepository adminRepository, AdminMapper adminMapper, PasswordEncoder passwordEncoder,
+            UsuarioService usuarioService) {
         this.adminRepository = adminRepository;
         this.adminMapper = adminMapper;
         this.passwordEncoder = passwordEncoder;
+        this.usuarioService = usuarioService;
     }
 
     public AdminResponseDTO cadastrar(AdminRequestDTO dto) {
@@ -55,6 +61,31 @@ public class AdminService {
                 .map(adminMapper::toDTO)
                 .collect(Collectors.toList());
 
+    }
+
+    public AdminResponseDTO me() {
+
+        Admin usuario = (Admin) usuarioService.usuarioLogado();
+
+        return adminMapper.toDTO(usuario);
+
+    }
+
+    @Transactional
+    public AdminResponseDTO atualizar(AtualizaAdminRequestDTO dto) {
+
+        Admin admin = (Admin) usuarioService.usuarioLogado();
+
+        if (adminRepository.existsByEmail(dto.usuario().email())) {
+            throw new ResourceAlreadyExistsException("Email já cadastrado");
+        }
+
+        admin.atualizar(dto.usuario().nome(),
+                dto.usuario().email());
+
+        adminRepository.save(admin);
+
+        return adminMapper.toDTO(admin);
     }
 
 }

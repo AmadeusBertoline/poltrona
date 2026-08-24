@@ -47,12 +47,12 @@ public class PoltronaService {
 
     }
 
-    public List<PoltronaResponseDTO> buscarPorId(Long id) {
+    public PoltronaResponseDTO buscarPorId(Long id) {
 
-        return poltronaRepository.findById(id)
-                .stream()
-                .map(poltronaMapper::toDTO)
-                .collect(Collectors.toList());
+        Poltrona poltrona = poltronaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada de id " + id));
+
+        return poltronaMapper.toDTO(poltrona);
 
     }
 

@@ -22,7 +22,6 @@ public class ClienteController {
 
     @PostMapping
     public ResponseEntity<ClienteResponseDTO> cadastrar(@RequestBody ClienteRequestDTO dto) {
-
         ClienteResponseDTO cliente = clienteService.cadastrar(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(cliente);
 

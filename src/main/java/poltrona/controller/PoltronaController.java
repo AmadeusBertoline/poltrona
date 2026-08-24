@@ -1,6 +1,5 @@
 package poltrona.controller;
 
-import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,9 +23,9 @@ public class PoltronaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<List<PoltronaResponseDTO>> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<PoltronaResponseDTO> buscarPorId(@PathVariable Long id) {
 
-        List<PoltronaResponseDTO> poltronas = poltronaService.buscarPorId(id);
+        PoltronaResponseDTO poltronas = poltronaService.buscarPorId(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(poltronas);
 

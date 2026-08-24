@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import poltrona.dto.usuario.UsuarioRequestDTO;
 
 @Entity
 @Table(name = "usuarios")
@@ -69,5 +70,16 @@ public abstract class Usuario {
 
     public void ativar() {
         this.ativo = true;
+    }
+
+    public void atualizar(String nome, String email) {
+
+        if (nome != null && !nome.isBlank()) {
+            this.nome = nome;
+        }
+
+        if (email != null && !email.isBlank()) {
+            this.email = email;
+        }
     }
 }

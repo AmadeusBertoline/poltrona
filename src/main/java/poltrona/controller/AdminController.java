@@ -4,12 +4,14 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import poltrona.dto.admin.AdminRequestDTO;
 import poltrona.dto.admin.AdminResponseDTO;
+import poltrona.dto.admin.AtualizaAdminRequestDTO;
 import poltrona.service.AdminService;
 
 @RestController
@@ -31,12 +33,32 @@ public class AdminController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AdminResponseDTO>> listarTodos(){
+    public ResponseEntity<List<AdminResponseDTO>> listarTodos() {
 
         List<AdminResponseDTO> admins = adminService.listarTodos();
 
         return ResponseEntity.status(HttpStatus.OK).body(admins);
 
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<AdminResponseDTO> me() {
+
+        AdminResponseDTO admin = adminService.me();
+
+        return ResponseEntity.status(HttpStatus.OK).body(admin);
+
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<AdminResponseDTO> atualizar(@RequestBody AtualizaAdminRequestDTO dto){
+
+        AdminResponseDTO admin = adminService.atualizar(dto);
+
+        return ResponseEntity.status(HttpStatus.OK).body(admin);
+
+    }
+
+    
 
 }
