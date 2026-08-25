@@ -4,8 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import poltrona.entity.Sala;
 
-public interface SalaRepository extends JpaRepository<Sala, Long>{
+public interface SalaRepository extends JpaRepository<Sala, Long> {
 
-    Boolean existsByCinemaId(Long id);
-    
+    boolean existsByCinemaId(Long idCinema);
+
 }

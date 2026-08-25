@@ -1,6 +1,10 @@
 package poltrona.controller;
 
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,12 +36,22 @@ public class CinemaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CinemaResponseDTO>> listarTodos() {
+    public ResponseEntity<Page<CinemaResponseDTO>> listarTodos(
+            @PageableDefault(page = 0, size = 10, sort = "") Pageable pageable) {
 
-        List<CinemaResponseDTO> lista = cinemaService.listarTodos();
+        Page<CinemaResponseDTO> lista = cinemaService.listarTodos(pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(lista);
 
     }
+
+    // @GetMapping("/me")
+    // public ResponseEntity<CinemaResponseDTO> me() {
+
+    //     CinemaResponseDTO cinema = cinemaService.me();
+
+    //     ResponseEntity.status(HttpStatus.OK).body(cinema);
+
+    // }
 
 }

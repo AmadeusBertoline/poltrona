@@ -2,13 +2,17 @@ package poltrona.dto.operador;
 
 import java.time.LocalDate;
 import poltrona.dto.usuario.UsuarioRequestDTO;
+import poltrona.enums.TipoUsuario;
 
-public record OperadorRequestDTO (
+public record OperadorRequestDTO(
 
-    UsuarioRequestDTO usuario,
-    String matricula,
-    String cargo,
-    String departamento,
-    LocalDate dataAdmissao
+        UsuarioRequestDTO usuario,
+        String matricula,
+        TipoUsuario cargo,
+        String telefone,
+        String departamento,
+        TipoUsuario tipo,
+        LocalDate dataAdmissao
 
-){}
+) {
+}

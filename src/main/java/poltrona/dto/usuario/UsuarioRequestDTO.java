@@ -1,11 +1,15 @@
 package poltrona.dto.usuario;
 
-public record UsuarioRequestDTO (
+import java.time.LocalDate;
 
-    String nome,
-    String email,
-    String cpf,
-    String senha,
-    String confirmarSenha
+public record UsuarioRequestDTO(
 
-){}
+        String nome,
+        String email,
+        String cpf,
+        String senha,
+        String confirmarSenha,
+        LocalDate dataNascimento
+
+) {
+}

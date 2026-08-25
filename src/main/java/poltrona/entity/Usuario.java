@@ -1,5 +1,6 @@
 package poltrona.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,7 +9,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -34,27 +34,26 @@ public abstract class Usuario {
     @Column(nullable = false)
     private String senha;
 
-    @Column(unique = true, length = 14)
+    @Column(nullable = false, unique = true, length = 14)
     private String cpf;
 
+    @Column(nullable = false)
+    private LocalDate dataNascimento;
+
+    @Column(nullable = false)
     private Boolean ativo = true;
 
+    @Column(nullable = false)
     private LocalDateTime dataCriacao;
 
-    protected Usuario(String nome, String email, String senha, String cpf) {
+    public Usuario(String nome, String email, String senha, String cpf, LocalDate dataNascimento) {
         this.nome = nome;
         this.email = email;
         this.senha = senha;
         this.cpf = cpf;
+        this.dataNascimento = dataNascimento;
         this.ativo = true;
         this.dataCriacao = LocalDateTime.now();
-    }
-
-    @PrePersist
-    public void prePersist() {
-        if (this.dataCriacao == null) {
-            this.dataCriacao = LocalDateTime.now();
-        }
     }
 
     public void alterarSenha(String novaSenha) {

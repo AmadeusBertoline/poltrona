@@ -1,16 +1,15 @@
 package poltrona.dto.operador;
 
-import java.time.LocalDate;
-
 import poltrona.dto.usuario.UsuarioResponseDTO;
+import poltrona.enums.TipoUsuario;
 
 public record OperadorResponseDTO(
 
         UsuarioResponseDTO usuario,
-        String matricula,
-        String cargo,
-        String departamento,
-        LocalDate dataAdmissao
+        Long idCinema,
+        TipoUsuario cargo,
+        String telefone
+     
 
 ) {
 }

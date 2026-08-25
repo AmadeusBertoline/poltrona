@@ -1,8 +1,9 @@
 package poltrona.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
 import poltrona.entity.Cinema;
@@ -21,6 +22,7 @@ public class CinemaService {
         this.cinemaMapper = cinemaMapper;
     }
 
+    @Transactional
     public CinemaResponseDTO cadastrar(CinemaRequestDTO dto) {
 
         Cinema cinema = cinemaMapper.toEntity(dto);
@@ -30,11 +32,14 @@ public class CinemaService {
 
     }
 
-    public List<CinemaResponseDTO> listarTodos() {
-        return cinemaRepository.findAll()
-                .stream()
-                .map(cinemaMapper::toDTO)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public Page<CinemaResponseDTO> listarTodos(Pageable pageable) {
+        return cinemaRepository.findAll(pageable).map(cinemaMapper::toDTO);
     }
+
+    // @Transactional(readOnly = true)
+    // public CinemaResponseDTO me(){
+
+    // }
 
 }
