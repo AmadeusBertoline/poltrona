@@ -2,12 +2,15 @@ package poltrona.mapper;
 
 import java.util.Collections;
 import java.util.List;
+
 import org.springframework.stereotype.Component;
+
 import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
 import poltrona.dto.sala.SalaResponseDTO;
 import poltrona.entity.Cinema;
 import poltrona.entity.Endereco;
+import poltrona.entity.Proprietario;
 
 @Component
 public class CinemaMapper {
@@ -20,7 +23,7 @@ public class CinemaMapper {
         this.salaMapper = salaMapper;
     }
 
-    public Cinema toEntity(CinemaRequestDTO dto) {
+    public Cinema toEntity(CinemaRequestDTO dto, Proprietario proprietario) {
         if (dto == null)
             return null;
 
@@ -31,7 +34,8 @@ public class CinemaMapper {
                 dto.razaoSocial(),
                 dto.cnpj(),
                 dto.telefone(),
-                endereco);
+                endereco,
+                proprietario);
     }
 
     public CinemaResponseDTO toDTO(Cinema entidade) {

@@ -56,28 +56,31 @@ public abstract class Usuario {
         this.dataCriacao = LocalDateTime.now();
     }
 
-    public void alterarSenha(String novaSenha) {
-        if (novaSenha != null && !novaSenha.isBlank()) {
-            this.senha = novaSenha;
-        }
-    }
-
-    public void encerrarConta() {
+    public void inativar() {
         this.ativo = false;
     }
 
-    public void ativarConta() {
+    public void ativar() {
         this.ativo = true;
     }
 
-    public void atualizar(String nome, String email) {
-
+    public void atualizar(String nome, String email, LocalDate dataNascimento) {
         if (nome != null && !nome.isBlank()) {
             this.nome = nome;
         }
 
         if (email != null && !email.isBlank()) {
             this.email = email;
+        }
+
+        if (dataNascimento != null) {
+            this.dataNascimento = dataNascimento;
+        }
+    }
+
+    public void atualizarSenha(String novaSenha) {
+        if (novaSenha != null && !novaSenha.isBlank()) {
+            this.senha = novaSenha;
         }
     }
 }

@@ -6,12 +6,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+import poltrona.dto.proprietario.AtualizaProprietarioRequestDTO;
 import poltrona.dto.proprietario.ProprietarioRequestDTO;
 import poltrona.dto.proprietario.ProprietarioResponseDTO;
 import poltrona.service.ProprietarioService;
@@ -43,6 +47,27 @@ public class ProprietarioController {
 
         return ResponseEntity.status(HttpStatus.OK).body(proprietarios);
 
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ProprietarioResponseDTO> me() {
+
+        ProprietarioResponseDTO proprietario = proprietarioService.me();
+
+        return ResponseEntity.status(HttpStatus.OK).body(proprietario);
+
+    }
+
+    @PatchMapping
+    public ResponseEntity<ProprietarioResponseDTO> atualizar(@Valid @RequestBody AtualizaProprietarioRequestDTO dto) {
+        ProprietarioResponseDTO response = proprietarioService.atualizar(dto);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> inativar() {
+        proprietarioService.inativar();
+        return ResponseEntity.noContent().build();
     }
 
 }

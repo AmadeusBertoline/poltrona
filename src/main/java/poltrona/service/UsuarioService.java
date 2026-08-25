@@ -1,18 +1,26 @@
 package poltrona.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import poltrona.dto.usuario.UsuarioResponseDTO;
 import poltrona.entity.Usuario;
 import poltrona.exception.ResourceNotFoundException;
+import poltrona.mapper.UsuarioMapper;
 import poltrona.repository.UsuarioRepository;
 
 @Service
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final UsuarioMapper usuarioMapper;
 
-    public UsuarioService(UsuarioRepository usuarioRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, UsuarioMapper usuarioMapper) {
         this.usuarioRepository = usuarioRepository;
+        this.usuarioMapper = usuarioMapper;
     }
 
     public Usuario usuarioLogado() {
@@ -24,5 +32,20 @@ public class UsuarioService {
 
     }
 
+    @Transactional(readOnly = true)
+    public Page<UsuarioResponseDTO> listarTodos(Pageable pageable) {
+
+        return usuarioRepository.findAll(pageable).map(usuarioMapper::toDTO);
+
+    }
+
+    @Transactional(readOnly = true)
+    public UsuarioResponseDTO me() {
+
+        Usuario ususario = usuarioLogado();
+
+        return usuarioMapper.toDTO(ususario);
+
+    }
 
 }

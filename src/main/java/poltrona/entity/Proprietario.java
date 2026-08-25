@@ -17,10 +17,9 @@ import lombok.NoArgsConstructor;
 public class Proprietario extends Usuario {
 
     @OneToMany(mappedBy = "proprietario")
-    List<Cinema> cinemas;
+    private List<Cinema> cinemas;
 
     public Proprietario(String nome, String email, String senha, String cpf, LocalDate dataNascimento) {
         super(nome, email, senha, cpf, dataNascimento);
     }
-
 }

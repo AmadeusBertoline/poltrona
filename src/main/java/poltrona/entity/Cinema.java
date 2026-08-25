@@ -56,16 +56,21 @@ public class Cinema {
     @JoinColumn(name = "proprietario_id", nullable = false)
     private Proprietario proprietario;
 
+    @Column(nullable = false)
+    private Boolean ativo;
+
     @PrePersist
     private void prePersist() {
         this.dataCriacao = LocalDateTime.now();
     }
 
-    public Cinema(String nomeFantasia, String razaoSocial, String cnpj, String telefone, Endereco endereco) {
+    public Cinema(String nomeFantasia, String razaoSocial, String cnpj, String telefone, Endereco endereco,
+            Proprietario proprietario) {
         this.nomeFantasia = nomeFantasia;
         this.razaoSocial = razaoSocial;
         this.cnpj = cnpj;
         this.telefone = telefone;
         this.endereco = endereco;
+        this.proprietario = proprietario;
     }
 }

@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/proprietarios/**").permitAll()
                         .requestMatchers("/admins/**").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/cinemas/**").hasAnyAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/cinemas/**").hasAnyAuthority("PROPRIETARIO")
                         .requestMatchers(HttpMethod.PATCH, "/cinemas/**").hasAnyAuthority("OPERADOR")
                         .requestMatchers(HttpMethod.GET, "/cinemas/me").hasAnyRole("OPERADOR")
                         .requestMatchers(HttpMethod.GET, "/cinemas").hasRole("ADMIN")
