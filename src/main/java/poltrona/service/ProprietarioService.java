@@ -3,6 +3,7 @@ package poltrona.service;
 import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.proprietario.AtualizaProprietarioRequestDTO;
 import poltrona.dto.proprietario.ProprietarioRequestDTO;
 import poltrona.dto.proprietario.ProprietarioResponseDTO;
+import poltrona.dto.usuario.AtualizaSenhaRequestDTO;
 import poltrona.entity.Proprietario;
 import poltrona.entity.Usuario;
 import poltrona.exception.RegraNegocioException;
@@ -66,7 +68,11 @@ public class ProprietarioService {
     @Transactional(readOnly = true)
     public ProprietarioResponseDTO me() {
 
-        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+        Usuario usuario = usuarioService.usuarioLogado();
+
+        if (!(usuario instanceof Proprietario proprietario)) {
+            throw new RegraNegocioException("Apenas proprietários podem realizar esta operação.");
+        }
 
         return proprietarioMapper.toDTO(proprietario);
     }
@@ -74,7 +80,11 @@ public class ProprietarioService {
     @Transactional
     public ProprietarioResponseDTO atualizar(AtualizaProprietarioRequestDTO dto) {
 
-        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+        Usuario usuario = usuarioService.usuarioLogado();
+
+        if (!(usuario instanceof Proprietario proprietario)) {
+            throw new RegraNegocioException("Apenas proprietários podem realizar esta operação.");
+        }
 
         if (dto.email() != null && !dto.email().equalsIgnoreCase(proprietario.getEmail())) {
             if (usuarioRepository.existsByEmail(dto.email())) {
@@ -107,6 +117,31 @@ public class ProprietarioService {
         SecurityContextHolder.clearContext();
 
         cinemaRepository.inativarPorProprietario(proprietario.getId());
+    }
+
+    @Transactional
+    public void atualizarSenha(AtualizaSenhaRequestDTO dto) {
+
+        Usuario usuario = usuarioService.usuarioLogado();
+
+        if (!(usuario instanceof Proprietario proprietario)) {
+            throw new RegraNegocioException("Apenas proprietários podem realizar esta operação.");
+        }
+
+        if (!passwordEncoder.matches(dto.senhaAtual(), proprietario.getSenha())) {
+            throw new BadCredentialsException("Senha atual incorreta");
+        }
+
+        if (!dto.novaSenha().equals(dto.confirmarSenha())) {
+            throw new RegraNegocioException("A senha nova deve ser igual a confirmação de senha");
+        }
+
+        String senha = passwordEncoder.encode(dto.confirmarSenha());
+
+        proprietario.atualizarSenha(senha);
+
+        proprietarioRepository.save(proprietario);
+
     }
 
 }

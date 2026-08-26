@@ -1,5 +1,6 @@
 package poltrona.controller;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -17,6 +18,7 @@ import jakarta.validation.Valid;
 import poltrona.dto.proprietario.AtualizaProprietarioRequestDTO;
 import poltrona.dto.proprietario.ProprietarioRequestDTO;
 import poltrona.dto.proprietario.ProprietarioResponseDTO;
+import poltrona.dto.usuario.AtualizaSenhaRequestDTO;
 import poltrona.service.ProprietarioService;
 
 @RestController
@@ -68,6 +70,15 @@ public class ProprietarioController {
 
         proprietarioService.encerrar();
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/senha")
+    public ResponseEntity<Void> atualizarSenha(@RequestBody AtualizaSenhaRequestDTO dto) {
+
+        proprietarioService.atualizarSenha(dto);
+
+        return ResponseEntity.noContent().build();
+
     }
 
 }
