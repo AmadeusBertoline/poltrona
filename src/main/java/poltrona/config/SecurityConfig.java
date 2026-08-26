@@ -41,15 +41,25 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+
+                        // AUTH
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/proprietarios").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.POST,"/proprietarios").permitAll()
+
+                        // PROPRIETARIOS
+                        .requestMatchers(HttpMethod.POST, "/proprietarios").permitAll()
                         .requestMatchers("/proprietarios/**").hasAuthority("PROPRIETARIO")
-                        .requestMatchers("/admins/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/proprietarios").hasAuthority("ADMIN")
+
+                        // CINEMAS
                         .requestMatchers(HttpMethod.POST, "/cinemas/**").hasAnyAuthority("PROPRIETARIO")
-                        .requestMatchers(HttpMethod.PATCH, "/cinemas/**").hasAnyAuthority("OPERADOR")
-                        .requestMatchers(HttpMethod.GET, "/cinemas/me").hasAnyRole("OPERADOR")
-                        .requestMatchers(HttpMethod.GET, "/cinemas").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/cinemas/**").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.PATCH, "/cinemas/**").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.GET, "/cinemas/me").hasAuthority("PROPRIETARIO")
+
+                        // ADMINS
+                        .requestMatchers("/admins/**").hasAuthority("ADMIN")
+
+                        // CLIENTES
                         .requestMatchers("/clientes/cadastrar").permitAll()
                         .requestMatchers("/clientes/**").hasAuthority("CLIENTE")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()

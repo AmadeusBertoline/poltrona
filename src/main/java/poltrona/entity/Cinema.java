@@ -72,9 +72,10 @@ public class Cinema {
         this.telefone = telefone;
         this.endereco = endereco;
         this.proprietario = proprietario;
+        this.ativo = true;
     }
 
-    public void encerrar(){
+    public void encerrar() {
         this.ativo = false;
     }
 

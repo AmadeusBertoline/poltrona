@@ -64,22 +64,10 @@ public class CinemaService {
         return cinemaRepository.findAll(pageable).map(cinemaMapper::toDTO);
     }
 
-    @Transactional(readOnly = true)
-    public Page<CinemaResponseDTO> me(Pageable pageable) {
-
-        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
-
-        return cinemaRepository.findAllByProprietario(pageable, proprietario).map(cinemaMapper::toDTO);
-
-    }
-
     @Transactional
     public void deletar(Long id) {
 
-        Usuario usuario = usuarioService.usuarioLogado();
-        if (!(usuario instanceof Proprietario proprietario)) {
-            throw new RegraNegocioException("Apenas proprietários podem executar esta ação.");
-        }
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
         Cinema cinema = cinemaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cinema não encontrado com ID: " + id));
@@ -97,6 +85,15 @@ public class CinemaService {
         cinema.encerrar();
 
         cinemaRepository.save(cinema);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CinemaResponseDTO> me(Pageable pageable) {
+
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+
+        return cinemaRepository.findAllByProprietario(pageable, proprietario).map(cinemaMapper::toDTO);
+
     }
 
 }

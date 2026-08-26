@@ -2,6 +2,7 @@ package poltrona.controller;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,13 +44,14 @@ public class CinemaController {
 
     }
 
-    // @GetMapping("/me")
-    // public ResponseEntity<CinemaResponseDTO> me() {
+    @GetMapping("/me")
+    public ResponseEntity<Page<CinemaResponseDTO>> me(
+            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
 
-    //     CinemaResponseDTO cinema = cinemaService.me();
+        Page<CinemaResponseDTO> cinema = cinemaService.me(pageable);
 
-    //     ResponseEntity.status(HttpStatus.OK).body(cinema);
+        return ResponseEntity.status(HttpStatus.OK).body(cinema);
 
-    // }
+    }
 
 }

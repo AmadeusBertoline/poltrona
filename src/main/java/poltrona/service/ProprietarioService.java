@@ -80,11 +80,7 @@ public class ProprietarioService {
     @Transactional
     public ProprietarioResponseDTO atualizar(AtualizaProprietarioRequestDTO dto) {
 
-        Usuario usuario = usuarioService.usuarioLogado();
-
-        if (!(usuario instanceof Proprietario proprietario)) {
-            throw new RegraNegocioException("Apenas proprietários podem realizar esta operação.");
-        }
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
         if (dto.email() != null && !dto.email().equalsIgnoreCase(proprietario.getEmail())) {
             if (usuarioRepository.existsByEmail(dto.email())) {
@@ -100,11 +96,8 @@ public class ProprietarioService {
 
     @Transactional
     public void encerrar() {
-        Usuario usuario = usuarioService.usuarioLogado();
-
-        if (!(usuario instanceof Proprietario proprietario)) {
-            throw new RegraNegocioException("Apenas proprietários podem realizar esta operação.");
-        }
+        
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
         if (ingressoRepository.existsBySessaoSalaCinemaProprietarioIdAndSessaoDataHoraFimAfter(
                 proprietario.getId(), LocalDateTime.now())) {
@@ -122,11 +115,7 @@ public class ProprietarioService {
     @Transactional
     public void atualizarSenha(AtualizaSenhaRequestDTO dto) {
 
-        Usuario usuario = usuarioService.usuarioLogado();
-
-        if (!(usuario instanceof Proprietario proprietario)) {
-            throw new RegraNegocioException("Apenas proprietários podem realizar esta operação.");
-        }
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
         if (!passwordEncoder.matches(dto.senhaAtual(), proprietario.getSenha())) {
             throw new BadCredentialsException("Senha atual incorreta");
