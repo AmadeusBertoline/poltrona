@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import poltrona.enums.StatusConta;
 
 @Entity
 @Table(name = "usuarios")
@@ -28,20 +29,20 @@ public abstract class Usuario {
     @Column(nullable = false, length = 100)
     private String nome;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, length = 100)
     private String email;
 
     @Column(nullable = false)
     private String senha;
 
-    @Column(nullable = false, unique = true, length = 14)
+    @Column(nullable = false, length = 14)
     private String cpf;
 
     @Column(nullable = false)
     private LocalDate dataNascimento;
 
     @Column(nullable = false)
-    private Boolean ativo = true;
+    private StatusConta status;
 
     @Column(nullable = false)
     private LocalDateTime dataCriacao;
@@ -52,16 +53,16 @@ public abstract class Usuario {
         this.senha = senha;
         this.cpf = cpf;
         this.dataNascimento = dataNascimento;
-        this.ativo = true;
+        this.status = StatusConta.ATIVA;
         this.dataCriacao = LocalDateTime.now();
     }
 
-    public void inativar() {
-        this.ativo = false;
+    public void encerrar() {
+        this.status = StatusConta.ENCERRADA;
     }
 
-    public void ativar() {
-        this.ativo = true;
+    public void bloquear() {
+        this.status = StatusConta.BLOQUEADA;
     }
 
     public void atualizar(String nome, String email, LocalDate dataNascimento) {

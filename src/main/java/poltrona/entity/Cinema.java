@@ -73,4 +73,9 @@ public class Cinema {
         this.endereco = endereco;
         this.proprietario = proprietario;
     }
+
+    public void encerrar(){
+        this.ativo = false;
+    }
+
 }

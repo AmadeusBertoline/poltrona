@@ -20,7 +20,7 @@ public class UsuarioMapper {
                 usuario.getEmail(),
                 usuario.getCpf(),
                 usuario.getDataNascimento(),
-                usuario.getAtivo(),
+                usuario.getStatus(),
                 usuario.getDataCriacao());
     }
 }

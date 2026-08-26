@@ -9,13 +9,17 @@ import poltrona.entity.Ingresso;
 
 public interface IngressoRepository extends JpaRepository<Ingresso, Long> {
 
-    boolean existsBySessaoIdAndPoltronaId(Long sessaoId, Long poltronaId);
+        boolean existsBySessaoIdAndPoltronaId(Long sessaoId, Long poltronaId);
 
-    @Query("SELECT i.poltrona.id FROM Ingresso i WHERE i.sessao.id = :sessaoId")
-    Set<Long> findPoltronaIdsBySessaoId(@Param("sessaoId") Long sessaoId);
+        @Query("SELECT i.poltrona.id FROM Ingresso i WHERE i.sessao.id = :sessaoId")
+        Set<Long> findPoltronaIdsBySessaoId(@Param("sessaoId") Long sessaoId);
 
-    boolean existsBySessaoSalaCinemaProprietarioIdAndSessaoDataHoraFimAfter(
-            Long proprietarioId,
-            LocalDateTime agora);
+        boolean existsBySessaoSalaCinemaProprietarioIdAndSessaoDataHoraFimAfter(
+                        Long proprietarioId,
+                        LocalDateTime agora);
+
+        boolean existsBySessaoSalaCinemaIdAndSessaoDataHoraFimAfter(
+                        Long proprietarioId,
+                        LocalDateTime agora);
 
 }

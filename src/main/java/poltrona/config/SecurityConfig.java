@@ -42,7 +42,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/proprietarios/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/proprietarios").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST,"/proprietarios").permitAll()
+                        .requestMatchers("/proprietarios/**").hasAuthority("PROPRIETARIO")
                         .requestMatchers("/admins/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/cinemas/**").hasAnyAuthority("PROPRIETARIO")
                         .requestMatchers(HttpMethod.PATCH, "/cinemas/**").hasAnyAuthority("OPERADOR")

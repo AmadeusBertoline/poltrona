@@ -44,7 +44,7 @@ public class ProprietarioMapper {
                 proprietario.getEmail(),
                 proprietario.getCpf(),
                 proprietario.getDataNascimento(),
-                proprietario.getAtivo(),
+                proprietario.getStatus(),
                 proprietario.getDataCriacao());
 
         List<CinemaResponseDTO> cinemas = (proprietario.getCinemas() == null)

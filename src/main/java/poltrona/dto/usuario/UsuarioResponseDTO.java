@@ -2,6 +2,7 @@ package poltrona.dto.usuario;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import poltrona.enums.StatusConta;
 
 public record UsuarioResponseDTO(
 
@@ -10,7 +11,7 @@ public record UsuarioResponseDTO(
                 String email,
                 String cpf,
                 LocalDate dataNascimento,
-                Boolean ativo,
+                StatusConta status,
                 LocalDateTime dataCriacao
 
 ) {

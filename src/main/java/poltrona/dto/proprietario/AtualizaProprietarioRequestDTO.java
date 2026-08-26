@@ -8,5 +8,4 @@ public record AtualizaProprietarioRequestDTO(
         String email,
         LocalDate dataNascimento
 
-) {
-}
+) {}

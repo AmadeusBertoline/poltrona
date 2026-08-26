@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import jakarta.validation.Valid;
 import poltrona.dto.proprietario.AtualizaProprietarioRequestDTO;
 import poltrona.dto.proprietario.ProprietarioRequestDTO;
@@ -65,8 +64,9 @@ public class ProprietarioController {
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> inativar() {
-        proprietarioService.inativar();
+    public ResponseEntity<Void> encerrar() {
+
+        proprietarioService.encerrar();
         return ResponseEntity.noContent().build();
     }
 

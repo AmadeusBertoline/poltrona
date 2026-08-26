@@ -89,7 +89,7 @@ public class GlobalExceptionHandler {
 
         corpo.put("timestamp", LocalDateTime.now());
         corpo.put("status", HttpStatus.FORBIDDEN.value());
-        corpo.put("erro", "Acesso negado");
+        corpo.put("erro", "Acesso negado: você não tem permissão para acessar essa rota");
         corpo.put("mensagem", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(corpo);
@@ -143,6 +143,19 @@ public class GlobalExceptionHandler {
         corpo.put("timestamp", LocalDateTime.now());
         corpo.put("status", HttpStatus.BAD_REQUEST.value());
         corpo.put("erro", "Dado inválido");
+        corpo.put("mensagem", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(corpo);
+
+    }
+
+    @ExceptionHandler(ContaEncerradaException.class)
+    public ResponseEntity<Map<String, Object>> handleContaEncerrada(ContaEncerradaException ex) {
+
+        Map<String, Object> corpo = new HashMap<>();
+        corpo.put("timestamp", LocalDateTime.now());
+        corpo.put("status", HttpStatus.UNAUTHORIZED);
+        corpo.put("erro", "Essa conta já foi encerrada");
         corpo.put("mensagem", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(corpo);

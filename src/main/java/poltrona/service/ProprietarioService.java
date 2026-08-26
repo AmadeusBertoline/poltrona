@@ -3,6 +3,7 @@ package poltrona.service;
 import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,13 +45,7 @@ public class ProprietarioService {
     @Transactional
     public ProprietarioResponseDTO cadastrar(ProprietarioRequestDTO dto) {
 
-        if (usuarioRepository.existsByEmail(dto.usuario().email())) {
-            throw new RegraNegocioException("E-mail já cadastrado no sistema.");
-        }
-
-        if (usuarioRepository.existsByCpf(dto.usuario().cpf())) {
-            throw new RegraNegocioException("CPF já cadastrado no sistema.");
-        }
+        usuarioService.validarCredenciaisDisponiveis(dto.usuario().email(), dto.usuario().cpf());
 
         String senhaCriptografada = passwordEncoder.encode(dto.usuario().senha());
 
@@ -94,7 +89,7 @@ public class ProprietarioService {
     }
 
     @Transactional
-    public void inativar() {
+    public void encerrar() {
         Usuario usuario = usuarioService.usuarioLogado();
 
         if (!(usuario instanceof Proprietario proprietario)) {
@@ -107,7 +102,10 @@ public class ProprietarioService {
                     "Não é possível inativar a conta com sessões futuras que possuem ingressos vendidos.");
         }
 
-        proprietario.inativar();
+        proprietario.encerrar();
+
+        SecurityContextHolder.clearContext();
+
         cinemaRepository.inativarPorProprietario(proprietario.getId());
     }
 

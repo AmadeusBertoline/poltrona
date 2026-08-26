@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import poltrona.dto.usuario.UsuarioResponseDTO;
 import poltrona.entity.Usuario;
+import poltrona.enums.StatusConta;
+import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.UsuarioMapper;
 import poltrona.repository.UsuarioRepository;
@@ -45,6 +47,20 @@ public class UsuarioService {
         Usuario ususario = usuarioLogado();
 
         return usuarioMapper.toDTO(ususario);
+
+    }
+
+    public boolean validarCredenciaisDisponiveis(String email, String cpf) {
+
+        if (usuarioRepository.existsByEmailAndStatus(email, StatusConta.ATIVA)) {
+            throw new RegraNegocioException("E-mail já está em uso no sistema.");
+        }
+
+        if (usuarioRepository.existsByCpfAndStatus(cpf, StatusConta.ATIVA)) {
+            throw new RegraNegocioException("CPF já está em uso no sistema.");
+        }
+
+        return false;
 
     }
 
