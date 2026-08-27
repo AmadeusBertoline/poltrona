@@ -60,7 +60,8 @@ public class SecurityConfig {
                         .requestMatchers("/admins/**").hasAuthority("ADMIN")
 
                         // CLIENTES
-                        .requestMatchers("/clientes/cadastrar").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/clientes").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/clientes").permitAll()
                         .requestMatchers("/clientes/**").hasAuthority("CLIENTE")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())

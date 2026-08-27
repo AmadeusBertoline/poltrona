@@ -6,18 +6,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import poltrona.dto.cinema.AtualizaCinemaRequestDTO;
 import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
 import poltrona.entity.Cinema;
-import poltrona.entity.Endereco;
 import poltrona.entity.Proprietario;
 import poltrona.enums.StatusConta;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.CinemaMapper;
-import poltrona.mapper.EnderecoMapper;
 import poltrona.repository.CinemaRepository;
 import poltrona.repository.IngressoRepository;
 

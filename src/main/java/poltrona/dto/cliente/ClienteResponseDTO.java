@@ -4,8 +4,7 @@ import poltrona.dto.usuario.UsuarioResponseDTO;
 
 public record ClienteResponseDTO(
 
-                UsuarioResponseDTO usuario,
-                String telefone
+        UsuarioResponseDTO usuario
 
 ) {
 }

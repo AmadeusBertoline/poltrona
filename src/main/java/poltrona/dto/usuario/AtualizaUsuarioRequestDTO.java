@@ -1,9 +1,10 @@
 package poltrona.dto.usuario;
 
-public record AtualizaUsuarioRequestDTO (
+public record AtualizaUsuarioRequestDTO(
 
-    String nome,
-    String email,
-    String cpf
+        String nome,
+        String email,
+        String cpf
 
-){}
+) {
+}
