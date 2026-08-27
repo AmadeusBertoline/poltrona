@@ -1,5 +1,7 @@
 package poltrona.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,10 +21,24 @@ public interface CinemaRepository extends JpaRepository<Cinema, Long> {
             """)
     void inativarPorProprietario(@Param("proprietarioId") Long proprietarioId);
 
+    @Query("""
+                SELECT COUNT(c) > 0
+                FROM Cinema c
+                WHERE c.nomeFantasia = :nomeFantasia
+                  AND c.proprietario.id = :proprietarioId
+                  AND c.id <> :id
+            """)
+    boolean existsByNomeFantasiaAndProprietarioIdAndIdNot(
+            @Param("nomeFantasia") String nomeFantasia,
+            @Param("proprietarioId") Long proprietarioId,
+            @Param("id") Long id);
+
     boolean existsByCnpj(String cnpj);
 
     boolean existsByNomeFantasiaAndProprietarioId(String nome, Long idProprietario);
 
     Page<Cinema> findAllByProprietario(Pageable pageable, Proprietario proprietario);
+
+    Optional<Cinema> findByIdAndProprietarioId(Long id, Long idProprietario);
 
 }

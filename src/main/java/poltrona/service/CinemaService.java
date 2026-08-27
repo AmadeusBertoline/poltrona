@@ -6,15 +6,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import poltrona.dto.cinema.AtualizaCinemaRequestDTO;
 import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
 import poltrona.entity.Cinema;
+import poltrona.entity.Endereco;
 import poltrona.entity.Proprietario;
-import poltrona.entity.Usuario;
 import poltrona.enums.StatusConta;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.CinemaMapper;
+import poltrona.mapper.EnderecoMapper;
 import poltrona.repository.CinemaRepository;
 import poltrona.repository.IngressoRepository;
 
@@ -64,6 +67,54 @@ public class CinemaService {
         return cinemaRepository.findAll(pageable).map(cinemaMapper::toDTO);
     }
 
+    @Transactional(readOnly = true)
+    public Page<CinemaResponseDTO> me(Pageable pageable) {
+
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+
+        return cinemaRepository.findAllByProprietario(pageable, proprietario).map(cinemaMapper::toDTO);
+
+    }
+
+    @Transactional
+    public CinemaResponseDTO atualizar(Long id, AtualizaCinemaRequestDTO dto) {
+
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+
+        if (proprietario.getStatus() != StatusConta.ATIVA) {
+            throw new RegraNegocioException("Proprietários inativos ou bloqueados não podem alterar dados de cinemas.");
+        }
+
+        Cinema cinema = cinemaRepository.findByIdAndProprietarioId(id, proprietario.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cinema não encontrado"));
+
+        if (!cinema.getAtivo()) {
+            throw new RegraNegocioException("Não é possível alterar um cinema que está inativo.");
+        }
+
+        if (dto.nomeFantasia() != null && !dto.nomeFantasia().equalsIgnoreCase(cinema.getNomeFantasia())) {
+            if (cinemaRepository.existsByNomeFantasiaAndProprietarioIdAndIdNot(dto.nomeFantasia(), proprietario.getId(),
+                    id)) {
+                throw new RegraNegocioException("Você já possui outro cinema cadastrado com este nome.");
+            }
+        }
+
+        if (dto.endereco() != null) {
+            cinema.getEndereco().atualizar(
+                    dto.endereco().logradouro(),
+                    dto.endereco().numero(),
+                    dto.endereco().complemento(),
+                    dto.endereco().bairro(),
+                    dto.endereco().cidade(),
+                    dto.endereco().uf(),
+                    dto.endereco().cep());
+        }
+
+        cinema.atualizar(dto.nomeFantasia(), dto.telefone());
+
+        return cinemaMapper.toDTO(cinema);
+    }
+
     @Transactional
     public void deletar(Long id) {
 
@@ -88,11 +139,12 @@ public class CinemaService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CinemaResponseDTO> me(Pageable pageable) {
+    public CinemaResponseDTO buscarPorId(Long id) {
 
-        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+        Cinema cinema = cinemaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cinema não encontrado de id " + id));
 
-        return cinemaRepository.findAllByProprietario(pageable, proprietario).map(cinemaMapper::toDTO);
+        return cinemaMapper.toDTO(cinema);
 
     }
 

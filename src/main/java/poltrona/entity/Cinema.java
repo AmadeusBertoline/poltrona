@@ -3,7 +3,6 @@ package poltrona.entity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -77,6 +76,18 @@ public class Cinema {
 
     public void encerrar() {
         this.ativo = false;
+    }
+
+    public void atualizar(String nomeFantasia, String telefone) {
+
+        if (nomeFantasia != null && !nomeFantasia.isBlank()) {
+            this.nomeFantasia = nomeFantasia;
+        }
+
+        if (telefone != null && !telefone.isBlank()) {
+            this.telefone = telefone;
+        }
+
     }
 
 }
