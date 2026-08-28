@@ -6,6 +6,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,6 +63,15 @@ public class ClienteController {
         ClienteResponseDTO cliente = clienteService.atualizar(dto);
 
         return ResponseEntity.status(HttpStatus.OK).body(cliente);
+
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> encerrar() {
+
+        clienteService.encerrar();
+
+        return ResponseEntity.noContent().build();
 
     }
 

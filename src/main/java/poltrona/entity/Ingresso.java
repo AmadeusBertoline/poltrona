@@ -42,6 +42,10 @@ public class Ingresso {
     @JoinColumn(name = "poltrona_id", nullable = false)
     private Poltrona poltrona;
 
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
+
     public Ingresso(TipoIngresso tipo, Sessao sessao, Poltrona poltrona) {
         this.preco = tipo.calcularPrecoFinal(sessao.getPreco().getPrecoBase());
         this.sessao = sessao;

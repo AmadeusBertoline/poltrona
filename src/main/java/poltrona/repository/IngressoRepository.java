@@ -22,4 +22,6 @@ public interface IngressoRepository extends JpaRepository<Ingresso, Long> {
                         Long proprietarioId,
                         LocalDateTime agora);
 
+        boolean existsByUsuarioIdAndSessaoDataHoraFimAfter(Long id, LocalDateTime agora);
+
 }

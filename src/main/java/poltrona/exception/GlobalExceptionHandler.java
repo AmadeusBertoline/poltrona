@@ -155,7 +155,7 @@ public class GlobalExceptionHandler {
         Map<String, Object> corpo = new HashMap<>();
         corpo.put("timestamp", LocalDateTime.now());
         corpo.put("status", HttpStatus.UNAUTHORIZED);
-        corpo.put("erro", "Essa conta já foi encerrada");
+        corpo.put("erro", "Essa conta já foi encerrada. Cadastre-se novamente");
         corpo.put("mensagem", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(corpo);

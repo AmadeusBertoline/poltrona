@@ -1,7 +1,10 @@
 package poltrona.service;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +17,7 @@ import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceAlreadyExistsException;
 import poltrona.mapper.ClienteMapper;
 import poltrona.repository.ClienteRepository;
+import poltrona.repository.IngressoRepository;
 
 @Service
 public class ClienteService {
@@ -22,13 +26,15 @@ public class ClienteService {
     private final ClienteMapper clienteMapper;
     private final PasswordEncoder passwordEncoder;
     private final UsuarioService usuarioService;
+    private final IngressoRepository ingressoRepository;
 
     public ClienteService(ClienteRepository clienteRepository, ClienteMapper clienteMapper,
-            PasswordEncoder passwordEncoder, UsuarioService usuarioService) {
+            PasswordEncoder passwordEncoder, UsuarioService usuarioService, IngressoRepository ingressoRepository) {
         this.clienteRepository = clienteRepository;
         this.clienteMapper = clienteMapper;
         this.passwordEncoder = passwordEncoder;
         this.usuarioService = usuarioService;
+        this.ingressoRepository = ingressoRepository;
     }
 
     @Transactional
@@ -90,6 +96,25 @@ public class ClienteService {
         cliente.atualizar(dto.nome(), dto.email(), dto.dataNascimento());
 
         return clienteMapper.toDTO(cliente);
+    }
+
+    @Transactional
+    public void encerrar() {
+
+        Cliente cliente = (Cliente) usuarioService.usuarioLogado();
+
+        if (ingressoRepository.existsByUsuarioIdAndSessaoDataHoraFimAfter(
+                cliente.getId(), LocalDateTime.now())) {
+            throw new RegraNegocioException(
+                    "Não é possível inativar a conta com sessões futuras que possuem ingressos vendidos.");
+        }
+
+        SecurityContextHolder.clearContext();
+
+        cliente.encerrar();
+
+        clienteRepository.save(cliente);
+
     }
 
 }
