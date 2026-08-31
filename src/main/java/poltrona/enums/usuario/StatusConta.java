@@ -1,4 +1,4 @@
-package poltrona.enums;
+package poltrona.enums.usuario;
 
 public enum StatusConta {
 

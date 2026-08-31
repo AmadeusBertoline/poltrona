@@ -67,4 +67,14 @@ public class PrecoController {
 
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Page<PrecoResponseDTO>> buscarPorCinema(@PathVariable Long id,
+            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
+
+        Page<PrecoResponseDTO> precos = precoService.buscarPorCinema(id, pageable);
+
+        return ResponseEntity.status(HttpStatus.OK).body(precos);
+
+    }
+
 }

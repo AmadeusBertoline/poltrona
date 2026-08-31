@@ -1,7 +1,7 @@
 package poltrona.dto.operador;
 
 import poltrona.dto.usuario.UsuarioResponseDTO;
-import poltrona.enums.TipoUsuario;
+import poltrona.enums.usuario.TipoUsuario;
 
 public record OperadorResponseDTO(
 

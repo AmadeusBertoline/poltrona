@@ -15,7 +15,7 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import poltrona.enums.TipoPoltrona;
+import poltrona.enums.poltrona.TipoPoltrona;
 
 @Entity
 @Getter
@@ -42,11 +42,15 @@ public class Poltrona {
     @JoinColumn(name = "sala_id", nullable = false)
     private Sala sala;
 
+    @Column(nullable = false)
+    private Boolean ativa;
+
     public Poltrona(char fileira, Integer coluna, Sala sala) {
         this.fileira = fileira;
         this.coluna = coluna;
         this.tipo = (tipo != null) ? tipo : TipoPoltrona.COMUM;
         this.sala = sala;
+        this.ativa = true;
     }
 
     public void atualizarTipo(TipoPoltrona tipo) {

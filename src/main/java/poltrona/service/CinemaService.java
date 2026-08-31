@@ -11,7 +11,8 @@ import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
 import poltrona.entity.Cinema;
 import poltrona.entity.Proprietario;
-import poltrona.enums.StatusConta;
+import poltrona.enums.cinema.StatusCinema;
+import poltrona.enums.usuario.StatusConta;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.CinemaMapper;
@@ -85,7 +86,7 @@ public class CinemaService {
         Cinema cinema = cinemaRepository.findByIdAndProprietarioId(id, proprietario.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Cinema não encontrado"));
 
-        if (!cinema.getAtivo()) {
+        if (cinema.getStatus() != StatusCinema.ATIVO) {
             throw new RegraNegocioException("Não é possível alterar um cinema que está inativo.");
         }
 

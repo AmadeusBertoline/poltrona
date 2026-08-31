@@ -1,4 +1,4 @@
-package poltrona.enums;
+package poltrona.enums.filme;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

@@ -19,6 +19,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import poltrona.enums.cinema.StatusCinema;
 
 @Entity
 @Getter
@@ -56,7 +57,7 @@ public class Cinema {
     private Proprietario proprietario;
 
     @Column(nullable = false)
-    private Boolean ativo;
+    private StatusCinema status;
 
     @PrePersist
     private void prePersist() {
@@ -71,11 +72,11 @@ public class Cinema {
         this.telefone = telefone;
         this.endereco = endereco;
         this.proprietario = proprietario;
-        this.ativo = true;
+        this.status = StatusCinema.ATIVO;
     }
 
     public void encerrar() {
-        this.ativo = false;
+        this.status = StatusCinema.INATIVO;
     }
 
     public void atualizar(String nomeFantasia, String telefone) {

@@ -2,7 +2,7 @@ package poltrona.dto.operador;
 
 import java.time.LocalDate;
 import poltrona.dto.usuario.UsuarioRequestDTO;
-import poltrona.enums.TipoUsuario;
+import poltrona.enums.usuario.TipoUsuario;
 
 public record OperadorRequestDTO(
 

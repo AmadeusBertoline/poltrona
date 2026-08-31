@@ -10,7 +10,6 @@ public record SalaResponseDTO(
         Integer fileiras,
         Integer poltronasPorFileira,
         List<PoltronaResponseDTO> poltronas
-        //Long cinemaId
 
 ) {
 }

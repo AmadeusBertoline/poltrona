@@ -7,11 +7,11 @@ import poltrona.validation.precoValido.PrecoValido;
 
 public record PrecoRequestDTO(
 
-        @NomeValido
-        String nome,
+                Long idCinema,
 
-        @PrecoValido
-        BigDecimal precoBase
+                @NomeValido String nome,
+
+                @PrecoValido BigDecimal precoBase
 
 ) {
 }

@@ -1,9 +1,10 @@
 package poltrona.service;
 
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.filme.FilmeRequestDTO;
 import poltrona.dto.filme.FilmeResponseDTO;
@@ -12,30 +13,33 @@ import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.FilmeMapper;
 import poltrona.repository.FilmeRepository;
+import poltrona.repository.SessaoRepository;
 
 @Service
 public class FilmeService {
 
     private final FilmeRepository filmeRepository;
     private final FilmeMapper filmeMapper;
+    private final SessaoRepository sessaoRepository;
 
-    public FilmeService(FilmeRepository filmeRepository, FilmeMapper filmeMapper) {
+    public FilmeService(FilmeRepository filmeRepository, FilmeMapper filmeMapper,
+            SessaoRepository sessaoRepository) {
         this.filmeRepository = filmeRepository;
         this.filmeMapper = filmeMapper;
+        this.sessaoRepository = sessaoRepository;
     }
 
     @Transactional
     public FilmeResponseDTO cadastrar(FilmeRequestDTO dto) {
 
-        if (filmeRepository.existsByTituloIgnoreCase(dto.titulo())) {
-            throw new RegraNegocioException("Esse filme já está cadastrado");
+        if (filmeRepository.existsByTituloIgnoreCaseAndDataLancamento(dto.titulo(), dto.dataLancamento())) {
+            throw new RegraNegocioException("Filme já cadastrado no catálogo com este título e ano.");
         }
 
         Filme filme = filmeMapper.toEntity(dto);
         Filme cadastrado = filmeRepository.save(filme);
 
         return filmeMapper.toDTO(cadastrado);
-
     }
 
     public Page<FilmeResponseDTO> listarTodos(Pageable pageable) {
@@ -47,26 +51,54 @@ public class FilmeService {
     @Transactional
     public FilmeResponseDTO atualizar(Long id, FilmeRequestDTO dto) {
         Filme filme = filmeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Filme não encontrado com o ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado com o ID: " + id));
 
-        filme.atualizarDados(dto.titulo(),
+        if (filmeRepository.existsByTituloIgnoreCaseAndDataLancamentoAndIdNot(dto.titulo(), dto.dataLancamento(), id)) {
+            throw new RegraNegocioException("Já existe outro filme cadastrado com este título e data de lançamento.");
+        }
+
+        boolean possuiSessoesFuturas = sessaoRepository.existsByFilmeIdAndDataHoraFimAfterAndAtivoTrue(id,
+                LocalDateTime.now());
+
+        if (possuiSessoesFuturas && !filme.getDuracao().equals(dto.duracao())) {
+            throw new RegraNegocioException(
+                    "Não é possível alterar a duração de um filme que possui sessões futuras agendadas.");
+        }
+
+        filme.atualizarDados(
+                dto.titulo(),
                 dto.sinopse(),
                 dto.duracao(),
                 dto.diretor(),
                 dto.distribuidora(),
                 dto.dataLancamento(),
-                dto.imagePath());
+                dto.imagePath(),
+                dto.formatos(),
+                dto.generos(),
+                dto.ativo());
 
         return filmeMapper.toDTO(filme);
     }
 
     @Transactional
-    public void deletar(Long id) {
+    public void inativar(Long id) {
 
         Filme filme = filmeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado de id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado com o ID: " + id));
 
-        filmeRepository.delete(filme);
+        if (!filme.getAtivo()) {
+            throw new RegraNegocioException("Este filme já está inativo no catálogo.");
+        }
+
+        boolean possuiSessoesFuturas = sessaoRepository
+                .existsByFilmeIdAndDataHoraFimAfterAndAtivoTrue(id, LocalDateTime.now());
+
+        if (possuiSessoesFuturas) {
+            throw new RegraNegocioException(
+                    "Não é possível inativar o filme pois existem sessões futuras agendadas em cinemas da rede.");
+        }
+
+        filme.inativar();
     }
 
 }

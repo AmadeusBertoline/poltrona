@@ -8,4 +8,6 @@ public interface SalaRepository extends JpaRepository<Sala, Long> {
 
     boolean existsByCinemaId(Long idCinema);
 
+    boolean existsByCinemaIdAndNumero(Long idCinema, Integer numero);
+
 }

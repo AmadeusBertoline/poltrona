@@ -12,7 +12,8 @@ import poltrona.dto.cliente.AtualizaClienteRequestDTO;
 import poltrona.dto.cliente.ClienteRequestDTO;
 import poltrona.dto.cliente.ClienteResponseDTO;
 import poltrona.entity.Cliente;
-import poltrona.enums.StatusConta;
+import poltrona.enums.ingresso.StatusIngresso;
+import poltrona.enums.usuario.StatusConta;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceAlreadyExistsException;
 import poltrona.mapper.ClienteMapper;
@@ -103,7 +104,7 @@ public class ClienteService {
 
         Cliente cliente = (Cliente) usuarioService.usuarioLogado();
 
-        if (ingressoRepository.existsByUsuarioIdAndSessaoDataHoraFimAfter(
+        if (ingressoRepository.existsByStatusAndUsuarioIdAndSessaoDataHoraFimAfter(StatusIngresso.ATIVO,
                 cliente.getId(), LocalDateTime.now())) {
             throw new RegraNegocioException(
                     "Não é possível inativar a conta com sessões futuras que possuem ingressos vendidos.");

@@ -6,10 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import poltrona.entity.Ingresso;
+import poltrona.enums.ingresso.StatusIngresso;
 
 public interface IngressoRepository extends JpaRepository<Ingresso, Long> {
 
-        boolean existsBySessaoIdAndPoltronaId(Long sessaoId, Long poltronaId);
+        boolean existsBySessaoIdAndPoltronaIdAndStatus(Long sessaoId, Long poltronaId, StatusIngresso status);
 
         @Query("SELECT i.poltrona.id FROM Ingresso i WHERE i.sessao.id = :sessaoId")
         Set<Long> findPoltronaIdsBySessaoId(@Param("sessaoId") Long sessaoId);
@@ -22,6 +23,11 @@ public interface IngressoRepository extends JpaRepository<Ingresso, Long> {
                         Long proprietarioId,
                         LocalDateTime agora);
 
-        boolean existsByUsuarioIdAndSessaoDataHoraFimAfter(Long id, LocalDateTime agora);
+        boolean existsByStatusAndUsuarioIdAndSessaoDataHoraFimAfter(
+                        StatusIngresso status,
+                        Long usuarioId,
+                        LocalDateTime agora);
+
+        boolean existsByIdAndUsuarioId(Long id, Long usuarioId);
 
 }

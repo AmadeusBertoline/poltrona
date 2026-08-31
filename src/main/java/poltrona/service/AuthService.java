@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import poltrona.dto.login.LoginRequestDTO;
 import poltrona.dto.login.LoginResponseDTO;
 import poltrona.entity.Usuario;
-import poltrona.enums.StatusConta;
+import poltrona.enums.usuario.StatusConta;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.repository.UsuarioRepository;
 import poltrona.security.JwtService;

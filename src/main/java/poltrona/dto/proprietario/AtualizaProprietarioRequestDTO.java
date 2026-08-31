@@ -1,11 +1,9 @@
 package poltrona.dto.proprietario;
 
-import java.time.LocalDate;
+import poltrona.dto.usuario.AtualizaUsuarioRequestDTO;
 
 public record AtualizaProprietarioRequestDTO(
 
-        String nome,
-        String email,
-        LocalDate dataNascimento
+        AtualizaUsuarioRequestDTO usuario
 
 ) {}

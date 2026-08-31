@@ -3,6 +3,7 @@ package poltrona.entity;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -18,8 +19,9 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import poltrona.enums.GeneroFilme;
-import poltrona.enums.StatusFilme;
+import poltrona.enums.filme.ClassificacaoIndicativa;
+import poltrona.enums.filme.FormatoFilme;
+import poltrona.enums.filme.GeneroFilme;
 
 @Entity
 @Getter
@@ -59,11 +61,20 @@ public class Filme {
     private String imagePath;
 
     @Column(nullable = false)
+    private ClassificacaoIndicativa classificacaoIndicativa;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "generos", joinColumns = @JoinColumn(name = "filme_id"))
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private StatusFilme status;
+    private Set<FormatoFilme> formatoFilme;
+
+    @Column(nullable = false)
+    private Boolean ativo;
 
     public Filme(String titulo, String sinopse, Set<GeneroFilme> generos, Integer duracao,
-            String diretor, String distribuidora, LocalDate dataLancamento, String imagePath) {
+            String diretor, String distribuidora, LocalDate dataLancamento, String imagePath,
+            ClassificacaoIndicativa classificacaoIndicativa) {
         this.titulo = titulo;
         this.sinopse = sinopse;
 
@@ -76,11 +87,13 @@ public class Filme {
         this.distribuidora = distribuidora;
         this.dataLancamento = dataLancamento;
         this.imagePath = imagePath;
-        this.status = StatusFilme.EM_BREVE;
+        this.classificacaoIndicativa = classificacaoIndicativa;
+        this.ativo = true;
     }
 
     public void atualizarDados(String titulo, String sinopse, Integer duracao, String diretor,
-            String distribuidora, LocalDate dataLancamento, String imagePath) {
+            String distribuidora, LocalDate dataLancamento, String imagePath, Set<FormatoFilme> formatoFilme,
+            Set<GeneroFilme> genero, Boolean ativo) {
         if (titulo != null && !titulo.isBlank())
             this.titulo = titulo;
         if (sinopse != null && !sinopse.isBlank())
@@ -95,6 +108,15 @@ public class Filme {
             this.dataLancamento = dataLancamento;
         if (imagePath != null && !imagePath.isBlank())
             this.imagePath = imagePath;
+        if (formatoFilme != null) {
+            this.formatoFilme = formatoFilme;
+        }
+        if (genero != null) {
+            this.generos = genero;
+        }
+        if (ativo != null) {
+            this.ativo = ativo;
+        }
     }
 
     public void adicionarGenero(GeneroFilme genero) {
@@ -105,7 +127,11 @@ public class Filme {
         this.generos.remove(genero);
     }
 
-    public void alterarStatus(StatusFilme novoStatus) {
-        this.status = novoStatus;
+    public void inativar() {
+        this.ativo = false;
+    }
+
+    public void ativar() {
+        this.ativo = true;
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import poltrona.entity.Usuario;
-import poltrona.enums.StatusConta;
+import poltrona.enums.usuario.StatusConta;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 

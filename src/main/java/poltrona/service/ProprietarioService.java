@@ -82,13 +82,13 @@ public class ProprietarioService {
 
         Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
-        if (dto.email() != null && !dto.email().equalsIgnoreCase(proprietario.getEmail())) {
-            if (usuarioRepository.existsByEmail(dto.email())) {
+        if (dto.usuario().email() != null && !dto.usuario().email().equalsIgnoreCase(proprietario.getEmail())) {
+            if (usuarioRepository.existsByEmail(dto.usuario().email())) {
                 throw new RegraNegocioException("O e-mail informado já está em uso por outro usuário.");
             }
         }
 
-        proprietario.atualizar(dto.nome(), dto.email(), dto.dataNascimento());
+        proprietario.atualizar(dto.usuario().nome(), dto.usuario().email(), dto.usuario().dataNascimento());
 
         return proprietarioMapper.toDTO(proprietario);
 
@@ -96,7 +96,7 @@ public class ProprietarioService {
 
     @Transactional
     public void encerrar() {
-        
+
         Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
         if (ingressoRepository.existsBySessaoSalaCinemaProprietarioIdAndSessaoDataHoraFimAfter(

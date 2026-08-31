@@ -1,4 +1,4 @@
-package poltrona.enums;
+package poltrona.enums.ingresso;
 
 import java.math.BigDecimal;
 

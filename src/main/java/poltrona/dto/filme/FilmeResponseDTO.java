@@ -3,8 +3,8 @@ package poltrona.dto.filme;
 import java.time.LocalDate;
 import java.util.Set;
 
-import poltrona.enums.GeneroFilme;
-import poltrona.enums.StatusFilme;
+import poltrona.enums.filme.ClassificacaoIndicativa;
+import poltrona.enums.filme.GeneroFilme;
 
 public record FilmeResponseDTO(
 
@@ -26,7 +26,7 @@ public record FilmeResponseDTO(
 
         String imagePath,
 
-        StatusFilme status
+        ClassificacaoIndicativa classificacaoIndicativa
 
 ) {
 }

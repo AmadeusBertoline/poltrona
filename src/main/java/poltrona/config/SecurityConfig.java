@@ -45,6 +45,9 @@ public class SecurityConfig {
                         // AUTH
                         .requestMatchers("/auth/**").permitAll()
 
+                        //.requestMatchers("/filmes/**").hasAuthority("ADMIN")
+                        .requestMatchers("/filmes/**").permitAll()
+
                         // PROPRIETARIOS
                         .requestMatchers(HttpMethod.POST, "/proprietarios").permitAll()
                         .requestMatchers("/proprietarios/**").hasAuthority("PROPRIETARIO")
@@ -64,6 +67,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/clientes").permitAll()
                         .requestMatchers("/clientes/**").hasAuthority("CLIENTE")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+
+                        // PRECOS
+                        .requestMatchers(HttpMethod.GET,"/precos/**").permitAll()
+
+
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
 

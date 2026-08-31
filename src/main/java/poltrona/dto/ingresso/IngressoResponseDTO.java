@@ -2,8 +2,9 @@ package poltrona.dto.ingresso;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import poltrona.enums.TipoIngresso;
-import poltrona.enums.TipoPoltrona;
+
+import poltrona.enums.ingresso.TipoIngresso;
+import poltrona.enums.poltrona.TipoPoltrona;
 
 public record IngressoResponseDTO(
 

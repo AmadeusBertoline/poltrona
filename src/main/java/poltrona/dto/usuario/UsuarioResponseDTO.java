@@ -2,7 +2,8 @@ package poltrona.dto.usuario;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import poltrona.enums.StatusConta;
+
+import poltrona.enums.usuario.StatusConta;
 
 public record UsuarioResponseDTO(
 

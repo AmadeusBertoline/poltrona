@@ -2,7 +2,7 @@ package poltrona.validation.generosValidos;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import poltrona.enums.GeneroFilme;
+import poltrona.enums.filme.GeneroFilme;
 
 import java.util.Set;
 

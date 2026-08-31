@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import poltrona.dto.usuario.UsuarioResponseDTO;
 import poltrona.entity.Usuario;
-import poltrona.enums.StatusConta;
+import poltrona.enums.usuario.StatusConta;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.UsuarioMapper;

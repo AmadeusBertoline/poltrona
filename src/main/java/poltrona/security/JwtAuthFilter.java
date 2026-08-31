@@ -15,7 +15,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import poltrona.entity.Usuario;
-import poltrona.enums.StatusConta;
+import poltrona.enums.usuario.StatusConta;
 import poltrona.exception.ContaEncerradaException;
 import poltrona.exception.CustomAuthenticationEntryPoint;
 import poltrona.exception.ResourceNotFoundException;

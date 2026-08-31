@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import poltrona.enums.StatusConta;
+import poltrona.enums.usuario.StatusConta;
 
 @Entity
 @Table(name = "usuarios")

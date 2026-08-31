@@ -1,7 +1,7 @@
 package poltrona.dto.ingresso;
 
 import jakarta.validation.constraints.NotNull;
-import poltrona.enums.TipoIngresso;
+import poltrona.enums.ingresso.TipoIngresso;
 
 public record IngressoRequestDTO(
 

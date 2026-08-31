@@ -1,12 +1,9 @@
 package poltrona.entity;
 
 import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,7 +14,6 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import poltrona.enums.StatusSessao;
 import poltrona.exception.RegraNegocioException;
 
 @Entity
@@ -48,9 +44,8 @@ public class Sessao {
     @JoinColumn(name = "preco_id", nullable = false)
     private Preco preco;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StatusSessao status;
+    @Column
+    private Boolean ativo;
 
     @Embedded
     private PoliticaVenda politicaVenda = new PoliticaVenda();
@@ -60,7 +55,7 @@ public class Sessao {
         this.filme = filme;
         this.sala = sala;
         this.preco = preco;
-        this.status = StatusSessao.AGENDADA;
+        this.ativo = true;
         if (politicaVenda != null) {
             this.politicaVenda = politicaVenda;
         }
@@ -68,8 +63,8 @@ public class Sessao {
     }
 
     public void validarPermiteVenda(LocalDateTime momento) {
-        if (this.status == StatusSessao.CANCELADA) {
-            throw new RegraNegocioException("Não é possível comprar ingressos para uma sessão cancelada.");
+        if (this.ativo == false) {
+            throw new RegraNegocioException("Não é possível comprar ingressos para uma sessão inativa.");
         }
 
         if (this.dataHoraFim.isBefore(momento)) {
@@ -97,9 +92,9 @@ public class Sessao {
         }
     }
 
-    public void alterarStatus(StatusSessao novoStatus) {
+    public void alterarStatus(Boolean novoStatus) {
         if (novoStatus != null) {
-            this.status = novoStatus;
+            this.ativo = novoStatus;
         }
     }
 

@@ -4,19 +4,21 @@ import org.springframework.stereotype.Component;
 
 import poltrona.dto.preco.PrecoRequestDTO;
 import poltrona.dto.preco.PrecoResponseDTO;
+import poltrona.entity.Cinema;
 import poltrona.entity.Preco;
 
 @Component
 public class PrecoMapper {
 
-    public Preco toEntity(PrecoRequestDTO dto) {
+    public Preco toEntity(PrecoRequestDTO dto, Cinema cinema) {
         if (dto == null) {
             return null;
         }
 
         return new Preco(
                 dto.nome(),
-                dto.precoBase()
+                dto.precoBase(),
+                cinema
         );
     }
 
