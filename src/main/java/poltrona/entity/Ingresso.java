@@ -19,7 +19,6 @@ import poltrona.enums.ingresso.TipoIngresso;
 import poltrona.exception.RegraNegocioException;
 
 @Entity
-
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Ingresso {

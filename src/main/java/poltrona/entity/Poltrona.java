@@ -62,4 +62,8 @@ public class Poltrona {
     public String getNumero() {
         return fileira + String.valueOf(coluna);
     }
+
+    public void desativar() {
+        this.ativa = false;
+    }
 }

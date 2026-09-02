@@ -15,14 +15,25 @@ public class PoliticaVenda {
     @Column(name = "tolerancia_minutos_compra")
     private Integer toleranciaMinutosCompra = 15;
 
-    public PoliticaVenda(Integer toleranciaMinutosCompra) {
+    @Column(name = "antecedencia_minutos_cancelamento")
+    private Integer antecedenciaMinutosCancelamento = 30;
+
+    public PoliticaVenda(Integer toleranciaMinutosCompra, Integer antecedenciaMinutosCancelamento) {
         if (toleranciaMinutosCompra != null) {
             this.toleranciaMinutosCompra = toleranciaMinutosCompra;
+        }
+        if (antecedenciaMinutosCancelamento != null) {
+            this.antecedenciaMinutosCancelamento = antecedenciaMinutosCancelamento;
         }
     }
 
     public boolean isVendaPermitida(LocalDateTime inicioSessao, LocalDateTime momento) {
         LocalDateTime limite = inicioSessao.plusMinutes(toleranciaMinutosCompra);
+        return !momento.isAfter(limite);
+    }
+
+    public boolean isCancelamentoPermitido(LocalDateTime inicioSessao, LocalDateTime momento) {
+        LocalDateTime limite = inicioSessao.minusMinutes(antecedenciaMinutosCancelamento);
         return !momento.isAfter(limite);
     }
 }

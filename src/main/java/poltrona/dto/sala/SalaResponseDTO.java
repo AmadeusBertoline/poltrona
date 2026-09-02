@@ -7,8 +7,7 @@ public record SalaResponseDTO(
 
         Long id,
         Integer numero,
-        Integer fileiras,
-        Integer poltronasPorFileira,
+        Integer capacidade,
         List<PoltronaResponseDTO> poltronas
 
 ) {

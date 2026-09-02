@@ -1,5 +1,7 @@
 package poltrona.mapper;
 
+import java.util.Map;
+
 import org.springframework.stereotype.Component;
 
 import poltrona.dto.poltrona.PoltronaRequestDTO;
@@ -11,18 +13,20 @@ import poltrona.entity.Sala;
 public class PoltronaMapper {
 
     public Poltrona toEntity(PoltronaRequestDTO dto, Sala sala) {
-        if (dto == null) {
+
+        if (dto == null || dto.fileiras() == null || dto.fileiras().isEmpty()) {
             return null;
         }
 
-        return new Poltrona(
-                dto.fileira(),
-                dto.coluna(),
-                sala);
-    }
+        Map.Entry<String, Integer> entry = dto.fileiras().entrySet().iterator().next();
 
-    public Poltrona toEntity(PoltronaRequestDTO dto) {
-        return toEntity(dto, null);
+        char letra = entry.getKey().charAt(0);
+        Integer numero = entry.getValue();
+
+        return new Poltrona(
+                letra,
+                numero,
+                sala);
     }
 
     public PoltronaResponseDTO toDTO(Poltrona entidade) {

@@ -25,8 +25,7 @@ public class SalaMapper {
 
         return new Sala(
                 dto.numero(),
-                dto.fileiras(),
-                dto.poltronasPorFileira(),
+                dto.poltronas().fileiras(),
                 cinema);
     }
 
@@ -46,8 +45,7 @@ public class SalaMapper {
         return new SalaResponseDTO(
                 entidade.getId(),
                 entidade.getNumero(),
-                entidade.getFileiras(),
-                entidade.getPoltronasPorFileira(),
+                entidade.getCapacidade(),
                 poltronasDTO);
     }
 }

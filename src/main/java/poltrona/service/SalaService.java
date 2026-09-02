@@ -2,6 +2,8 @@ package poltrona.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +11,7 @@ import poltrona.dto.sala.SalaRequestDTO;
 import poltrona.dto.sala.SalaResponseDTO;
 import poltrona.entity.Cinema;
 import poltrona.entity.Sala;
+import poltrona.entity.Usuario;
 import poltrona.enums.cinema.StatusCinema;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
@@ -23,20 +26,28 @@ public class SalaService {
     private final SalaMapper salaMapper;
     private final PoltronaService poltronaService;
     private final CinemaRepository cinemaRepository;
+    private final UsuarioService usuarioService;
 
     public SalaService(SalaRepository salaRepository, SalaMapper salaMapper, PoltronaService poltronaService,
-            CinemaRepository cinemaRepository) {
+            CinemaRepository cinemaRepository, UsuarioService usuarioService) {
         this.salaRepository = salaRepository;
         this.salaMapper = salaMapper;
         this.poltronaService = poltronaService;
         this.cinemaRepository = cinemaRepository;
+        this.usuarioService = usuarioService;
     }
 
     @Transactional
     public SalaResponseDTO cadastrar(SalaRequestDTO dto) {
 
+        Usuario usuarioLogado = usuarioService.usuarioLogado();
+
         Cinema cinema = cinemaRepository.findById(dto.idCinema())
                 .orElseThrow(() -> new ResourceNotFoundException("Cinema selecionado não existe"));
+
+        if (!cinema.getProprietario().getId().equals(usuarioLogado.getId())) {
+            throw new AccessDeniedException("Você só pode cadastrar salas nos seus próprios cinemas.");
+        }
 
         if (cinema.getStatus() != StatusCinema.ATIVO) {
             throw new RegraNegocioException("Não é possível cadastrar salas para um cinema inativo.");
@@ -47,9 +58,10 @@ public class SalaService {
         }
 
         Sala sala = salaMapper.toEntity(dto, cinema);
+
         Sala salaSalva = salaRepository.save(sala);
 
-        poltronaService.cadastrar(dto.fileiras(), dto.poltronasPorFileira(), salaSalva);
+        poltronaService.cadastrar(dto.poltronas(), salaSalva);
 
         return salaMapper.toDTO(salaSalva);
     }

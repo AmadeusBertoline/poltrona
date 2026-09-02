@@ -2,6 +2,8 @@ package poltrona.entity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,10 +34,7 @@ public class Sala {
     private Integer numero;
 
     @Column(nullable = false)
-    private Integer fileiras;
-
-    @Column(nullable = false)
-    private Integer poltronasPorFileira;
+    private Integer capacidade;
 
     @OneToMany(mappedBy = "sala", fetch = FetchType.LAZY)
     private List<Poltrona> poltronas = new ArrayList<>();
@@ -44,19 +43,18 @@ public class Sala {
     @JoinColumn(name = "cinema_id", nullable = false)
     private Cinema cinema;
 
-    public Sala(Integer numero, Integer fileiras, Integer poltronasPorFileira, Cinema cinema) {
+    public Sala(Integer numero, Map<String, Integer> capacidade, Cinema cinema) {
         this.numero = numero;
-        this.fileiras = fileiras;
-        this.poltronasPorFileira = poltronasPorFileira;
         this.cinema = cinema;
+        this.capacidade = capacidade.size();
     }
 
-    public void atualizarDados(Integer numero, Integer fileiras, Integer poltronasPorFileira) {
+    public void atualizarDados(Integer numero, Integer capacidade, Integer poltronasPorFileira) {
         if (numero != null)
             this.numero = numero;
-        if (fileiras != null)
-            this.fileiras = fileiras;
-        if (poltronasPorFileira != null)
-            this.poltronasPorFileira = poltronasPorFileira;
+        if (capacidade != null)
+            this.capacidade = numero;
+        if (numero != null)
+            this.numero = numero;
     }
 }

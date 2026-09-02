@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.ingresso.IngressoRequestDTO;
 import poltrona.dto.ingresso.IngressoResponseDTO;
-import poltrona.entity.Cliente;
 import poltrona.entity.Ingresso;
+import poltrona.entity.PoliticaVenda;
 import poltrona.entity.Poltrona;
 import poltrona.entity.Sessao;
 import poltrona.entity.Usuario;
@@ -79,31 +79,44 @@ public class IngressoService {
 
     @Transactional(readOnly = true)
     public Page<IngressoResponseDTO> listarTodos(Pageable pageable) {
-
         return ingressoRepository.findAll(pageable).map(ingressoMapper::toDTO);
+    }
 
+    @Transactional(readOnly = true)
+    public Page<IngressoResponseDTO> meusIngressos(Pageable pageable) {
+        Usuario usuario = usuarioService.usuarioLogado();
+        return ingressoRepository.findAllByUsuarioIdOrderByDataEmissaoDesc(usuario.getId(), pageable)
+                .map(ingressoMapper::toDTO);
     }
 
     @Transactional
     public void cancelar(Long id) {
 
-        Cliente cliente = (Cliente) usuarioService.usuarioLogado();
+        Usuario usuario = usuarioService.usuarioLogado();
 
         Ingresso ingresso = ingressoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ingresso não encontrado"));
 
-        if (!ingressoRepository.existsByIdAndUsuarioId(id, cliente.getId())) {
-            throw new AccessDeniedException("Você só pode cancelar seus ingressos");
+        if (!ingresso.getUsuario().getId().equals(usuario.getId())) {
+            throw new AccessDeniedException("Você só pode cancelar seus próprios ingressos.");
         }
 
-        if (ingresso.getSessao().getDataHoraInicio().isBefore(LocalDateTime.now())) {
+        if (ingresso.getStatus() == StatusIngresso.CANCELADO) {
+            throw new RegraNegocioException("Este ingresso já se encontra cancelado.");
+        }
+
+        Sessao sessao = ingresso.getSessao();
+        PoliticaVenda politicaVenda = sessao.getPoliticaVenda();
+
+        if (!politicaVenda.isCancelamentoPermitido(sessao.getDataHoraInicio(), LocalDateTime.now())) {
             throw new RegraNegocioException(
-                    "Não é possível cancelar o ingresso de uma sessão que já iniciou ou ocorreu.");
+                    "O cancelamento só é permitido com até "
+                            + politicaVenda.getAntecedenciaMinutosCancelamento()
+                            + " minutos de antecedência do início da sessão.");
         }
 
         ingresso.cancelar();
 
         ingressoRepository.save(ingresso);
     }
-
 }

@@ -1,8 +1,9 @@
 package poltrona.dto.poltrona;
 
+import java.util.Map;
+
 public record PoltronaRequestDTO(
 
-        char fileira,
-        Integer coluna
+        Map<String, Integer> fileiras
 ) {
 }
