@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import poltrona.entity.Sessao;
+
 
 public interface SessaoRepository extends JpaRepository<Sessao, Long> {
 
@@ -25,5 +25,10 @@ public interface SessaoRepository extends JpaRepository<Sessao, Long> {
         boolean existsById(Long id);
 
         boolean existsByFilmeIdAndDataHoraFimAfterAndAtivoTrue(Long id, LocalDateTime agora);
+
+        boolean existsByPrecoIdAndDataHoraInicioAfterAndStatus(
+                        Long precoId,
+                        LocalDateTime dataHora,
+                        Boolean status);
 
 }

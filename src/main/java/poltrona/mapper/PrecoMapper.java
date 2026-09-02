@@ -16,7 +16,7 @@ public class PrecoMapper {
         }
 
         return new Preco(
-                dto.nome(),
+                dto.nome().trim(),
                 dto.precoBase(),
                 cinema
         );

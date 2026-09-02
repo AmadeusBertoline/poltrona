@@ -40,6 +40,7 @@ public interface IngressoRepository extends JpaRepository<Ingresso, Long> {
                         LocalDateTime dataHora,
                         StatusIngresso status);
 
+
         boolean existsByIdAndUsuarioId(Long id, Long usuarioId);
 
         Page<Ingresso> findAllByUsuarioIdOrderByDataEmissaoDesc(Long id, Pageable pageable);

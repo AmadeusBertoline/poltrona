@@ -1,7 +1,6 @@
 package poltrona.service;
 
-import java.math.BigDecimal;
-
+import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -20,6 +19,7 @@ import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.PrecoMapper;
 import poltrona.repository.CinemaRepository;
 import poltrona.repository.PrecoRepository;
+import poltrona.repository.SessaoRepository;
 
 @Service
 public class PrecoService {
@@ -28,13 +28,15 @@ public class PrecoService {
     private final PrecoMapper precoMapper;
     private final CinemaRepository cinemaRepository;
     private final UsuarioService usuarioService;
+    private final SessaoRepository sessaoRepository;
 
     public PrecoService(PrecoRepository precoRepository, PrecoMapper precoMapper, CinemaRepository cinemaRepository,
-            UsuarioService usuarioService) {
+            UsuarioService usuarioService, SessaoRepository sessaoRepository) {
         this.precoRepository = precoRepository;
         this.precoMapper = precoMapper;
         this.cinemaRepository = cinemaRepository;
         this.usuarioService = usuarioService;
+        this.sessaoRepository = sessaoRepository;
     }
 
     @Transactional
@@ -42,18 +44,17 @@ public class PrecoService {
 
         Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
-        if (!cinemaRepository.existsByIdAndProprietarioId(dto.idCinema(), proprietario.getId())) {
-            throw new AccessDeniedException("Você só pode cadastrar preços para o seu cinema");
-        }
-
-        Cinema cinema = cinemaRepository.findById(dto.idCinema())
-                .orElseThrow(() -> new ResourceNotFoundException("Cinema selecionado não existe"));
+        Cinema cinema = cinemaRepository.findByIdAndProprietarioId(dto.idCinema(), proprietario.getId())
+                .orElseThrow(() -> new AccessDeniedException(
+                        "Cinema não encontrado ou não pertence ao proprietário logado."));
 
         if (cinema.getStatus() != StatusCinema.ATIVO) {
             throw new RegraNegocioException("Não é possível cadastrar tabela de preços para um cinema inativo.");
         }
 
-        if (precoRepository.existsByNomeIgnoreCaseAndCinemaId(dto.nome(), dto.idCinema())) {
+        String nomeSanitizado = dto.nome().trim();
+
+        if (precoRepository.existsByNomeIgnoreCaseAndCinemaId(nomeSanitizado, dto.idCinema())) {
             throw new ResourceAlreadyExistsException("Já existe um preço cadastrado com este nome para este cinema.");
         }
 
@@ -73,37 +74,40 @@ public class PrecoService {
     @Transactional
     public PrecoResponseDTO atualizar(Long id, AtualizaPrecoRequestDTO dto) {
 
-        Preco preco = precoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Preço não encontrado de id " + id));
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
-        if (dto.precoBase() != null) {
-            if (dto.precoBase().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new RegraNegocioException("O preço deve ser maior que zero");
-            }
-            preco.atualizarPrecoBase(dto.precoBase());
-        }
+        Preco preco = precoRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
+                .orElseThrow(
+                        () -> new AccessDeniedException("Preço não encontrado ou não pertence a nenhum cinema seu."));
 
-        if (dto.status() != null) {
-            if (Boolean.TRUE.equals(dto.status())) {
-                preco.ativar();
-            } else {
-                preco.desativar();
-            }
-        }
+        preco.atualizarPrecoBase(dto.precoBase());
 
         Preco salvo = precoRepository.save(preco);
 
         return precoMapper.toDTO(salvo);
-
     }
 
     @Transactional
-    public void deletar(Long id) {
+    public void desativar(Long id) {
 
-        Preco preco = precoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Preço não encontrado de id " + id));
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
-        precoRepository.delete(preco);
+        Preco preco = precoRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
+                .orElseThrow(
+                        () -> new AccessDeniedException("Preço não encontrado ou não pertence a nenhum cinema seu."));
+
+        if (!preco.getAtivo()) {
+            throw new RegraNegocioException("Este preço já se encontra inativo.");
+        }
+
+        boolean existeSessaoFutura = sessaoRepository.existsByPrecoIdAndDataHoraInicioAfterAndStatus(
+                id, LocalDateTime.now(), true);
+
+        if (existeSessaoFutura) {
+            throw new RegraNegocioException("Você não pode desativar preços que serão usados em sessões futuras.");
+        }
+
+        preco.desativar();
 
     }
 

@@ -59,9 +59,9 @@ public class PrecoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+    public ResponseEntity<Void> desativar(@PathVariable Long id) {
 
-        precoService.deletar(id);
+        precoService.desativar(id);
 
         return ResponseEntity.noContent().build();
 

@@ -44,7 +44,7 @@ public class Sessao {
     @JoinColumn(name = "preco_id", nullable = false)
     private Preco preco;
 
-    @Column
+    @Column(nullable = false)
     private Boolean ativo;
 
     @Embedded
