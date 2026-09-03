@@ -50,15 +50,15 @@ public class ItemVenda {
     private Venda venda;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ingresso_id", nullable = true)
+    @JoinColumn(name = "ingresso_id")
     private Ingresso ingresso;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "produto_id", nullable = true)
+    @JoinColumn(name = "produto_id")
     private Produto produto;
 
-    public ItemVenda(String descricao, BigDecimal precoUnitario, Integer quantidade, TipoItemVenda tipoItem,
-            Ingresso ingresso, Produto produto) {
+    public ItemVenda(String descricao, BigDecimal precoUnitario, Integer quantidade,
+            TipoItemVenda tipoItem, Ingresso ingresso, Produto produto) {
         this.descricao = descricao;
         this.precoUnitario = precoUnitario;
         this.quantidade = quantidade;
@@ -70,32 +70,11 @@ public class ItemVenda {
         this.produto = produto;
     }
 
-    public static ItemVenda criarItemIngresso(Ingresso ingresso, BigDecimal precoCalculado) {
-        ItemVenda item = new ItemVenda();
-        item.descricao = String.format("Ingresso %s - %s (Poltrona %s)",
-                ingresso.getTipo(),
-                ingresso.getSessao().getFilme().getTitulo(),
-                ingresso.getPoltrona().getNumero());
-        item.precoUnitario = precoCalculado;
-        item.quantidade = 1;
-        item.precoSubtotal = precoCalculado;
-        item.tipoItem = TipoItemVenda.INGRESSO;
-        item.ingresso = ingresso;
-        return item;
-    }
-
-    public static ItemVenda criarItemProduto(Produto produto, Integer quantidade) {
-        ItemVenda item = new ItemVenda();
-        item.descricao = produto.getNome();
-        item.precoUnitario = produto.getPreco();
-        item.quantidade = quantidade;
-        item.precoSubtotal = produto.getPreco().multiply(BigDecimal.valueOf(quantidade));
-        item.tipoItem = TipoItemVenda.PRODUTO_CONVENIENCIA;
-        item.produto = produto;
-        return item;
-    }
-
     public void vincularVenda(Venda venda) {
+        if (venda == null) {
+            throw new IllegalArgumentException("A venda não pode ser nula ao vincular o item.");
+        }
         this.venda = venda;
     }
+
 }

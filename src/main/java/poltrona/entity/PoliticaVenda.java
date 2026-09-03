@@ -36,4 +36,6 @@ public class PoliticaVenda {
         LocalDateTime limite = inicioSessao.minusMinutes(antecedenciaMinutosCancelamento);
         return !momento.isAfter(limite);
     }
+
+    
 }

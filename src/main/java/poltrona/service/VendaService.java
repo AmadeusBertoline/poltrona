@@ -1,31 +1,87 @@
 package poltrona.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import poltrona.dto.ingresso.IngressoRequestDTO;
+import poltrona.dto.venda.ItemProdutoRequestDTO;
 import poltrona.dto.venda.VendaRequestDTO;
 import poltrona.dto.venda.VendaResponseDTO;
-import poltrona.entity.Cliente;
+import poltrona.entity.Ingresso;
+import poltrona.entity.ItemVenda;
+import poltrona.entity.Produto;
+import poltrona.entity.Usuario;
+import poltrona.entity.Venda;
+import poltrona.mapper.ItemVendaMapper;
 import poltrona.mapper.VendaMapper;
+import poltrona.repository.ProdutoRepository;
 import poltrona.repository.VendaRepository;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class VendaService {
 
     private final VendaRepository vendaRepository;
-    private final UsuarioService usuarioService;
     private final VendaMapper vendaMapper;
+    private final ItemVendaMapper itemVendaMapper;
+    private final UsuarioService usuarioService;
+    private final IngressoService ingressoService;
+    private final ProdutoRepository produtoRepository;
 
-    public VendaService(VendaRepository vendaRepository, UsuarioService usuarioService, VendaMapper vendaMapper) {
+    public VendaService(
+            VendaRepository vendaRepository,
+            VendaMapper vendaMapper,
+            ItemVendaMapper itemVendaMapper,
+            UsuarioService usuarioService,
+            IngressoService ingressoService,
+            ProdutoRepository produtoRepository) {
         this.vendaRepository = vendaRepository;
-        this.usuarioService = usuarioService;
         this.vendaMapper = vendaMapper;
+        this.itemVendaMapper = itemVendaMapper;
+        this.usuarioService = usuarioService;
+        this.ingressoService = ingressoService;
+        this.produtoRepository = produtoRepository;
     }
 
     @Transactional
     public VendaResponseDTO cadastrar(VendaRequestDTO dto) {
 
-        Cliente cliente = (Cliente) usuarioService.usuarioLogado();
+        Usuario cliente = usuarioService.usuarioLogado();
 
+        Venda venda = vendaMapper.toEntity(dto, cliente);
+
+        List<ItemVenda> itens = new ArrayList<>();
+
+        if (dto.ingressos() != null) {
+            for (IngressoRequestDTO ingressoDto : dto.ingressos()) {
+                Ingresso ingresso = ingressoService.cadastrar(ingressoDto);
+
+                ItemVenda itemIngresso = itemVendaMapper.toEntityIngresso(
+                        ingresso,
+                        ingresso.calcularPreco(),
+                        "Ingresso - " + ingresso.getTipo());
+                itens.add(itemIngresso);
+            }
+        }
+
+        if (dto.produtos() != null) {
+            for (ItemProdutoRequestDTO produtoDto : dto.produtos()) {
+                Produto produto = produtoRepository.findById(produtoDto.produtoId())
+                        .orElseThrow(() -> new EntityNotFoundException(
+                                "Produto não encontrado ID: " + produtoDto.produtoId()));
+
+                ItemVenda itemProduto = itemVendaMapper.toEntityProduto(produto, produtoDto.quantidade());
+                itens.add(itemProduto);
+            }
+        }
+
+        venda.adicionarItens(itens);
+
+        Venda salva = vendaRepository.save(venda);
+
+        return vendaMapper.toDTO(salva);
     }
-
 }
