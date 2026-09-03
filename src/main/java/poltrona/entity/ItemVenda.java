@@ -10,11 +10,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import poltrona.enums.venda.TipoItemVenda;
+
 import java.math.BigDecimal;
 
 @Entity
@@ -47,11 +49,26 @@ public class ItemVenda {
     @JoinColumn(name = "venda_id", nullable = false)
     private Venda venda;
 
-    @Column(name = "ingresso_id")
-    private Long ingressoId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ingresso_id", nullable = true)
+    private Ingresso ingresso;
 
-    @Column(name = "produto_id")
-    private Long produtoId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "produto_id", nullable = true)
+    private Produto produto;
+
+    public ItemVenda(String descricao, BigDecimal precoUnitario, Integer quantidade, TipoItemVenda tipoItem,
+            Ingresso ingresso, Produto produto) {
+        this.descricao = descricao;
+        this.precoUnitario = precoUnitario;
+        this.quantidade = quantidade;
+        this.precoSubtotal = (precoUnitario != null && quantidade != null)
+                ? precoUnitario.multiply(BigDecimal.valueOf(quantidade))
+                : BigDecimal.ZERO;
+        this.tipoItem = tipoItem;
+        this.ingresso = ingresso;
+        this.produto = produto;
+    }
 
     public static ItemVenda criarItemIngresso(Ingresso ingresso, BigDecimal precoCalculado) {
         ItemVenda item = new ItemVenda();
@@ -63,7 +80,7 @@ public class ItemVenda {
         item.quantidade = 1;
         item.precoSubtotal = precoCalculado;
         item.tipoItem = TipoItemVenda.INGRESSO;
-        item.ingressoId = ingresso.getId();
+        item.ingresso = ingresso;
         return item;
     }
 
@@ -74,7 +91,7 @@ public class ItemVenda {
         item.quantidade = quantidade;
         item.precoSubtotal = produto.getPreco().multiply(BigDecimal.valueOf(quantidade));
         item.tipoItem = TipoItemVenda.PRODUTO_CONVENIENCIA;
-        item.produtoId = produto.getId();
+        item.produto = produto;
         return item;
     }
 

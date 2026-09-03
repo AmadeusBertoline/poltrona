@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -70,14 +69,12 @@ public class Venda {
 
         this.codigoComprovante = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         this.dataHora = LocalDateTime.now();
-        this.status = StatusVenda.PAGA; // Como a venda é simulada, ela já é confirmada na criação
+        this.status = StatusVenda.PAGA;
         this.formaPagamento = formaPagamento;
         this.cliente = cliente;
         this.valorTotal = BigDecimal.ZERO;
     }
 
-    // Método de domínio para associar itens e acumular o subtotal sem uso de
-    // setters
     public void adicionarItens(List<ItemVenda> novosItens) {
         if (novosItens == null || novosItens.isEmpty()) {
             throw new IllegalArgumentException("A venda precisa conter ao menos um item.");
