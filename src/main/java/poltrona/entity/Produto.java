@@ -10,7 +10,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import poltrona.exception.RegraNegocioException;
-
 import java.math.BigDecimal;
 
 @Entity

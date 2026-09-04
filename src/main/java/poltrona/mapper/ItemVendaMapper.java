@@ -6,19 +6,18 @@ import poltrona.entity.Ingresso;
 import poltrona.entity.ItemVenda;
 import poltrona.entity.Produto;
 import poltrona.enums.venda.TipoItemVenda;
-import java.math.BigDecimal;
 
 @Component
 public class ItemVendaMapper {
 
-    public ItemVenda toEntityIngresso(Ingresso ingresso, BigDecimal precoCalculado, String descricao) {
+    public ItemVenda toEntityIngresso(Ingresso ingresso, String descricao) {
         if (ingresso == null) {
             return null;
         }
 
         return new ItemVenda(
                 descricao,
-                precoCalculado,
+                ingresso.getPreco(),
                 1,
                 TipoItemVenda.INGRESSO,
                 ingresso,

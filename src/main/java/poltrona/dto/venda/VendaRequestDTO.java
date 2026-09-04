@@ -1,5 +1,7 @@
 package poltrona.dto.venda;
 
+import poltrona.dto.ingresso.IngressoRequestDTO;
+import poltrona.dto.produto.ProdutoRequestDTO;
 import poltrona.enums.venda.FormaPagamento;
 import java.util.List;
 
@@ -7,7 +9,7 @@ public record VendaRequestDTO(
 
         FormaPagamento formaPagamento,
 
-        List<ItemIngressoRequestDTO> ingressos,
+        List<IngressoRequestDTO> ingressos,
 
-        List<ItemProdutoRequestDTO> produtos
+        List<ProdutoRequestDTO> produtos
 ) {}

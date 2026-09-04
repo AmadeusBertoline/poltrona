@@ -1,11 +1,9 @@
 package poltrona.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import poltrona.dto.ingresso.IngressoRequestDTO;
-import poltrona.dto.venda.ItemProdutoRequestDTO;
+import poltrona.dto.produto.ProdutoRequestDTO;
 import poltrona.dto.venda.VendaRequestDTO;
 import poltrona.dto.venda.VendaResponseDTO;
 import poltrona.entity.Ingresso;
@@ -13,11 +11,11 @@ import poltrona.entity.ItemVenda;
 import poltrona.entity.Produto;
 import poltrona.entity.Usuario;
 import poltrona.entity.Venda;
+import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.ItemVendaMapper;
 import poltrona.mapper.VendaMapper;
 import poltrona.repository.ProdutoRepository;
 import poltrona.repository.VendaRepository;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +42,7 @@ public class VendaService {
         this.usuarioService = usuarioService;
         this.ingressoService = ingressoService;
         this.produtoRepository = produtoRepository;
+
     }
 
     @Transactional
@@ -61,17 +60,16 @@ public class VendaService {
 
                 ItemVenda itemIngresso = itemVendaMapper.toEntityIngresso(
                         ingresso,
-                        ingresso.calcularPreco(),
                         "Ingresso - " + ingresso.getTipo());
                 itens.add(itemIngresso);
             }
         }
 
         if (dto.produtos() != null) {
-            for (ItemProdutoRequestDTO produtoDto : dto.produtos()) {
-                Produto produto = produtoRepository.findById(produtoDto.produtoId())
-                        .orElseThrow(() -> new EntityNotFoundException(
-                                "Produto não encontrado ID: " + produtoDto.produtoId()));
+            for (ProdutoRequestDTO produtoDto : dto.produtos()) {
+                Produto produto = produtoRepository.findById(produtoDto.id())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Produto não encontrado ID: " + produtoDto.id()));
 
                 ItemVenda itemProduto = itemVendaMapper.toEntityProduto(produto, produtoDto.quantidade());
                 itens.add(itemProduto);

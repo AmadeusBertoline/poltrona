@@ -42,7 +42,7 @@ public class IngressoService {
     }
 
     @Transactional
-    public IngressoResponseDTO cadastrar(IngressoRequestDTO dto) {
+    public Ingresso cadastrar(IngressoRequestDTO dto) {
 
         Usuario usuario = usuarioService.usuarioLogado();
 
@@ -74,7 +74,7 @@ public class IngressoService {
         Ingresso ingresso = ingressoMapper.toEntity(dto, sessao, poltrona, usuario);
         Ingresso salvo = ingressoRepository.save(ingresso);
 
-        return ingressoMapper.toDTO(salvo);
+        return salvo;
     }
 
     @Transactional(readOnly = true)
