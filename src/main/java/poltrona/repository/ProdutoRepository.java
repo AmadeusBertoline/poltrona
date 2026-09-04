@@ -5,4 +5,6 @@ import poltrona.entity.Produto;
 
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
+    boolean existsByNomeIgnoreCaseAndCinemaId(String nome, Long id);
+
 }

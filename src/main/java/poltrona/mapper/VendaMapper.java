@@ -37,8 +37,8 @@ public class VendaMapper {
 
         return new VendaResponseDTO(
                 venda.getId(),
-                UUID.fromString(venda.getCodigoComprovante()),
-                venda.getDataHora(),
+                venda.getCodigoComprovante(),
+                venda.getDataCriacao(),
                 venda.getValorTotal(),
                 venda.getStatus(),
                 venda.getFormaPagamento(),

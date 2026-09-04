@@ -1,16 +1,23 @@
 package poltrona.entity;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import poltrona.enums.produto.TipoProduto;
 import poltrona.exception.RegraNegocioException;
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "produtos")
@@ -37,12 +44,27 @@ public class Produto {
     @Column(nullable = false)
     private Boolean ativo;
 
-    public Produto(String nome, String descricao, BigDecimal preco, Integer quantidadeEstoque) {
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TipoProduto tipo;
+
+    @Column(nullable = false)
+    private LocalDateTime dataCriacao;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "cinema_id", nullable = false)
+    private Cinema cinema;
+
+    public Produto(Cinema cinema, String nome, String descricao, TipoProduto tipo, BigDecimal preco,
+            Integer quantidadeEstoque) {
+        this.cinema = cinema;
         this.nome = nome.trim();
         this.descricao = descricao != null ? descricao.trim() : null;
+        this.tipo = tipo;
         this.preco = preco;
         this.quantidadeEstoque = quantidadeEstoque;
         this.ativo = true;
+        this.dataCriacao = LocalDateTime.now();
     }
 
     public void debitarEstoque(Integer quantidade) {

@@ -85,7 +85,7 @@ public class IngressoService {
     @Transactional(readOnly = true)
     public Page<IngressoResponseDTO> meusIngressos(Pageable pageable) {
         Usuario usuario = usuarioService.usuarioLogado();
-        return ingressoRepository.findAllByUsuarioIdOrderByDataEmissaoDesc(usuario.getId(), pageable)
+        return ingressoRepository.findAllByUsuarioIdOrderByDataCriacaoDesc(usuario.getId(), pageable)
                 .map(ingressoMapper::toDTO);
     }
 

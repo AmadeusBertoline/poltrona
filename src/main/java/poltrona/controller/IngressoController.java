@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import poltrona.dto.ingresso.IngressoRequestDTO;
 import poltrona.dto.ingresso.IngressoResponseDTO;
+import poltrona.entity.Ingresso;
+import poltrona.mapper.IngressoMapper;
 import poltrona.service.IngressoService;
 
 @RestController
@@ -22,17 +24,21 @@ import poltrona.service.IngressoService;
 public class IngressoController {
 
     private final IngressoService ingressoService;
+    private final IngressoMapper ingressoMapper;
 
-    public IngressoController(IngressoService ingressoService) {
+    public IngressoController(IngressoService ingressoService, IngressoMapper ingressoMapper) {
         this.ingressoService = ingressoService;
+        this.ingressoMapper = ingressoMapper;
     }
 
     @PostMapping
     public ResponseEntity<IngressoResponseDTO> cadastrar(@RequestBody IngressoRequestDTO dto) {
 
-        IngressoResponseDTO ingresso = ingressoService.cadastrar(dto);
+        Ingresso ingresso = ingressoService.cadastrar(dto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ingresso);
+        IngressoResponseDTO response = ingressoMapper.toDTO(ingresso);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
     }
 

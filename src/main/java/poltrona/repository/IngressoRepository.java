@@ -43,6 +43,6 @@ public interface IngressoRepository extends JpaRepository<Ingresso, Long> {
 
         boolean existsByIdAndUsuarioId(Long id, Long usuarioId);
 
-        Page<Ingresso> findAllByUsuarioIdOrderByDataEmissaoDesc(Long id, Pageable pageable);
+        Page<Ingresso> findAllByUsuarioIdOrderByDataCriacaoDesc(Long id, Pageable pageable);
 
 }

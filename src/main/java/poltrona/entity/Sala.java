@@ -3,6 +3,7 @@ package poltrona.entity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -46,7 +47,11 @@ public class Sala {
     public Sala(Integer numero, Map<String, Integer> capacidade, Cinema cinema) {
         this.numero = numero;
         this.cinema = cinema;
-        this.capacidade = capacidade.size();
+        this.capacidade = (capacidade == null) ? 0
+                : capacidade.values().stream()
+                        .filter(Objects::nonNull)
+                        .mapToInt(Integer::intValue)
+                        .sum();
     }
 
     public void atualizarDados(Integer numero, Integer capacidade, Integer poltronasPorFileira) {

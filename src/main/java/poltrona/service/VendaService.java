@@ -1,5 +1,7 @@
 package poltrona.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.ingresso.IngressoRequestDTO;
@@ -81,5 +83,10 @@ public class VendaService {
         Venda salva = vendaRepository.save(venda);
 
         return vendaMapper.toDTO(salva);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<VendaResponseDTO> listarTodas(Pageable pageable) {
+        return vendaRepository.findAll(pageable).map(vendaMapper::toDTO);
     }
 }

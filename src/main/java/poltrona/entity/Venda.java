@@ -39,7 +39,7 @@ public class Venda {
     private String codigoComprovante;
 
     @Column(name = "data_hora", nullable = false, updatable = false)
-    private LocalDateTime dataHora;
+    private LocalDateTime dataCriacao;
 
     @Column(name = "valor_total", nullable = false)
     private BigDecimal valorTotal;
@@ -68,7 +68,7 @@ public class Venda {
         }
 
         this.codigoComprovante = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        this.dataHora = LocalDateTime.now();
+        this.dataCriacao = LocalDateTime.now();
         this.status = StatusVenda.PAGA;
         this.formaPagamento = formaPagamento;
         this.cliente = cliente;

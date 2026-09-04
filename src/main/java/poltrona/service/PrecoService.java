@@ -100,8 +100,8 @@ public class PrecoService {
             throw new RegraNegocioException("Este preço já se encontra inativo.");
         }
 
-        boolean existeSessaoFutura = sessaoRepository.existsByPrecoIdAndDataHoraInicioAfterAndStatus(
-                id, LocalDateTime.now(), true);
+        boolean existeSessaoFutura = sessaoRepository.existsByPrecoIdAndDataHoraInicioAfterAndAtivoTrue(
+                id, LocalDateTime.now());
 
         if (existeSessaoFutura) {
             throw new RegraNegocioException("Você não pode desativar preços que serão usados em sessões futuras.");
