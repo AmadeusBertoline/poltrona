@@ -2,7 +2,6 @@ package poltrona.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -58,7 +57,7 @@ public class Ingresso {
     private LocalDateTime dataCriacao;
 
     public Ingresso(TipoIngresso tipo, Sessao sessao, Poltrona poltrona, Usuario usuario) {
-        this.preco = tipo.calcularPrecoFinal(sessao.getPreco().getPrecoBase());
+        this.preco = tipo.calcularPrecoFinal(sessao.getPreco());
         this.sessao = sessao;
         this.poltrona = poltrona;
         this.tipo = tipo;
