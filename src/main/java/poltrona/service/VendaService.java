@@ -1,13 +1,18 @@
 package poltrona.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import poltrona.dto.ingresso.IngressoRequestDTO;
 import poltrona.dto.produto.ProdutoRequestDTO;
 import poltrona.dto.venda.VendaRequestDTO;
 import poltrona.dto.venda.VendaResponseDTO;
+import poltrona.entity.Cliente;
 import poltrona.entity.Ingresso;
 import poltrona.entity.ItemVenda;
 import poltrona.entity.Produto;
@@ -19,8 +24,6 @@ import poltrona.mapper.ItemVendaMapper;
 import poltrona.mapper.VendaMapper;
 import poltrona.repository.ProdutoRepository;
 import poltrona.repository.VendaRepository;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class VendaService {
@@ -91,5 +94,14 @@ public class VendaService {
     @Transactional(readOnly = true)
     public Page<VendaResponseDTO> listarTodas(Pageable pageable) {
         return vendaRepository.findAll(pageable).map(vendaMapper::toDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<VendaResponseDTO> me(Pageable pageable) {
+
+        Cliente cliente = (Cliente) usuarioService.usuarioLogado();
+
+        return vendaRepository.findByCliente(cliente, pageable).map(vendaMapper::toDTO);
+
     }
 }

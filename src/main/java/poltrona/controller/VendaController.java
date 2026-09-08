@@ -44,4 +44,14 @@ public class VendaController {
 
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<Page<VendaResponseDTO>> me(
+            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
+
+        Page<VendaResponseDTO> compras = vendaService.me(pageable);
+
+        return ResponseEntity.status(HttpStatus.OK).body(compras);
+
+    }
+
 }
