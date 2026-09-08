@@ -7,7 +7,6 @@ import poltrona.dto.venda.VendaResponseDTO;
 import poltrona.entity.Usuario;
 import poltrona.entity.Venda;
 import java.util.List;
-import java.util.UUID;
 
 @Component
 public class VendaMapper {
