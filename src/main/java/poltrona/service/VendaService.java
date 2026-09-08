@@ -13,6 +13,7 @@ import poltrona.entity.ItemVenda;
 import poltrona.entity.Produto;
 import poltrona.entity.Usuario;
 import poltrona.entity.Venda;
+import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.ItemVendaMapper;
 import poltrona.mapper.VendaMapper;
@@ -56,18 +57,20 @@ public class VendaService {
 
         List<ItemVenda> itens = new ArrayList<>();
 
-        if (dto.ingressos() != null) {
-            for (IngressoRequestDTO ingressoDto : dto.ingressos()) {
-                Ingresso ingresso = ingressoService.cadastrar(ingressoDto);
-
-                ItemVenda itemIngresso = itemVendaMapper.toEntityIngresso(
-                        ingresso,
-                        "Ingresso - " + ingresso.getTipo());
-                itens.add(itemIngresso);
-            }
+        if (dto.ingressos() == null || dto.ingressos().isEmpty()) {
+            throw new RegraNegocioException("Nenhum ingresso selecionado");
         }
 
-        if (dto.produtos() != null) {
+        for (IngressoRequestDTO ingressoDto : dto.ingressos()) {
+            Ingresso ingresso = ingressoService.cadastrar(ingressoDto);
+
+            ItemVenda itemIngresso = itemVendaMapper.toEntityIngresso(
+                    ingresso,
+                    "Ingresso - " + ingresso.getTipo());
+            itens.add(itemIngresso);
+        }
+
+        if (dto.produtos() != null && !dto.produtos().isEmpty()) {
             for (ProdutoRequestDTO produtoDto : dto.produtos()) {
                 Produto produto = produtoRepository.findById(produtoDto.id())
                         .orElseThrow(() -> new ResourceNotFoundException(
