@@ -59,8 +59,8 @@ public class SessaoService {
         Sala sala = salaRepository.findById(dto.idSala())
                 .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada"));
 
-        Preco preco = precoRepository.findById(dto.idPreco())
-                .orElseThrow(() -> new ResourceNotFoundException("Preço não encontrado"));
+        Preco preco = precoRepository.findByIdAndAtivoTrue(dto.idPreco())
+                .orElseThrow(() -> new ResourceNotFoundException("Preço não encontrado, ou inativo"));
 
         if (dto.dataHoraInicio().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("A data da sessão deve ser futura");

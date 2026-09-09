@@ -16,4 +16,6 @@ public interface PrecoRepository extends JpaRepository<Preco, Long> {
 
     Optional<Preco> findByIdAndCinemaProprietarioId(Long precoId, Long proprietarioId);
 
+    Optional<Preco> findByIdAndAtivoTrue(Long id);
+
 }

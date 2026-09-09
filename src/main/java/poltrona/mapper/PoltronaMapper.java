@@ -18,9 +18,9 @@ public class PoltronaMapper {
             return null;
         }
 
-        Map.Entry<String, Integer> entry = dto.fileiras().entrySet().iterator().next();
+        Map.Entry<Character, Integer> entry = dto.fileiras().entrySet().iterator().next();
 
-        char letra = entry.getKey().charAt(0);
+        char letra = entry.getKey();
         Integer numero = entry.getValue();
 
         return new Poltrona(

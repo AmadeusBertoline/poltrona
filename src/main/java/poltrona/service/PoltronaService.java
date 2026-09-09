@@ -42,7 +42,7 @@ public class PoltronaService {
         List<Poltrona> poltronas = new ArrayList<>();
 
         dto.fileiras().forEach((letra, quantidade) -> {
-            char letraChar = letra.charAt(0);
+            char letraChar = letra.toString().charAt(0);
 
             for (int numero = 1; numero <= quantidade; numero++) {
                 Poltrona poltrona = new Poltrona(letraChar, numero, sala);
@@ -115,7 +115,7 @@ public class PoltronaService {
             throw new AccessDeniedException("Você não tem permissão para alterar poltronas deste cinema.");
         }
 
-        if (poltrona.getAtiva() == false) {
+        if (!poltrona.getAtiva()) {
             throw new RegraNegocioException("Esta poltrona já está inativa, id: " + id);
         }
 
@@ -134,6 +134,33 @@ public class PoltronaService {
 
         poltronaRepository.save(poltrona);
 
+    }
+
+    @Transactional
+    public List<Poltrona> criarPoltronasParaFileira(Sala sala, char fileira, int colunaInicio, int quantidadeTotal) {
+        List<Poltrona> novasPoltronas = new ArrayList<>();
+        for (int numero = colunaInicio; numero <= quantidadeTotal; numero++) {
+            novasPoltronas.add(new Poltrona(fileira, numero, sala));
+        }
+        return poltronaRepository.saveAll(novasPoltronas);
+    }
+
+    @Transactional
+    public void removerPoltronasExcedentes(List<Poltrona> poltronasParaRemover) {
+        for (Poltrona p : poltronasParaRemover) {
+            boolean possuiIngressoFuturo = ingressoRepository
+                    .existsByPoltronaIdAndSessaoDataHoraInicioAfterAndStatus(
+                            p.getId(),
+                            LocalDateTime.now(),
+                            StatusIngresso.ATIVO);
+
+            if (possuiIngressoFuturo) {
+                throw new RegraNegocioException(
+                        "A poltrona " + p.getFileira() + p.getNumero()
+                                + " possui ingressos vendidos para sessões futuras e não pode ser removida.");
+            }
+        }
+        poltronaRepository.deleteAll(poltronasParaRemover);
     }
 
 }

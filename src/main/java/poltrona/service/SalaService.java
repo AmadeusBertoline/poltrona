@@ -1,15 +1,20 @@
 package poltrona.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import poltrona.dto.sala.AtualizaSalaRequestDTO;
 import poltrona.dto.sala.SalaRequestDTO;
 import poltrona.dto.sala.SalaResponseDTO;
 import poltrona.entity.Cinema;
+import poltrona.entity.Poltrona;
+import poltrona.entity.Proprietario;
 import poltrona.entity.Sala;
 import poltrona.entity.Usuario;
 import poltrona.enums.cinema.StatusCinema;
@@ -61,18 +66,79 @@ public class SalaService {
 
         Sala salaSalva = salaRepository.save(sala);
 
+        cinema.atualizarQuantidadeSalas();
+
         poltronaService.cadastrar(dto.poltronas(), salaSalva);
 
         return salaMapper.toDTO(salaSalva);
     }
 
-    public List<SalaResponseDTO> listarTodas() {
+    @Transactional(readOnly = true)
+    public Page<SalaResponseDTO> listarPorCinema(Long cinemaId, Pageable pageable) {
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
-        return salaRepository.findAll()
-                .stream()
-                .map(salaMapper::toDTO)
-                .collect(Collectors.toList());
+        if (!cinemaRepository.existsByIdAndProprietarioId(cinemaId, proprietario.getId())) {
+            throw new ResourceNotFoundException("Cinema não encontrado ou não pertence ao proprietário logado");
+        }
 
+        return salaRepository.findAllByCinemaId(cinemaId, pageable)
+                .map(salaMapper::toDTO);
     }
 
+    @Transactional
+    public SalaResponseDTO atualizar(Long id, AtualizaSalaRequestDTO dto) {
+
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+
+        Sala sala = salaRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Essa sala não pertence a nenhum de seus cinemas"));
+
+        if (dto.numero() != null && !dto.numero().equals(sala.getNumero())) {
+            if (salaRepository.existsByCinemaIdAndNumero(sala.getCinema().getId(), dto.numero())) {
+                throw new RegraNegocioException("Esse cinema já possui uma sala com o número " + dto.numero());
+            }
+            sala.setNumero(dto.numero());
+        }
+
+        if (dto.poltronas() != null && dto.poltronas().fileiras() != null) {
+
+            Map<Character, List<Poltrona>> poltronasAtuaisPorFileira = sala.getPoltronas().stream()
+                    .collect(Collectors
+                            .groupingBy(p -> Character.toUpperCase(String.valueOf(p.getFileira()).charAt(0))));
+
+            dto.poltronas().fileiras().forEach((letraInput, novaQuantidade) -> {
+                char letra = Character.toUpperCase(letraInput.toString().charAt(0));
+                List<Poltrona> existentes = poltronasAtuaisPorFileira.getOrDefault(letra, new ArrayList<>());
+                int quantidadeAtual = existentes.size();
+
+                if (novaQuantidade > quantidadeAtual) {
+
+                    List<Poltrona> novasPoltronas = poltronaService.criarPoltronasParaFileira(sala, letra,
+                            quantidadeAtual + 1, novaQuantidade);
+                    sala.getPoltronas().addAll(novasPoltronas);
+
+                } else if (novaQuantidade < quantidadeAtual) {
+
+                    // Filtra utilizando a extração apenas dos números da String (ex: "C13" -> 13)
+                    List<Poltrona> excedentes = existentes.stream()
+                            .filter(p -> extrairNumeroInteiro(p.getNumero()) > novaQuantidade)
+                            .toList();
+
+                    poltronaService.removerPoltronasExcedentes(excedentes);
+                    sala.getPoltronas().removeAll(excedentes);
+                }
+            });
+        }
+
+        Sala salaSalva = salaRepository.save(sala);
+
+        return salaMapper.toDTO(salaSalva);
+    }
+
+    private int extrairNumeroInteiro(Object valorNumero) {
+        if (valorNumero == null)
+            return 0;
+        String apenasDigitos = String.valueOf(valorNumero).replaceAll("\\D+", "");
+        return apenasDigitos.isEmpty() ? 0 : Integer.parseInt(apenasDigitos);
+    }
 }

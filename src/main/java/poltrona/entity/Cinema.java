@@ -3,7 +3,6 @@ package poltrona.entity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -52,12 +51,15 @@ public class Cinema {
     @Column(nullable = false)
     private LocalDateTime dataCriacao;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "proprietario_id", nullable = false)
     private Proprietario proprietario;
 
     @Column(nullable = false)
     private StatusCinema status;
+
+    @Column(nullable = false)
+    private Integer quantidadeSalas;
 
     @PrePersist
     private void prePersist() {
@@ -73,6 +75,11 @@ public class Cinema {
         this.endereco = endereco;
         this.proprietario = proprietario;
         this.status = StatusCinema.ATIVO;
+        this.quantidadeSalas = salas.size();
+    }
+
+    public void atualizarQuantidadeSalas() {
+        this.quantidadeSalas = salas.size();
     }
 
     public void encerrar() {

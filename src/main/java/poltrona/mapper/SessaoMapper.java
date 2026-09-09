@@ -22,8 +22,7 @@ public class SessaoMapper {
                 filme,
                 sala,
                 preco,
-                null
-        );
+                null);
     }
 
     public SessaoResponseDTO toDTO(Sessao entidade) {
@@ -37,6 +36,6 @@ public class SessaoMapper {
                 entidade.getDataHoraFim(),
                 entidade.getFilme() != null ? entidade.getFilme().getTitulo() : null,
                 entidade.getSala() != null ? entidade.getSala().getNumero() : null,
-                entidade.getPreco() != null ? entidade.getPreco().getPrecoBase() : null);
+                entidade.getPreco() != null ? entidade.getPreco() : null);
     }
 }

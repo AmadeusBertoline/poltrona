@@ -26,8 +26,6 @@ public interface SessaoRepository extends JpaRepository<Sessao, Long> {
 
         boolean existsByFilmeIdAndDataHoraFimAfterAndAtivoTrue(Long id, LocalDateTime agora);
 
-        boolean existsByPrecoIdAndDataHoraInicioAfterAndAtivoTrue(
-                        Long precoId,
-                        LocalDateTime dataHora);
+        
 
 }

@@ -4,6 +4,5 @@ import java.util.Map;
 
 public record PoltronaRequestDTO(
 
-        Map<String, Integer> fileiras
-) {
-}
+        Map<Character, Integer> fileiras
+) {}

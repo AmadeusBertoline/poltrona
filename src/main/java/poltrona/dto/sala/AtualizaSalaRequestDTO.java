@@ -1,7 +1,10 @@
 package poltrona.dto.sala;
 
-public record AtualizaSalaRequestDTO (
+import poltrona.dto.poltrona.PoltronaRequestDTO;
 
-    
+public record AtualizaSalaRequestDTO(
 
-){}
+        Integer numero,
+        PoltronaRequestDTO poltronas
+
+) {}

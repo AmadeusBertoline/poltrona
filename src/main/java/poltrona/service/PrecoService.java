@@ -1,6 +1,5 @@
 package poltrona.service;
 
-import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -19,7 +18,6 @@ import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.PrecoMapper;
 import poltrona.repository.CinemaRepository;
 import poltrona.repository.PrecoRepository;
-import poltrona.repository.SessaoRepository;
 
 @Service
 public class PrecoService {
@@ -28,15 +26,13 @@ public class PrecoService {
     private final PrecoMapper precoMapper;
     private final CinemaRepository cinemaRepository;
     private final UsuarioService usuarioService;
-    private final SessaoRepository sessaoRepository;
 
     public PrecoService(PrecoRepository precoRepository, PrecoMapper precoMapper, CinemaRepository cinemaRepository,
-            UsuarioService usuarioService, SessaoRepository sessaoRepository) {
+            UsuarioService usuarioService) {
         this.precoRepository = precoRepository;
         this.precoMapper = precoMapper;
         this.cinemaRepository = cinemaRepository;
         this.usuarioService = usuarioService;
-        this.sessaoRepository = sessaoRepository;
     }
 
     @Transactional
@@ -98,13 +94,6 @@ public class PrecoService {
 
         if (!preco.getAtivo()) {
             throw new RegraNegocioException("Este preço já se encontra inativo.");
-        }
-
-        boolean existeSessaoFutura = sessaoRepository.existsByPrecoIdAndDataHoraInicioAfterAndAtivoTrue(
-                id, LocalDateTime.now());
-
-        if (existeSessaoFutura) {
-            throw new RegraNegocioException("Você não pode desativar preços que serão usados em sessões futuras.");
         }
 
         preco.desativar();
