@@ -3,7 +3,6 @@ package poltrona.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -59,9 +58,17 @@ public class SessaoService {
         Sala sala = salaRepository.findById(dto.idSala())
                 .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada"));
 
-        Preco preco = precoRepository.findByIdAndAtivoTrue(dto.idPreco())
-                .orElseThrow(() -> new ResourceNotFoundException("Preço não encontrado, ou inativo"));
+        if (!filme.getFormatoFilme().contains(dto.formato())) {
+            throw new RegraNegocioException(
+                    "O filme '" + filme.getTitulo() + "' não está disponível no formato " + dto.formato());
 
+        }
+
+        Preco preco = precoRepository.findByCinemaIdAndFormato(sala.getCinema().getId(), dto.formato())
+                .orElseThrow(() -> new RegraNegocioException(
+                        "O cinema não possui um preço cadastrado para o formato " + dto.formato()));
+
+        
         if (dto.dataHoraInicio().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("A data da sessão deve ser futura");
         }

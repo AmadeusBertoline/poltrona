@@ -3,6 +3,8 @@ package poltrona.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -146,8 +148,36 @@ public class PoltronaService {
     }
 
     @Transactional
-    public void removerPoltronasExcedentes(List<Poltrona> poltronasParaRemover) {
-        for (Poltrona p : poltronasParaRemover) {
+    public List<Poltrona> aumentarCapacidadeFileira(Sala sala, char fileira, int novaQuantidade,
+            List<Poltrona> todasDaFileira) {
+        Map<Integer, Poltrona> mapaPorNumero = todasDaFileira.stream()
+                .collect(Collectors.toMap(
+                        p -> extrairNumeroInteiro(p.getNumero()),
+                        p -> p,
+                        (p1, p2) -> p1));
+
+        List<Poltrona> alteradasOuCriadas = new ArrayList<>();
+
+        for (int numero = 1; numero <= novaQuantidade; numero++) {
+            Poltrona existente = mapaPorNumero.get(numero);
+
+            if (existente != null) {
+                if (!existente.getAtiva()) {
+                    existente.setAtiva(true);
+                    alteradasOuCriadas.add(existente);
+                }
+            } else {
+                Poltrona nova = new Poltrona(fileira, numero, sala);
+                alteradasOuCriadas.add(nova);
+            }
+        }
+
+        return poltronaRepository.saveAll(alteradasOuCriadas);
+    }
+
+    @Transactional
+    public void inativarPoltronasExcedentes(List<Poltrona> poltronasParaInativar) {
+        for (Poltrona p : poltronasParaInativar) {
             boolean possuiIngressoFuturo = ingressoRepository
                     .existsByPoltronaIdAndSessaoDataHoraInicioAfterAndStatus(
                             p.getId(),
@@ -157,10 +187,18 @@ public class PoltronaService {
             if (possuiIngressoFuturo) {
                 throw new RegraNegocioException(
                         "A poltrona " + p.getFileira() + p.getNumero()
-                                + " possui ingressos vendidos para sessões futuras e não pode ser removida.");
+                                + " possui ingressos vendidos para sessões futuras e não pode ser desativada.");
             }
+
+            p.desativar();
         }
-        poltronaRepository.deleteAll(poltronasParaRemover);
+        poltronaRepository.saveAll(poltronasParaInativar);
     }
 
+    private int extrairNumeroInteiro(Object valorNumero) {
+        if (valorNumero == null)
+            return 0;
+        String apenasDigitos = String.valueOf(valorNumero).replaceAll("\\D+", "");
+        return apenasDigitos.isEmpty() ? 0 : Integer.parseInt(apenasDigitos);
+    }
 }

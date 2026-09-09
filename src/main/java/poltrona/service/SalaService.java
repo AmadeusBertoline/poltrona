@@ -1,5 +1,6 @@
 package poltrona.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,10 +19,12 @@ import poltrona.entity.Proprietario;
 import poltrona.entity.Sala;
 import poltrona.entity.Usuario;
 import poltrona.enums.cinema.StatusCinema;
+import poltrona.enums.ingresso.StatusIngresso;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.SalaMapper;
 import poltrona.repository.CinemaRepository;
+import poltrona.repository.IngressoRepository;
 import poltrona.repository.SalaRepository;
 
 @Service
@@ -32,14 +35,16 @@ public class SalaService {
     private final PoltronaService poltronaService;
     private final CinemaRepository cinemaRepository;
     private final UsuarioService usuarioService;
+    private final IngressoRepository ingressoRepository;
 
     public SalaService(SalaRepository salaRepository, SalaMapper salaMapper, PoltronaService poltronaService,
-            CinemaRepository cinemaRepository, UsuarioService usuarioService) {
+            CinemaRepository cinemaRepository, UsuarioService usuarioService, IngressoRepository ingressoRepository) {
         this.salaRepository = salaRepository;
         this.salaMapper = salaMapper;
         this.poltronaService = poltronaService;
         this.cinemaRepository = cinemaRepository;
         this.usuarioService = usuarioService;
+        this.ingressoRepository = ingressoRepository;
     }
 
     @Transactional
@@ -102,30 +107,38 @@ public class SalaService {
 
         if (dto.poltronas() != null && dto.poltronas().fileiras() != null) {
 
-            Map<Character, List<Poltrona>> poltronasAtuaisPorFileira = sala.getPoltronas().stream()
+            Map<Character, List<Poltrona>> todasPoltronasPorFileira = sala.getPoltronas().stream()
                     .collect(Collectors
                             .groupingBy(p -> Character.toUpperCase(String.valueOf(p.getFileira()).charAt(0))));
 
             dto.poltronas().fileiras().forEach((letraInput, novaQuantidade) -> {
                 char letra = Character.toUpperCase(letraInput.toString().charAt(0));
-                List<Poltrona> existentes = poltronasAtuaisPorFileira.getOrDefault(letra, new ArrayList<>());
-                int quantidadeAtual = existentes.size();
+                List<Poltrona> todasDaFileira = todasPoltronasPorFileira.getOrDefault(letra, new ArrayList<>());
 
-                if (novaQuantidade > quantidadeAtual) {
+                List<Poltrona> ativasDaFileira = todasDaFileira.stream()
+                        .filter(Poltrona::getAtiva)
+                        .toList();
 
-                    List<Poltrona> novasPoltronas = poltronaService.criarPoltronasParaFileira(sala, letra,
-                            quantidadeAtual + 1, novaQuantidade);
-                    sala.getPoltronas().addAll(novasPoltronas);
+                int quantidadeAtualAtivas = ativasDaFileira.size();
 
-                } else if (novaQuantidade < quantidadeAtual) {
+                if (novaQuantidade > quantidadeAtualAtivas) {
 
-                    // Filtra utilizando a extração apenas dos números da String (ex: "C13" -> 13)
-                    List<Poltrona> excedentes = existentes.stream()
+                    List<Poltrona> afetadas = poltronaService.aumentarCapacidadeFileira(
+                            sala, letra, novaQuantidade, todasDaFileira);
+
+                    afetadas.forEach(p -> {
+                        if (!sala.getPoltronas().contains(p)) {
+                            sala.getPoltronas().add(p);
+                        }
+                    });
+
+                } else if (novaQuantidade < quantidadeAtualAtivas) {
+
+                    List<Poltrona> excedentes = ativasDaFileira.stream()
                             .filter(p -> extrairNumeroInteiro(p.getNumero()) > novaQuantidade)
                             .toList();
 
-                    poltronaService.removerPoltronasExcedentes(excedentes);
-                    sala.getPoltronas().removeAll(excedentes);
+                    poltronaService.inativarPoltronasExcedentes(excedentes);
                 }
             });
         }
@@ -140,5 +153,32 @@ public class SalaService {
             return 0;
         String apenasDigitos = String.valueOf(valorNumero).replaceAll("\\D+", "");
         return apenasDigitos.isEmpty() ? 0 : Integer.parseInt(apenasDigitos);
+    }
+
+    @Transactional
+    public void desativar(Long id) {
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+
+        Sala sala = salaRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Sala não encontrada ou não pertence a nenhum de seus cinemas."));
+
+        boolean possuiIngressosFuturos = ingressoRepository
+                .existsBySessaoSalaIdAndSessaoDataHoraInicioAfterAndStatus(
+                        sala.getId(),
+                        LocalDateTime.now(),
+                        StatusIngresso.ATIVO);
+
+        if (possuiIngressosFuturos) {
+            throw new RegraNegocioException(
+                    "Não é possível desativar a sala pois ela possui ingressos vendidos para sessões futuras.");
+        }
+
+        sala.desativar();
+
+        sala.getCinema().atualizarQuantidadeSalas();
+
+        // 5. Persiste a alteração
+        salaRepository.save(sala);
     }
 }

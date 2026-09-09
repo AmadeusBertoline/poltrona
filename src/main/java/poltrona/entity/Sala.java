@@ -21,6 +21,7 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import poltrona.exception.RegraNegocioException;
 
 @Entity
 @Getter
@@ -49,9 +50,13 @@ public class Sala {
     @Column(nullable = false)
     private LocalDateTime dataCriacao;
 
+    @Column(nullable = false)
+    private Boolean ativa;
+
     public Sala(Integer numero, Map<Character, Integer> capacidade, Cinema cinema) {
         this.numero = numero;
         this.cinema = cinema;
+        this.ativa = true;
         this.dataCriacao = LocalDateTime.now();
         this.capacidade = (capacidade == null) ? 0
                 : capacidade.values().stream()
@@ -73,5 +78,12 @@ public class Sala {
 
     public void setNumero(Integer numero) {
         this.numero = numero;
+    }
+
+    public void desativar() {
+        if (Boolean.FALSE.equals(this.ativa)) {
+            throw new RegraNegocioException("Esta sala já está inativa.");
+        }
+        this.ativa = false;
     }
 }

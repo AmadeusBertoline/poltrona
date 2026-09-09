@@ -48,9 +48,8 @@ public class PrecoService {
             throw new RegraNegocioException("Não é possível cadastrar tabela de preços para um cinema inativo.");
         }
 
-        String nomeSanitizado = dto.nome().trim();
 
-        if (precoRepository.existsByNomeIgnoreCaseAndCinemaId(nomeSanitizado, dto.idCinema())) {
+        if (precoRepository.existsByFormatoAndCinemaId(dto.formato(), dto.idCinema())) {
             throw new ResourceAlreadyExistsException("Já existe um preço cadastrado com este nome para este cinema.");
         }
 

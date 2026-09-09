@@ -1,17 +1,16 @@
 package poltrona.dto.preco;
 
 import java.math.BigDecimal;
-
-import poltrona.validation.nomeValido.NomeValido;
+import poltrona.enums.filme.FormatoFilme;
 import poltrona.validation.precoValido.PrecoValido;
 
 public record PrecoRequestDTO(
 
-                Long idCinema,
+        Long idCinema,
 
-                @NomeValido String nome,
+        FormatoFilme formato,
 
-                @PrecoValido BigDecimal precoBase
+        @PrecoValido BigDecimal precoBase
 
 ) {
 }

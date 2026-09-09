@@ -1,7 +1,6 @@
 package poltrona.mapper;
 
 import org.springframework.stereotype.Component;
-
 import poltrona.dto.sessao.SessaoRequestDTO;
 import poltrona.dto.sessao.SessaoResponseDTO;
 import poltrona.entity.Filme;
@@ -21,6 +20,7 @@ public class SessaoMapper {
                 dto.dataHoraInicio(),
                 filme,
                 sala,
+                dto.formato(),
                 preco,
                 null);
     }

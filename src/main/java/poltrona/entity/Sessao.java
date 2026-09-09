@@ -15,6 +15,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import poltrona.enums.filme.FormatoFilme;
 import poltrona.exception.RegraNegocioException;
 
 @Entity
@@ -45,16 +46,20 @@ public class Sessao {
     private BigDecimal preco;
 
     @Column(nullable = false)
+    private FormatoFilme formato;
+
+    @Column(nullable = false)
     private Boolean ativo;
 
     @Embedded
     private PoliticaVenda politicaVenda = new PoliticaVenda();
 
-    public Sessao(LocalDateTime dataHoraInicio, Filme filme, Sala sala, Preco preco, PoliticaVenda politicaVenda) {
+    public Sessao(LocalDateTime dataHoraInicio, Filme filme, Sala sala, FormatoFilme formato, Preco preco,
+            PoliticaVenda politicaVenda) {
         this.dataHoraInicio = dataHoraInicio;
         this.filme = filme;
         this.sala = sala;
-        this.preco = preco.getPrecoBase();
+        this.preco = preco.getValor();
         this.ativo = true;
         if (politicaVenda != null) {
             this.politicaVenda = politicaVenda;

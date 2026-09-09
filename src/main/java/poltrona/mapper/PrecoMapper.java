@@ -16,7 +16,7 @@ public class PrecoMapper {
         }
 
         return new Preco(
-                dto.nome().trim(),
+                dto.formato(),
                 dto.precoBase(),
                 cinema
         );
@@ -29,8 +29,8 @@ public class PrecoMapper {
 
         return new PrecoResponseDTO(
                 preco.getId(),
-                preco.getNome(),
-                preco.getPrecoBase(),
+                preco.getFormato(),
+                preco.getValor(),
                 preco.getAtivo());
     }
 }

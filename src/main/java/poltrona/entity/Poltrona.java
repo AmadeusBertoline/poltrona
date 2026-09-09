@@ -63,6 +63,10 @@ public class Poltrona {
         return fileira + String.valueOf(coluna);
     }
 
+    public void setAtiva(boolean ativa) {
+        this.ativa = ativa;
+    }
+
     public void desativar() {
         this.ativa = false;
     }

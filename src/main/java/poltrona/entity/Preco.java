@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,12 +14,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import poltrona.enums.filme.FormatoFilme;
 
 @Entity
-@Table(name = "precos")
+@Table(name = "precos", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_cinema_formato", columnNames = { "cinema_id", "formato" }) })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Preco {
@@ -27,10 +32,11 @@ public class Preco {
     private Long id;
 
     @Column(nullable = false)
-    private String nome;
+    @Enumerated(EnumType.STRING)
+    private FormatoFilme formato;
 
     @Column(nullable = false)
-    private BigDecimal precoBase;
+    private BigDecimal valor;
 
     @Column(nullable = false)
     private Boolean ativo;
@@ -42,9 +48,9 @@ public class Preco {
     @Column(nullable = false)
     private LocalDateTime dataCriacao;
 
-    public Preco(String nome, BigDecimal precoBase, Cinema cinema) {
-        this.nome = nome;
-        this.precoBase = precoBase;
+    public Preco(FormatoFilme formato, BigDecimal valor, Cinema cinema) {
+        this.formato = formato;
+        this.valor = valor;
         this.ativo = (ativo != null) ? ativo : true;
         this.cinema = cinema;
         this.dataCriacao = LocalDateTime.now();
@@ -52,7 +58,7 @@ public class Preco {
 
     public void atualizarPrecoBase(BigDecimal novoPreco) {
         if (novoPreco != null) {
-            this.precoBase = novoPreco;
+            this.valor = novoPreco;
         }
     }
 
