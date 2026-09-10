@@ -85,6 +85,49 @@ public class Sessao {
         }
     }
 
+    public void validarPermiteAlteracao(long ingressosVendidos) {
+        if (ingressosVendidos > 0) {
+            throw new RegraNegocioException(
+                    "Não é possível alterar a sessão pois já existem " + ingressosVendidos
+                            + " ingresso(s) vendido(s).");
+        }
+
+        if (this.dataHoraInicio.isBefore(LocalDateTime.now())) {
+            throw new RegraNegocioException("Não é possível alterar uma sessão que já iniciou ou finalizou.");
+        }
+
+        if (!this.ativo) {
+            throw new RegraNegocioException("Não é possível alterar uma sessão inativa/cancelada.");
+        }
+    }
+
+    public void alterarPreco(BigDecimal novoPreco) {
+        if (novoPreco != null) {
+            if (novoPreco.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RegraNegocioException("O preço da sessão deve ser maior que zero.");
+            }
+            this.preco = novoPreco;
+        }
+    }
+
+    public void alterarSala(Sala novaSala) {
+        if (novaSala != null) {
+            this.sala = novaSala;
+        }
+    }
+
+    public void alterarFormato(FormatoFilme novoFormato) {
+        if (novoFormato != null) {
+            this.formato = novoFormato;
+        }
+    }
+
+    public void alterarPoliticaVenda(PoliticaVenda novaPolitica) {
+        if (novaPolitica != null) {
+            this.politicaVenda = novaPolitica;
+        }
+    }
+
     public void alterarHorario(LocalDateTime novoHorario) {
         if (novoHorario != null) {
             this.dataHoraInicio = novoHorario;

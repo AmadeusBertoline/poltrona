@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.poltrona.MapaPoltronasResponseDTO;
 import poltrona.dto.poltrona.PoltronaStatusDTO;
+import poltrona.dto.sessao.AtualizaSessaoRequestDTO;
 import poltrona.dto.sessao.GradeSessaoRequestDTO;
 import poltrona.dto.sessao.SessaoRequestDTO;
 import poltrona.dto.sessao.SessaoResponseDTO;
@@ -65,7 +66,6 @@ public class SessaoService {
         if (!filme.getFormatoFilme().contains(dto.formato())) {
             throw new RegraNegocioException(
                     "O filme '" + filme.getTitulo() + "' não está disponível no formato " + dto.formato());
-
         }
 
         Preco preco = precoRepository.findByCinemaIdAndFormato(sala.getCinema().getId(), dto.formato())
@@ -73,29 +73,50 @@ public class SessaoService {
                         "O cinema não possui um preço cadastrado para o formato " + dto.formato()));
 
         if (dto.dataHoraInicio().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("A data da sessão deve ser futura");
+            throw new RegraNegocioException("A data e horário da sessão devem ser no futuro");
         }
 
         Sessao sessao = sessaoMapper.toEntity(dto, filme, sala, preco);
 
-        if (sessaoRepository.existeConflitoDeHorario(sala.getId(), dto.dataHoraInicio(), sessao.getDataHoraFim())) {
-            throw new RegraNegocioException("O horário da sessão cadastrada está em conflito com outra sessão");
+        boolean conflito = sessaoRepository.existeConflitoDeHorario(
+                sala.getId(),
+                null,
+                dto.dataHoraInicio(),
+                sessao.getDataHoraFim());
+
+        if (conflito) {
+            throw new RegraNegocioException(
+                    "O horário da sessão cadastrada está em conflito com outra sessão nesta sala");
         }
 
         Sessao cadastrada = sessaoRepository.save(sessao);
 
         return sessaoMapper.toDTO(cadastrada);
-
     }
 
     @Transactional(readOnly = true)
-    public Page<SessaoResponseDTO> listar(Long cinemaId, LocalDate data, Long filmeId, Pageable pageable) {
+    public Page<SessaoResponseDTO> listar(
+            Long cinemaId,
+            LocalDate data,
+            Long filmeId,
+            Boolean apenasDisponiveis,
+            Pageable pageable) {
 
         LocalDateTime inicioDia = (data != null) ? data.atStartOfDay() : null;
         LocalDateTime fimDia = (data != null) ? data.plusDays(1).atStartOfDay() : null;
 
-        return sessaoRepository.findAllByFiltro(cinemaId, inicioDia, fimDia, filmeId, pageable)
-                .map(sessaoMapper::toDTO);
+        LocalDateTime agora = LocalDateTime.now();
+
+        Boolean filtrarDisponiveis = (apenasDisponiveis != null) ? apenasDisponiveis : true;
+
+        return sessaoRepository.findAllByFiltro(
+                cinemaId,
+                inicioDia,
+                fimDia,
+                filmeId,
+                filtrarDisponiveis,
+                agora,
+                pageable).map(sessaoMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
@@ -158,18 +179,20 @@ public class SessaoService {
 
             for (LocalTime horario : dto.horarios()) {
                 LocalDateTime inicio = LocalDateTime.of(dataAtual, horario);
-
                 LocalDateTime fim = inicio.plusMinutes(filme.getDuracao() + tempoLimpezaMinutos);
 
-                boolean salaOcupada = sessaoRepository.existeConflitoDeHorario(sala.getId(), inicio, fim);
-                if (salaOcupada) {
+                boolean conflitoNoBanco = sessaoRepository.existeConflitoDeHorario(sala.getId(), null, inicio, fim);
+
+                boolean conflitoNaGrade = sessoesParaSalvar.stream()
+                        .anyMatch(s -> inicio.isBefore(s.getDataHoraFim()) && fim.isAfter(s.getDataHoraInicio()));
+
+                if (conflitoNoBanco || conflitoNaGrade) {
                     throw new RegraNegocioException(
                             String.format("Conflito de horário na sala %s em %s entre %s e %s",
                                     sala.getNumero(), dataAtual, horario, fim.toLocalTime()));
                 }
 
                 Sessao sessao = new Sessao(inicio, filme, sala, dto.formato(), preco, null);
-
                 sessoesParaSalvar.add(sessao);
             }
 
@@ -178,6 +201,52 @@ public class SessaoService {
 
         List<Sessao> sessoesSalvas = sessaoRepository.saveAll(sessoesParaSalvar);
         return sessoesSalvas.stream().map(sessaoMapper::toDTO).toList();
+    }
+
+    @Transactional
+    public SessaoResponseDTO atualizar(Long id, AtualizaSessaoRequestDTO dto) {
+        Sessao sessao = sessaoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada."));
+
+        long ingressosVendidos = ingressoRepository.countBySessaoId(sessao.getId());
+
+        sessao.validarPermiteAlteracao(ingressosVendidos);
+
+        if (dto.filmeId() != null) {
+            Filme novoFilme = filmeRepository.findById(dto.filmeId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado."));
+            sessao.alterarFilme(novoFilme);
+        }
+
+        if (dto.salaId() != null) {
+            Sala novaSala = salaRepository.findById(dto.salaId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada."));
+            sessao.alterarSala(novaSala);
+        }
+
+        if (dto.dataHoraInicio() != null) {
+            sessao.alterarHorario(dto.dataHoraInicio());
+        }
+
+        sessao.alterarPreco(dto.preco());
+        sessao.alterarFormato(dto.formato());
+
+        // if (dto.toleranciaMinutosCompra() != null) {
+        // sessao.alterarPoliticaVenda(new
+        // PoliticaVenda(dto.toleranciaMinutosCompra()));
+        // }
+
+        boolean conflito = sessaoRepository.existeConflitoDeHorario(
+                sessao.getSala().getId(),
+                sessao.getId(),
+                sessao.getDataHoraInicio(),
+                sessao.getDataHoraFim());
+
+        if (conflito) {
+            throw new RegraNegocioException("Já existe outra sessão agendada nesta sala para este horário.");
+        }
+
+        return sessaoMapper.toDTO(sessao);
     }
 
 }

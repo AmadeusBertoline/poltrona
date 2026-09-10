@@ -47,11 +47,11 @@ public class SessaoController {
             @RequestParam(required = false) Long cinemaId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
             @RequestParam(required = false) Long filmeId,
+            @RequestParam(required = false, defaultValue = "true") Boolean apenasDisponiveis,
             @PageableDefault(page = 0, size = 10, sort = "dataHoraInicio", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        Page<SessaoResponseDTO> pagina = sessaoService.listar(cinemaId, data, filmeId, pageable);
-        return ResponseEntity.status(HttpStatus.OK).body(pagina);
-
+        Page<SessaoResponseDTO> pagina = sessaoService.listar(cinemaId, data, filmeId, apenasDisponiveis, pageable);
+        return ResponseEntity.ok(pagina);
     }
 
     @GetMapping("/{id}")
