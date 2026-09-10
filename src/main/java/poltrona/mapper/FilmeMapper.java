@@ -41,6 +41,7 @@ public class FilmeMapper {
                 entidade.getDistribuidora(),
                 entidade.getDataLancamento(),
                 entidade.getImagePath(),
-                entidade.getClassificacaoIndicativa());
+                entidade.getClassificacaoIndicativa(),
+                entidade.getFormatoFilme());
     }
 }

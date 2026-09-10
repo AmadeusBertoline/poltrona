@@ -2,8 +2,8 @@ package poltrona.dto.filme;
 
 import java.time.LocalDate;
 import java.util.Set;
-
 import poltrona.enums.filme.ClassificacaoIndicativa;
+import poltrona.enums.filme.FormatoFilme;
 import poltrona.enums.filme.GeneroFilme;
 
 public record FilmeResponseDTO(
@@ -26,7 +26,9 @@ public record FilmeResponseDTO(
 
         String imagePath,
 
-        ClassificacaoIndicativa classificacaoIndicativa
+        ClassificacaoIndicativa classificacaoIndicativa,
+
+        Set<FormatoFilme> formato
 
 ) {
 }

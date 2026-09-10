@@ -1,6 +1,9 @@
 package poltrona.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.springframework.data.domain.Page;
@@ -9,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.poltrona.MapaPoltronasResponseDTO;
 import poltrona.dto.poltrona.PoltronaStatusDTO;
+import poltrona.dto.sessao.GradeSessaoRequestDTO;
 import poltrona.dto.sessao.SessaoRequestDTO;
 import poltrona.dto.sessao.SessaoResponseDTO;
 import poltrona.entity.Filme;
@@ -68,7 +72,6 @@ public class SessaoService {
                 .orElseThrow(() -> new RegraNegocioException(
                         "O cinema não possui um preço cadastrado para o formato " + dto.formato()));
 
-        
         if (dto.dataHoraInicio().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("A data da sessão deve ser futura");
         }
@@ -86,11 +89,13 @@ public class SessaoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SessaoResponseDTO> listarTodas(Pageable pageable) {
+    public Page<SessaoResponseDTO> listar(Long cinemaId, LocalDate data, Long filmeId, Pageable pageable) {
 
-        return sessaoRepository.findAll(pageable)
+        LocalDateTime inicioDia = (data != null) ? data.atStartOfDay() : null;
+        LocalDateTime fimDia = (data != null) ? data.plusDays(1).atStartOfDay() : null;
+
+        return sessaoRepository.findAllByFiltro(cinemaId, inicioDia, fimDia, filmeId, pageable)
                 .map(sessaoMapper::toDTO);
-
     }
 
     @Transactional(readOnly = true)
@@ -131,6 +136,48 @@ public class SessaoService {
                 .toList();
 
         return new MapaPoltronasResponseDTO(sessao.getId(), sessao.getSala().getId(), poltronasStatus);
+    }
+
+    @Transactional
+    public List<SessaoResponseDTO> cadastrarGrade(GradeSessaoRequestDTO dto) {
+        Filme filme = filmeRepository.findById(dto.filmeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado"));
+
+        Sala sala = salaRepository.findById(dto.salaId())
+                .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada"));
+
+        Preco preco = precoRepository.findByCinemaIdAndFormato(sala.getCinema().getId(), dto.formato())
+                .orElseThrow(
+                        () -> new RegraNegocioException("Cinema sem preço cadastrado para o formato " + dto.formato()));
+
+        List<Sessao> sessoesParaSalvar = new ArrayList<>();
+        int tempoLimpezaMinutos = 15;
+
+        LocalDate dataAtual = dto.dataInicio();
+        while (!dataAtual.isAfter(dto.dataFim())) {
+
+            for (LocalTime horario : dto.horarios()) {
+                LocalDateTime inicio = LocalDateTime.of(dataAtual, horario);
+
+                LocalDateTime fim = inicio.plusMinutes(filme.getDuracao() + tempoLimpezaMinutos);
+
+                boolean salaOcupada = sessaoRepository.existeConflitoDeHorario(sala.getId(), inicio, fim);
+                if (salaOcupada) {
+                    throw new RegraNegocioException(
+                            String.format("Conflito de horário na sala %s em %s entre %s e %s",
+                                    sala.getNumero(), dataAtual, horario, fim.toLocalTime()));
+                }
+
+                Sessao sessao = new Sessao(inicio, filme, sala, dto.formato(), preco, null);
+
+                sessoesParaSalvar.add(sessao);
+            }
+
+            dataAtual = dataAtual.plusDays(1);
+        }
+
+        List<Sessao> sessoesSalvas = sessaoRepository.saveAll(sessoesParaSalvar);
+        return sessoesSalvas.stream().map(sessaoMapper::toDTO).toList();
     }
 
 }

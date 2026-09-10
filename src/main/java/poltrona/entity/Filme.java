@@ -93,7 +93,7 @@ public class Filme {
 
     public void atualizarDados(String titulo, String sinopse, Integer duracao, String diretor,
             String distribuidora, LocalDate dataLancamento, String imagePath, Set<FormatoFilme> formatoFilme,
-            Set<GeneroFilme> genero, Boolean ativo) {
+            Set<GeneroFilme> genero) {
         if (titulo != null && !titulo.isBlank())
             this.titulo = titulo;
         if (sinopse != null && !sinopse.isBlank())
@@ -113,9 +113,6 @@ public class Filme {
         }
         if (genero != null) {
             this.generos = genero;
-        }
-        if (ativo != null) {
-            this.ativo = ativo;
         }
     }
 

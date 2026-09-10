@@ -16,6 +16,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import poltrona.enums.filme.FormatoFilme;
+import poltrona.enums.sessao.StatusSessao;
 import poltrona.exception.RegraNegocioException;
 
 @Entity
@@ -64,6 +65,7 @@ public class Sessao {
         if (politicaVenda != null) {
             this.politicaVenda = politicaVenda;
         }
+        this.formato = formato;
         calcularDataHoraFim();
     }
 
@@ -106,6 +108,22 @@ public class Sessao {
     private void calcularDataHoraFim() {
         if (this.filme != null && this.dataHoraInicio != null) {
             this.dataHoraFim = this.dataHoraInicio.plusMinutes(this.filme.getDuracao());
+        }
+    }
+
+    public StatusSessao getStatus() {
+        LocalDateTime agora = LocalDateTime.now();
+
+        if (!this.ativo) {
+            return StatusSessao.CANCELADA;
+        }
+
+        if (agora.isBefore(this.dataHoraInicio)) {
+            return StatusSessao.AGENDADA;
+        } else if (agora.isAfter(this.dataHoraInicio) && agora.isBefore(this.dataHoraFim)) {
+            return StatusSessao.EM_ANDAMENTO;
+        } else {
+            return StatusSessao.FINALIZADA;
         }
     }
 }

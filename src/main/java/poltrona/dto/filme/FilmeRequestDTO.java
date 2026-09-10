@@ -34,9 +34,7 @@ public record FilmeRequestDTO(
 
         ClassificacaoIndicativa classificacaoIndicativa,
 
-        Set<FormatoFilme> formatos,
-
-        Boolean ativo
+        Set<FormatoFilme> formatos
 
 ) {
 }

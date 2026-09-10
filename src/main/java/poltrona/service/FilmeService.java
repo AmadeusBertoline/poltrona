@@ -1,7 +1,6 @@
 package poltrona.service;
 
 import java.time.LocalDateTime;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -74,8 +73,7 @@ public class FilmeService {
                 dto.dataLancamento(),
                 dto.imagePath(),
                 dto.formatos(),
-                dto.generos(),
-                dto.ativo());
+                dto.generos());
 
         return filmeMapper.toDTO(filme);
     }
@@ -99,6 +97,22 @@ public class FilmeService {
         }
 
         filme.inativar();
+    }
+
+    @Transactional
+    public void deletar(Long id) {
+
+        Filme filme = filmeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado com o id " + id));
+
+        boolean possuiSessoes = sessaoRepository.existsByFilmeId(id);
+
+        if (possuiSessoes) {
+            throw new RegraNegocioException(
+                    "Não é possível excluir o filme permanentemente pois ele possui sessões vinculadas. Utilize a opção de inativação.");
+        }
+
+        filmeRepository.delete(filme);
     }
 
 }
