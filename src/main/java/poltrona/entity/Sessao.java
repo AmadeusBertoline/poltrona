@@ -101,6 +101,14 @@ public class Sessao {
         }
     }
 
+    public void permiteExclusao(long ingressosVendidos) {
+        if (ingressosVendidos > 0) {
+            throw new RegraNegocioException(
+                    "Não é possível excluir a sessão pois já existem " + ingressosVendidos
+                            + " ingresso(s) vendido(s).");
+        }
+    }
+
     public void alterarPreco(BigDecimal novoPreco) {
         if (novoPreco != null) {
             if (novoPreco.compareTo(BigDecimal.ZERO) <= 0) {
