@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,8 @@ import poltrona.enums.venda.TipoItemVenda;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "itens_venda")
+@Table(name = "itens_venda", uniqueConstraints = @UniqueConstraint(name = "uk_item_venda_produto", columnNames = {
+        "venda_id", "produto_id" }))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ItemVenda {
@@ -50,7 +52,7 @@ public class ItemVenda {
     private Venda venda;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ingresso_id")
+    @JoinColumn(name = "ingresso_id", unique = true)
     private Ingresso ingresso;
 
     @ManyToOne(fetch = FetchType.LAZY)

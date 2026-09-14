@@ -64,7 +64,7 @@ public class Filme {
     private ClassificacaoIndicativa classificacaoIndicativa;
 
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "generos", joinColumns = @JoinColumn(name = "filme_id"))
+    @CollectionTable(name = "formatos", joinColumns = @JoinColumn(name = "filme_id"))
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Set<FormatoFilme> formatoFilme;

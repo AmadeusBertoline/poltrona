@@ -48,7 +48,7 @@ public class Poltrona {
     public Poltrona(char fileira, Integer coluna, Sala sala) {
         this.fileira = fileira;
         this.coluna = coluna;
-        this.tipo = (tipo != null) ? tipo : TipoPoltrona.COMUM;
+        this.tipo = TipoPoltrona.COMUM;
         this.sala = sala;
         this.ativa = true;
     }

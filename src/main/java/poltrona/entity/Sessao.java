@@ -2,9 +2,12 @@ package poltrona.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -35,17 +38,18 @@ public class Sessao {
     @Column(name = "data_hora_fim", nullable = false)
     private LocalDateTime dataHoraFim;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "filme_id", nullable = false)
     private Filme filme;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "sala_id", nullable = false)
     private Sala sala;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal preco;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private FormatoFilme formato;
 
@@ -57,21 +61,30 @@ public class Sessao {
 
     public Sessao(LocalDateTime dataHoraInicio, Filme filme, Sala sala, FormatoFilme formato, Preco preco,
             PoliticaOperacional politicaOperacional) {
+        if (dataHoraInicio == null) {
+            throw new IllegalArgumentException("A data/hora de início é obrigatória.");
+        }
+        if (filme == null) {
+            throw new IllegalArgumentException("O filme é obrigatório para a sessão.");
+        }
+        if (sala == null) {
+            throw new IllegalArgumentException("A sala é obrigatória para a sessão.");
+        }
+
         this.dataHoraInicio = dataHoraInicio;
-        this.dataHoraFim = dataHoraInicio.plusMinutes(filme.getDuracaoMinutos());
         this.filme = filme;
         this.sala = sala;
-        this.preco = preco.getValor();
+        this.formato = formato;
+        this.preco = preco != null ? preco.getValor() : BigDecimal.ZERO;
         this.ativo = true;
         if (politicaOperacional != null) {
             this.politicaOperacional = politicaOperacional;
         }
-        this.formato = formato;
         calcularDataHoraFim();
     }
 
     public void validarPermiteVenda(LocalDateTime momento) {
-        if (this.ativo == false) {
+        if (!this.ativo) {
             throw new RegraNegocioException("Não é possível comprar ingressos para uma sessão inativa.");
         }
 

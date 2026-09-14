@@ -2,6 +2,7 @@ package poltrona.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,14 +14,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
 import poltrona.enums.produto.TipoProduto;
 import poltrona.exception.RegraNegocioException;
 
 @Entity
-@Table(name = "produtos")
+@Table(name = "produtos", uniqueConstraints = @UniqueConstraint(name = "uk_produtos_cinema_nome", columnNames = {
+        "cinema_id", "nome" }))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Produto {
@@ -51,23 +56,36 @@ public class Produto {
     @Column(nullable = false)
     private LocalDateTime dataCriacao;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cinema_id", nullable = false)
     private Cinema cinema;
 
     public Produto(Cinema cinema, String nome, String descricao, TipoProduto tipo, BigDecimal preco,
             Integer quantidadeEstoque) {
+        if (cinema == null) {
+            throw new IllegalArgumentException("O cinema é obrigatório para cadastrar um produto.");
+        }
+        if (nome == null || nome.isBlank()) {
+            throw new IllegalArgumentException("O nome do produto não pode ser nulo ou vazio.");
+        }
+        if (preco == null || preco.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("O preço do produto deve ser um valor válido.");
+        }
+
         this.cinema = cinema;
         this.nome = nome.trim();
-        this.descricao = descricao != null ? descricao.trim() : null;
+        this.descricao = (descricao != null) ? descricao.trim() : null;
         this.tipo = tipo;
         this.preco = preco;
-        this.quantidadeEstoque = quantidadeEstoque;
+        this.quantidadeEstoque = (quantidadeEstoque != null && quantidadeEstoque >= 0) ? quantidadeEstoque : 0;
         this.ativo = true;
         this.dataCriacao = LocalDateTime.now();
     }
 
     public void debitarEstoque(Integer quantidade) {
+        if (quantidade == null || quantidade <= 0) {
+            throw new RegraNegocioException("A quantidade a debitar deve ser maior que zero.");
+        }
         if (quantidade > this.quantidadeEstoque) {
             throw new RegraNegocioException("Estoque insuficiente para o produto: " + this.nome);
         }
@@ -75,21 +93,31 @@ public class Produto {
     }
 
     public void adicionarEstoque(Integer quantidade) {
-        this.quantidadeEstoque += quantidade;
+        if (quantidade != null && quantidade > 0) {
+            this.quantidadeEstoque += quantidade;
+        }
     }
 
     public boolean temEstoqueSuficiente(Integer quantidade) {
-        return this.quantidadeEstoque >= quantidade;
+        return quantidade != null && quantidade > 0 && this.quantidadeEstoque >= quantidade;
     }
 
     public void atualizar(String novoNome, String novaDescricao, BigDecimal novoPreco) {
-        this.nome = novoNome.trim();
-        this.descricao = novaDescricao != null ? novaDescricao.trim() : null;
-        this.preco = novoPreco;
+        if (novoNome != null && !novoNome.isBlank()) {
+            this.nome = novoNome.trim();
+        }
+        if (novaDescricao != null) {
+            this.descricao = novaDescricao.trim();
+        }
+        if (novoPreco != null && novoPreco.compareTo(BigDecimal.ZERO) >= 0) {
+            this.preco = novoPreco;
+        }
     }
 
     public void atualizarPreco(BigDecimal novoPreco) {
-        this.preco = novoPreco;
+        if (novoPreco != null && novoPreco.compareTo(BigDecimal.ZERO) >= 0) {
+            this.preco = novoPreco;
+        }
     }
 
     public void ativar() {
