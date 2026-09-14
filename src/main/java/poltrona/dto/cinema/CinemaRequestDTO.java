@@ -3,6 +3,7 @@ package poltrona.dto.cinema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import poltrona.dto.endereco.EnderecoRequestDTO;
+import poltrona.dto.politicaOperacional.PoliticaOperacionalRequestDTO;
 import poltrona.validation.cnpjValido.CnpjValido;
 import poltrona.validation.nomeValido.NomeValido;
 import poltrona.validation.telefoneValido.TelefoneValido;
@@ -23,6 +24,8 @@ public record CinemaRequestDTO(
 
     @NotNull(message = "O endereço do cinema é obrigatório.")
     @Valid 
-    EnderecoRequestDTO endereco
+    EnderecoRequestDTO endereco,
+
+    PoliticaOperacionalRequestDTO politicaOperacional
 
 ) {}

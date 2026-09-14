@@ -97,6 +97,11 @@ public class CinemaService {
             }
         }
 
+        if (dto.politica() != null) {
+            cinema.getPoliticaOperacional().atualizar(dto.politica().toleranciaMinutosCompra(),
+                    dto.politica().antecedenciaMinutosCancelamento(), dto.politica().intervaloLimpezaMinutos());
+        }
+
         if (dto.endereco() != null) {
             cinema.getEndereco().atualizar(
                     dto.endereco().logradouro(),

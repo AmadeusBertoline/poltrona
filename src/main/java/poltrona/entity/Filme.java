@@ -46,7 +46,7 @@ public class Filme {
     private Set<GeneroFilme> generos = new HashSet<>();
 
     @Column(nullable = false)
-    private Integer duracao;
+    private Integer duracaoMinutos;
 
     @Column(nullable = false)
     private String diretor;
@@ -82,7 +82,7 @@ public class Filme {
             this.generos.addAll(generos);
         }
 
-        this.duracao = duracao;
+        this.duracaoMinutos = duracao;
         this.diretor = diretor;
         this.distribuidora = distribuidora;
         this.dataLancamento = dataLancamento;
@@ -99,7 +99,7 @@ public class Filme {
         if (sinopse != null && !sinopse.isBlank())
             this.sinopse = sinopse;
         if (duracao != null)
-            this.duracao = duracao;
+            this.duracaoMinutos = duracao;
         if (diretor != null && !diretor.isBlank())
             this.diretor = diretor;
         if (distribuidora != null && !distribuidora.isBlank())

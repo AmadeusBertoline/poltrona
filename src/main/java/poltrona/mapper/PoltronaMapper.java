@@ -1,9 +1,7 @@
 package poltrona.mapper;
 
 import java.util.Map;
-
 import org.springframework.stereotype.Component;
-
 import poltrona.dto.poltrona.PoltronaRequestDTO;
 import poltrona.dto.poltrona.PoltronaResponseDTO;
 import poltrona.entity.Poltrona;

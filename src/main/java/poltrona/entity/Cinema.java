@@ -45,6 +45,9 @@ public class Cinema {
     @Embedded
     private Endereco endereco;
 
+    @Embedded
+    private PoliticaOperacional politicaOperacional;
+
     @OneToMany(mappedBy = "cinema", orphanRemoval = true)
     private List<Sala> salas = new ArrayList<>();
 
@@ -67,7 +70,7 @@ public class Cinema {
     }
 
     public Cinema(String nomeFantasia, String razaoSocial, String cnpj, String telefone, Endereco endereco,
-            Proprietario proprietario) {
+            Proprietario proprietario, PoliticaOperacional politicaOperacional) {
         this.nomeFantasia = nomeFantasia;
         this.razaoSocial = razaoSocial;
         this.cnpj = cnpj;
@@ -76,6 +79,13 @@ public class Cinema {
         this.proprietario = proprietario;
         this.status = StatusCinema.ATIVO;
         this.quantidadeSalas = salas.size();
+        this.politicaOperacional = politicaOperacional;
+    }
+
+    public void atualizarPoliticaOperacional(PoliticaOperacional novaPolitica) {
+        if (novaPolitica != null) {
+            this.politicaOperacional = novaPolitica;
+        }
     }
 
     public void atualizarQuantidadeSalas() {

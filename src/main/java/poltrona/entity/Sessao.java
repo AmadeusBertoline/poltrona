@@ -53,17 +53,18 @@ public class Sessao {
     private Boolean ativo;
 
     @Embedded
-    private PoliticaVenda politicaVenda = new PoliticaVenda();
+    private PoliticaOperacional politicaOperacional = new PoliticaOperacional();
 
     public Sessao(LocalDateTime dataHoraInicio, Filme filme, Sala sala, FormatoFilme formato, Preco preco,
-            PoliticaVenda politicaVenda) {
+            PoliticaOperacional politicaOperacional) {
         this.dataHoraInicio = dataHoraInicio;
+        this.dataHoraFim = dataHoraInicio.plusMinutes(filme.getDuracaoMinutos());
         this.filme = filme;
         this.sala = sala;
         this.preco = preco.getValor();
         this.ativo = true;
-        if (politicaVenda != null) {
-            this.politicaVenda = politicaVenda;
+        if (politicaOperacional != null) {
+            this.politicaOperacional = politicaOperacional;
         }
         this.formato = formato;
         calcularDataHoraFim();
@@ -78,7 +79,7 @@ public class Sessao {
             throw new RegraNegocioException("Não é possível comprar ingressos para sessões já encerradas.");
         }
 
-        int tolerancia = this.politicaVenda.getToleranciaMinutosCompra();
+        int tolerancia = this.politicaOperacional.getToleranciaMinutosCompra();
         if (this.dataHoraInicio.plusMinutes(tolerancia).isBefore(momento)) {
             throw new RegraNegocioException(
                     "Tempo limite para compra ultrapassado. Tolerância: " + tolerancia + " minutos após o início.");
@@ -130,9 +131,9 @@ public class Sessao {
         }
     }
 
-    public void alterarPoliticaVenda(PoliticaVenda novaPolitica) {
+    public void alterarPoliticaOperacional(PoliticaOperacional novaPolitica) {
         if (novaPolitica != null) {
-            this.politicaVenda = novaPolitica;
+            this.politicaOperacional = novaPolitica;
         }
     }
 
@@ -158,7 +159,7 @@ public class Sessao {
 
     private void calcularDataHoraFim() {
         if (this.filme != null && this.dataHoraInicio != null) {
-            this.dataHoraFim = this.dataHoraInicio.plusMinutes(this.filme.getDuracao());
+            this.dataHoraFim = this.dataHoraInicio.plusMinutes(this.filme.getDuracaoMinutos());
         }
     }
 

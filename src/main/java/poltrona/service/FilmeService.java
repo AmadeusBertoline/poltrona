@@ -59,7 +59,7 @@ public class FilmeService {
         boolean possuiSessoesFuturas = sessaoRepository.existsByFilmeIdAndDataHoraFimAfterAndAtivoTrue(id,
                 LocalDateTime.now());
 
-        if (possuiSessoesFuturas && !filme.getDuracao().equals(dto.duracao())) {
+        if (possuiSessoesFuturas && !filme.getDuracaoMinutos().equals(dto.duracao())) {
             throw new RegraNegocioException(
                     "Não é possível alterar a duração de um filme que possui sessões futuras agendadas.");
         }

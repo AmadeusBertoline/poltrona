@@ -36,7 +36,7 @@ public class FilmeMapper {
                 entidade.getTitulo(),
                 entidade.getSinopse(),
                 entidade.getGeneros(),
-                entidade.getDuracao(),
+                entidade.getDuracaoMinutos(),
                 entidade.getDiretor(),
                 entidade.getDistribuidora(),
                 entidade.getDataLancamento(),

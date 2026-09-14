@@ -80,11 +80,13 @@ public class SessaoService {
 
                 Sessao sessao = sessaoMapper.toEntity(dto, filme, sala, preco);
 
+                int tempoLimpeza = sala.getCinema().getPoliticaOperacional().getIntervaloLimpezaMinutos();
+
                 boolean conflito = sessaoRepository.existeConflitoDeHorario(
                                 sala.getId(),
                                 null,
                                 dto.dataHoraInicio(),
-                                sessao.getDataHoraFim());
+                                sessao.getDataHoraFim().plusMinutes(tempoLimpeza));
 
                 if (conflito) {
                         throw new RegraNegocioException(
@@ -179,14 +181,14 @@ public class SessaoService {
                                                                                 + dto.formato()));
 
                 List<Sessao> sessoesParaSalvar = new ArrayList<>();
-                int tempoLimpezaMinutos = 15;
+                int tempoLimpezaMinutos = sala.getCinema().getPoliticaOperacional().getIntervaloLimpezaMinutos();
 
                 LocalDate dataAtual = dto.dataInicio();
                 while (!dataAtual.isAfter(dto.dataFim())) {
 
                         for (LocalTime horario : dto.horarios()) {
                                 LocalDateTime inicio = LocalDateTime.of(dataAtual, horario);
-                                LocalDateTime fim = inicio.plusMinutes(filme.getDuracao() + tempoLimpezaMinutos);
+                                LocalDateTime fim = inicio.plusMinutes(filme.getDuracaoMinutos() + tempoLimpezaMinutos);
 
                                 boolean conflitoNoBanco = sessaoRepository.existeConflitoDeHorario(sala.getId(), null,
                                                 inicio, fim);
@@ -241,16 +243,18 @@ public class SessaoService {
                 sessao.alterarPreco(dto.preco());
                 sessao.alterarFormato(dto.formato());
 
-                // if (dto.toleranciaMinutosCompra() != null) {
-                // sessao.alterarPoliticaVenda(new
-                // PoliticaVenda(dto.toleranciaMinutosCompra()));
-                // }
+                int tempoLimpeza = sessao.getSala().getCinema().getPoliticaOperacional().getIntervaloLimpezaMinutos();
 
                 boolean conflito = sessaoRepository.existeConflitoDeHorario(
                                 sessao.getSala().getId(),
-                                sessao.getId(),
-                                sessao.getDataHoraInicio(),
-                                sessao.getDataHoraFim());
+                                null,
+                                dto.dataHoraInicio(),
+                                sessao.getDataHoraFim().plusMinutes(tempoLimpeza));
+
+                if (conflito) {
+                        throw new RegraNegocioException(
+                                        "O horário da sessão cadastrada está em conflito com outra sessão nesta sala");
+                }
 
                 if (conflito) {
                         throw new RegraNegocioException(

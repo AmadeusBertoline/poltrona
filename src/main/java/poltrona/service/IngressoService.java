@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.ingresso.IngressoRequestDTO;
 import poltrona.dto.ingresso.IngressoResponseDTO;
 import poltrona.entity.Ingresso;
-import poltrona.entity.PoliticaVenda;
+import poltrona.entity.PoliticaOperacional;
 import poltrona.entity.Poltrona;
 import poltrona.entity.Sessao;
 import poltrona.entity.Usuario;
@@ -55,6 +55,14 @@ public class IngressoService {
 
         Poltrona poltrona = poltronaRepository.findById(dto.idPoltrona())
                 .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada"));
+
+        boolean permiteVenda = sessao.getSala().getCinema().getPoliticaOperacional()
+                .isVendaPermitida(sessao.getDataHoraInicio());
+
+        if (!permiteVenda) {
+            throw new RegraNegocioException(
+                    "Você não pode comprar ingressos para essa sessão pois já passou do horário permitido");
+        }
 
         if (!poltrona.getAtiva()) {
             throw new RegraNegocioException("A poltrona selecionada está inativa: " + poltrona.getNumero());
@@ -106,12 +114,12 @@ public class IngressoService {
         }
 
         Sessao sessao = ingresso.getSessao();
-        PoliticaVenda politicaVenda = sessao.getPoliticaVenda();
+        PoliticaOperacional politicaOperacional = sessao.getPoliticaOperacional();
 
-        if (!politicaVenda.isCancelamentoPermitido(sessao.getDataHoraInicio(), LocalDateTime.now())) {
+        if (!politicaOperacional.isCancelamentoPermitido(sessao.getDataHoraInicio())) {
             throw new RegraNegocioException(
                     "O cancelamento só é permitido com até "
-                            + politicaVenda.getAntecedenciaMinutosCancelamento()
+                            + politicaOperacional.getAntecedenciaMinutosCancelamento()
                             + " minutos de antecedência do início da sessão.");
         }
 
