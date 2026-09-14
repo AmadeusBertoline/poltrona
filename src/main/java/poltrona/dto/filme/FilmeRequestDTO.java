@@ -7,8 +7,10 @@ import poltrona.enums.filme.ClassificacaoIndicativa;
 import poltrona.enums.filme.FormatoFilme;
 import poltrona.enums.filme.GeneroFilme;
 import poltrona.validation.caminhoImagemValido.CaminhoImagemValido;
+import poltrona.validation.classificacaoIndicativa.ClassificacaoIndicativaValida;
 import poltrona.validation.dataLancamentoValida.DataLancamentoValida;
 import poltrona.validation.duracaoValida.DuracaoValida;
+import poltrona.validation.formatoFilme.FormatoFilmeValido;
 import poltrona.validation.generosValidos.GenerosValidos;
 import poltrona.validation.nomeValido.NomeValido;
 import poltrona.validation.sinopseValida.SinopseValida;
@@ -32,9 +34,9 @@ public record FilmeRequestDTO(
 
         @CaminhoImagemValido String imagePath,
 
-        ClassificacaoIndicativa classificacaoIndicativa,
+        @ClassificacaoIndicativaValida ClassificacaoIndicativa classificacaoIndicativa,
 
-        Set<FormatoFilme> formatos
+        @FormatoFilmeValido Set<FormatoFilme> formatos
 
 ) {
 }

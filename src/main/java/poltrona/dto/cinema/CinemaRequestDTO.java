@@ -10,15 +10,19 @@ import poltrona.validation.telefoneValido.TelefoneValido;
 
 public record CinemaRequestDTO(
 
+    @NotNull(message = "O nome fantasia é obrigatório.")
     @NomeValido 
     String nomeFantasia,
 
+    @NotNull(message = "A razão social é obrigatória.")
     @NomeValido 
     String razaoSocial,
 
+    @NotNull(message = "O CNPJ é obrigatório.")
     @CnpjValido
     String cnpj,
 
+    @NotNull(message = "O telefone é obrigatório.")
     @TelefoneValido
     String telefone,
 
@@ -26,6 +30,7 @@ public record CinemaRequestDTO(
     @Valid 
     EnderecoRequestDTO endereco,
 
+    @Valid
     PoliticaOperacionalRequestDTO politicaOperacional
 
 ) {}
