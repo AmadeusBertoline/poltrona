@@ -22,7 +22,7 @@ public interface IngressoRepository extends JpaRepository<Ingresso, Long> {
                         LocalDateTime agora);
 
         boolean existsBySessaoSalaCinemaIdAndSessaoDataHoraFimAfter(
-                        Long proprietarioId,
+                        Long cinemaId,
                         LocalDateTime agora);
 
         boolean existsByStatusAndUsuarioIdAndSessaoDataHoraFimAfter(
@@ -39,6 +39,8 @@ public interface IngressoRepository extends JpaRepository<Ingresso, Long> {
                         Long salaId,
                         LocalDateTime dataHora,
                         StatusIngresso status);
+
+        boolean existsBySessaoSalaCinemaId(Long cinemaId);
 
 
         boolean existsByIdAndUsuarioId(Long id, Long usuarioId);

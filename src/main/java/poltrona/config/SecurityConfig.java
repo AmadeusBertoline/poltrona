@@ -17,7 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import poltrona.exception.CustomAccessDeniedHandler;
 import poltrona.exception.CustomAuthenticationEntryPoint;
 import poltrona.security.JwtAuthFilter;
@@ -45,27 +44,36 @@ public class SecurityConfig {
                         // AUTH
                         .requestMatchers("/auth/**").permitAll()
 
-                        // .requestMatchers("/filmes/**").hasAuthority("ADMIN")
-                        .requestMatchers("/filmes/**").permitAll()
+                        // CINEMAS
+                        .requestMatchers(HttpMethod.POST, "/cinemas").hasAuthority("PROPRIETARIO")
+                        .requestMatchers("/cinemas/me").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.GET, "/cinemas/**").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/cinemas/**").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.DELETE, "/cinemas/**").hasAuthority("PROPRIETARIO")
+
+                        // FILMES
+                        .requestMatchers(HttpMethod.GET, "/filmes").permitAll()
+                        .requestMatchers("/filmes/**").hasAuthority("ADMIN")
 
                         // PROPRIETARIOS
                         .requestMatchers(HttpMethod.POST, "/proprietarios").permitAll()
                         .requestMatchers("/proprietarios/**").hasAuthority("PROPRIETARIO")
                         .requestMatchers(HttpMethod.GET, "/proprietarios").hasAuthority("ADMIN")
 
-                        // CINEMAS
-                        .requestMatchers(HttpMethod.POST, "/cinemas/**").hasAnyAuthority("PROPRIETARIO")
-                        .requestMatchers(HttpMethod.GET, "/cinemas/**").hasAuthority("PROPRIETARIO")
-                        .requestMatchers(HttpMethod.PATCH, "/cinemas/**").hasAuthority("PROPRIETARIO")
-                        .requestMatchers(HttpMethod.GET, "/cinemas/me").hasAuthority("PROPRIETARIO")
+                        // POLTRONAS
+                        .requestMatchers("/poltronas").hasAuthority("PROPRIETARIO")
+
+                        // PRECOS
+                        .requestMatchers(HttpMethod.GET,"/precos").hasAuthority("ADMIN")
+                        .requestMatchers("/precos","/precos/**").hasAuthority("PROPRIETARIO")
 
                         // ADMINS
                         .requestMatchers("/admins/**").hasAuthority("ADMIN")
 
                         // CLIENTES
                         .requestMatchers(HttpMethod.POST, "/clientes").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/clientes").permitAll()
-                        .requestMatchers("/clientes/**").hasAuthority("CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/clientes").hasAuthority("ADMIN")
+                        .requestMatchers("/clientes/**","/clientes").hasAuthority("CLIENTE")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
                         // PRECOS

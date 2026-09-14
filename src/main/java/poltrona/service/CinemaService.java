@@ -119,7 +119,7 @@ public class CinemaService {
     }
 
     @Transactional
-    public void deletar(Long id) {
+    public void encerrar(Long id) {
 
         Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
@@ -127,7 +127,7 @@ public class CinemaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Cinema não encontrado com ID: " + id));
 
         if (!cinema.getProprietario().getId().equals(proprietario.getId())) {
-            throw new AccessDeniedException("Você não tem permissão para excluir este cinema.");
+            throw new AccessDeniedException("Você não tem permissão para encerrar este cinema.");
         }
 
         if (ingressoRepository.existsBySessaoSalaCinemaIdAndSessaoDataHoraFimAfter(cinema.getId(),
@@ -139,6 +139,26 @@ public class CinemaService {
         cinema.encerrar();
 
         cinemaRepository.save(cinema);
+    }
+
+    @Transactional
+    public void deletar(Long id) {
+
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+
+        Cinema cinema = cinemaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cinema não encontrado com ID: " + id));
+
+        if (!cinema.getProprietario().getId().equals(proprietario.getId())) {
+            throw new AccessDeniedException("Você não tem permissão para excluir este cinema.");
+        }
+
+        if (ingressoRepository.existsBySessaoSalaCinemaId(cinema.getId())) {
+            throw new RegraNegocioException(
+                    "Não é possível deletar cinemas que possuem ingressos vendidos.");
+        }
+
+        cinemaRepository.delete(cinema);
     }
 
     @Transactional(readOnly = true)

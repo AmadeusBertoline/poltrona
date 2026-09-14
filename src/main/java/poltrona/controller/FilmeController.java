@@ -53,7 +53,7 @@ public class FilmeController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<FilmeResponseDTO> atualizar(Long id, FilmeRequestDTO dto) {
+    public ResponseEntity<FilmeResponseDTO> atualizar(Long id, @RequestBody FilmeRequestDTO dto) {
 
         FilmeResponseDTO filme = filmeService.atualizar(id, dto);
 

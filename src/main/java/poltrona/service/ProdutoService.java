@@ -4,11 +4,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import poltrona.dto.produto.AtualizaProdutoRequestDTO;
 import poltrona.dto.produto.CadastroProdutoRequestDTO;
 import poltrona.dto.produto.ProdutoResponseDTO;
 import poltrona.entity.Cinema;
 import poltrona.entity.Produto;
 import poltrona.entity.Proprietario;
+import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceAlreadyExistsException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.ProdutoMapper;
@@ -55,6 +58,80 @@ public class ProdutoService {
     public Page<ProdutoResponseDTO> listarTodos(Pageable pageable) {
 
         return produtoRepository.findAll(pageable).map(produtoMapper::toDTO);
+
+    }
+
+    @Transactional(readOnly = true)
+    public Produto buscarPorId(Long id) {
+
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+
+        Produto produto = produtoRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado de id: " + id));
+
+        return produto;
+
+    }
+
+    @Transactional
+    public Produto atualizar(Long id, AtualizaProdutoRequestDTO dto) {
+
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+
+        Produto produto = produtoRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado de id: " + id));
+
+        if (!produto.getNome().equalsIgnoreCase(dto.nome()) &&
+                produtoRepository.existsByNomeIgnoreCaseAndCinemaId(dto.nome(), produto.getCinema().getId())) {
+            throw new ResourceAlreadyExistsException("Produto já existente com o nome: " + dto.nome());
+        }
+
+        produto.atualizar(dto.nome(), dto.descricao(), dto.preco());
+
+        if (dto.quantidadeEstoque() != null) {
+            int diferenca = dto.quantidadeEstoque() - produto.getQuantidadeEstoque();
+            if (diferenca > 0) {
+                produto.adicionarEstoque(diferenca);
+            } else if (diferenca < 0) {
+                produto.debitarEstoque(Math.abs(diferenca));
+            }
+        }
+
+        Produto atualizado = produtoRepository.save(produto);
+
+        return atualizado;
+
+    }
+
+    @Transactional
+    public Produto desativar(Long id) {
+
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+
+        Produto produto = produtoRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado de id: " + id));
+
+        if (!produto.getAtivo()) {
+            throw new RegraNegocioException("O produto de id " + id + " já está desativado.");
+        }
+
+        produto.desativar();
+
+        Produto desativado = produtoRepository.save(produto);
+
+        return desativado;
+
+    }
+
+    @Transactional
+    public void deletar(Long id) {
+
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+
+        Produto produto = produtoRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado de id: " + id));
+
+        produtoRepository.delete(produto);
 
     }
 
