@@ -78,7 +78,7 @@ public class CinemaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long cinemaId) {
+    public ResponseEntity<Void> deletar(@PathVariable Long cinemaId){
 
         cinemaService.deletar(cinemaId);
 

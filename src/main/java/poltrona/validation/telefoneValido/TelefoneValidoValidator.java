@@ -9,7 +9,14 @@ public class TelefoneValidoValidator implements ConstraintValidator<TelefoneVali
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null || value.isBlank()) return false;
+        if (value == null) {
+            return true;
+        }
+
+        if (value.isBlank()) {
+            return false;
+        }
+
         return value.trim().matches(REGEX_TELEFONE);
     }
 }

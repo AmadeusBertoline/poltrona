@@ -9,11 +9,9 @@ public class PrecoValidoValidator implements ConstraintValidator<PrecoValido, Bi
     @Override
     public boolean isValid(BigDecimal value, ConstraintValidatorContext context) {
         if (value == null) {
-            return false;
+            return true;
         }
 
         return value.compareTo(BigDecimal.ZERO) > 0;
-
     }
-
 }

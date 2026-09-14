@@ -155,10 +155,12 @@ public class CinemaService {
 
         if (ingressoRepository.existsBySessaoSalaCinemaId(cinema.getId())) {
             throw new RegraNegocioException(
-                    "Não é possível deletar cinemas que possuem ingressos vendidos.");
+                    "Não é possível deletar um cinema com sessões futuras que possuem ingressos vendidos.");
         }
 
-        cinemaRepository.delete(cinema);
+        cinema.encerrar();
+
+        cinemaRepository.save(cinema);
     }
 
     @Transactional(readOnly = true)

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import poltrona.dto.cliente.AtualizaClienteRequestDTO;
 import poltrona.dto.cliente.ClienteRequestDTO;
 import poltrona.dto.cliente.ClienteResponseDTO;
+import poltrona.dto.usuario.AtualizaSenhaRequestDTO;
 import poltrona.service.ClienteService;
 
 @RestController
@@ -62,6 +63,15 @@ public class ClienteController {
         ClienteResponseDTO cliente = clienteService.atualizar(dto);
 
         return ResponseEntity.status(HttpStatus.OK).body(cliente);
+
+    }
+
+    @PatchMapping("/senha")
+    public ResponseEntity<Void> atualizarSenha(@RequestBody AtualizaSenhaRequestDTO dto) {
+
+        clienteService.atualizarSenha(dto);
+
+        return ResponseEntity.noContent().build();
 
     }
 

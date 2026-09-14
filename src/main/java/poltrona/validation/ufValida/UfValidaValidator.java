@@ -12,8 +12,14 @@ public class UfValidaValidator implements ConstraintValidator<UfValida, String> 
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null || value.isBlank())
+        if (value == null) {
+            return true;
+        }
+
+        if (value.isBlank()) {
             return false;
+        }
+
         return UFS_VALIDAS.contains(value.trim().toUpperCase());
     }
 }

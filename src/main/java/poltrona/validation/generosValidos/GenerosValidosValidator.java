@@ -3,7 +3,6 @@ package poltrona.validation.generosValidos;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import poltrona.enums.filme.GeneroFilme;
-
 import java.util.Set;
 
 public class GenerosValidosValidator
@@ -14,7 +13,11 @@ public class GenerosValidosValidator
             Set<GeneroFilme> value,
             ConstraintValidatorContext context) {
 
-        if (value == null || value.isEmpty()) {
+        if (value == null) {
+            return true;
+        }
+
+        if (value.isEmpty()) {
             return false;
         }
 

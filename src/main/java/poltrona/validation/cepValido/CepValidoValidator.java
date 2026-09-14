@@ -8,8 +8,14 @@ public class CepValidoValidator implements ConstraintValidator<CepValido, String
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null || value.isBlank())
+        if (value == null) {
+            return true;
+        }
+
+        if (value.isBlank()) {
             return false;
+        }
+
         return value.trim().matches(REGEX_CEP);
     }
 }

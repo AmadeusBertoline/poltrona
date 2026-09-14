@@ -9,8 +9,13 @@ public class CaminhoImagemValidoValidator implements ConstraintValidator<Caminho
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null || value.isBlank())
+        if (value == null) {
+            return true;
+        }
+
+        if (value.isBlank()) {
             return false;
+        }
 
         String cleanValue = value.trim().toLowerCase();
         return EXTENSOES_PERMITIDAS.stream().anyMatch(cleanValue::endsWith);

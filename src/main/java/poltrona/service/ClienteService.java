@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.cliente.AtualizaClienteRequestDTO;
 import poltrona.dto.cliente.ClienteRequestDTO;
 import poltrona.dto.cliente.ClienteResponseDTO;
+import poltrona.dto.usuario.AtualizaSenhaRequestDTO;
 import poltrona.entity.Cliente;
 import poltrona.enums.ingresso.StatusIngresso;
 import poltrona.enums.usuario.StatusConta;
@@ -113,6 +115,27 @@ public class ClienteService {
         SecurityContextHolder.clearContext();
 
         cliente.encerrar();
+
+        clienteRepository.save(cliente);
+
+    }
+
+    @Transactional
+    public void atualizarSenha(AtualizaSenhaRequestDTO dto) {
+
+        Cliente cliente = (Cliente) usuarioService.usuarioLogado();
+
+        if (!passwordEncoder.matches(dto.senhaAtual(), cliente.getSenha())) {
+            throw new BadCredentialsException("Senha atual incorreta");
+        }
+
+        if (!dto.novaSenha().equals(dto.confirmarSenha())) {
+            throw new RegraNegocioException("A senha nova deve ser igual a confirmação de senha");
+        }
+
+        String senha = passwordEncoder.encode(dto.confirmarSenha());
+
+        cliente.atualizarSenha(senha);
 
         clienteRepository.save(cliente);
 

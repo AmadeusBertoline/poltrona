@@ -7,7 +7,7 @@ public class LogradouroValidoValidator implements ConstraintValidator<Logradouro
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
         if (value == null || value.isBlank())
-            return false;
+            return true;
         int length = value.trim().length();
         return length >= 3 && length <= 150;
     }
