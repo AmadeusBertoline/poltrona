@@ -1,7 +1,6 @@
 package poltrona.dto.sessao;
 
 import java.time.LocalDateTime;
-
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import poltrona.enums.filme.FormatoFilme;

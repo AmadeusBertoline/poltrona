@@ -7,49 +7,56 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import poltrona.dto.admin.AdminRequestDTO;
 import poltrona.dto.admin.AdminResponseDTO;
 import poltrona.dto.admin.AtualizaAdminRequestDTO;
 import poltrona.dto.usuario.AtualizaSenhaRequestDTO;
 import poltrona.entity.Admin;
-import poltrona.entity.Usuario;
+import poltrona.enums.usuario.StatusConta;
 import poltrona.exception.RegraNegocioException;
+import poltrona.exception.ResourceAlreadyExistsException;
 import poltrona.mapper.AdminMapper;
 import poltrona.repository.AdminRepository;
-import poltrona.repository.UsuarioRepository;
 
 @Service
 public class AdminService {
 
     private final AdminRepository adminRepository;
-    private final PasswordEncoder passwordEncoder;
     private final AdminMapper adminMapper;
+    private final PasswordEncoder passwordEncoder;
     private final UsuarioService usuarioService;
-    private final UsuarioRepository usuarioRepository;
 
-    public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEncoder,
-            AdminMapper adminMapper, UsuarioService usuarioService,
-            UsuarioRepository usuarioRepository) {
+    public AdminService(AdminRepository adminRepository, AdminMapper adminMapper,
+                        PasswordEncoder passwordEncoder, UsuarioService usuarioService) {
         this.adminRepository = adminRepository;
-        this.passwordEncoder = passwordEncoder;
         this.adminMapper = adminMapper;
+        this.passwordEncoder = passwordEncoder;
         this.usuarioService = usuarioService;
-        this.usuarioRepository = usuarioRepository;
     }
 
     @Transactional
     public AdminResponseDTO cadastrar(AdminRequestDTO dto) {
 
-        usuarioService.validarCredenciaisDisponiveis(dto.usuario().email(), dto.usuario().cpf());
+        if (adminRepository.existsByCpf(dto.usuario().cpf())) {
+            throw new ResourceAlreadyExistsException("Já existe uma conta com este CPF");
+        }
 
-        String senhaCriptografada = passwordEncoder.encode(dto.usuario().senha());
+        if (adminRepository.existsByEmail(dto.usuario().email())) {
+            throw new ResourceAlreadyExistsException("Já existe uma conta com este e-mail");
+        }
 
-        Admin admin = adminMapper.toEntity(dto, senhaCriptografada);
+        if (!dto.usuario().senha().equals(dto.usuario().confirmarSenha())) {
+            throw new RegraNegocioException("A senha e a confirmação de senha não coincidem");
+        }
+
+        String senha = passwordEncoder.encode(dto.usuario().confirmarSenha());
+
+        Admin admin = adminMapper.toEntity(dto, senha);
 
         Admin salvo = adminRepository.save(admin);
 
         return adminMapper.toDTO(salvo);
+
     }
 
     @Transactional(readOnly = true)
@@ -62,13 +69,10 @@ public class AdminService {
     @Transactional(readOnly = true)
     public AdminResponseDTO me() {
 
-        Usuario usuario = usuarioService.usuarioLogado();
-
-        if (!(usuario instanceof Admin admin)) {
-            throw new RegraNegocioException("Apenas administradores podem realizar esta operação.");
-        }
+        Admin admin = (Admin) usuarioService.usuarioLogado();
 
         return adminMapper.toDTO(admin);
+
     }
 
     @Transactional
@@ -76,16 +80,19 @@ public class AdminService {
 
         Admin admin = (Admin) usuarioService.usuarioLogado();
 
-        if (dto.usuario().email() != null && !dto.usuario().email().equalsIgnoreCase(admin.getEmail())) {
-            if (usuarioRepository.existsByEmail(dto.usuario().email())) {
-                throw new RegraNegocioException("O e-mail informado já está em uso por outro usuário.");
+        if (admin.getStatus() != StatusConta.ATIVA) {
+            throw new RegraNegocioException("Uma conta bloqueada ou encerrada não pode atualizar dados");
+        }
+
+        if (dto.usuario().email() != null && !dto.usuario().email().isBlank() && !dto.usuario().email().equalsIgnoreCase(admin.getEmail())) {
+            if (adminRepository.existsByEmailAndIdNot(dto.usuario().email(), admin.getId())) {
+                throw new ResourceAlreadyExistsException("Já existe uma conta para este e-mail");
             }
         }
 
         admin.atualizar(dto.usuario().nome(), dto.usuario().email(), dto.usuario().dataNascimento());
 
         return adminMapper.toDTO(admin);
-
     }
 
     @Transactional
@@ -93,9 +100,12 @@ public class AdminService {
 
         Admin admin = (Admin) usuarioService.usuarioLogado();
 
+        SecurityContextHolder.clearContext();
+
         admin.encerrar();
 
-        SecurityContextHolder.clearContext();
+        adminRepository.save(admin);
+
     }
 
     @Transactional
