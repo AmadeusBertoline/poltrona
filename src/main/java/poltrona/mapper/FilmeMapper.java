@@ -23,7 +23,8 @@ public class FilmeMapper {
                 dto.distribuidora(),
                 dto.dataLancamento(),
                 dto.imagePath(),
-                dto.classificacaoIndicativa());
+                dto.classificacaoIndicativa(),
+                dto.formatos());
     }
 
     public FilmeResponseDTO toDTO(Filme entidade) {

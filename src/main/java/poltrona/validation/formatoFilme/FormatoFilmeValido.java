@@ -9,11 +9,11 @@ import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
 @Documented
-@Target({ ElementType.FIELD })
+@Target({ ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.TYPE_USE })
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = FormatoFilmeValidoValidator.class)
 public @interface FormatoFilmeValido {
-    String message() default "Formato de filme inválido.";
+    String message() default "Formato de filme inválido";
 
     Class<?>[] groups() default {};
 

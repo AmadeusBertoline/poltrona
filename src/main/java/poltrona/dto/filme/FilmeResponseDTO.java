@@ -28,7 +28,7 @@ public record FilmeResponseDTO(
 
         ClassificacaoIndicativa classificacaoIndicativa,
 
-        Set<FormatoFilme> formato
+        Set<FormatoFilme> formatos
 
 ) {
 }

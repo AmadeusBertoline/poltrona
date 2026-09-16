@@ -114,7 +114,7 @@ public class IngressoService {
         }
 
         Sessao sessao = ingresso.getSessao();
-        PoliticaOperacional politicaOperacional = sessao.getPoliticaOperacional();
+        PoliticaOperacional politicaOperacional = sessao.getSala().getCinema().getPoliticaOperacional();
 
         if (!politicaOperacional.isCancelamentoPermitido(sessao.getDataHoraInicio())) {
             throw new RegraNegocioException(

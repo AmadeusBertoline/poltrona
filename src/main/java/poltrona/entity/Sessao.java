@@ -2,9 +2,7 @@ package poltrona.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -56,9 +54,6 @@ public class Sessao {
     @Column(nullable = false)
     private Boolean ativo;
 
-    @Embedded
-    private PoliticaOperacional politicaOperacional = new PoliticaOperacional();
-
     public Sessao(LocalDateTime dataHoraInicio, Filme filme, Sala sala, FormatoFilme formato, Preco preco,
             PoliticaOperacional politicaOperacional) {
         if (dataHoraInicio == null) {
@@ -77,9 +72,6 @@ public class Sessao {
         this.formato = formato;
         this.preco = preco != null ? preco.getValor() : BigDecimal.ZERO;
         this.ativo = true;
-        if (politicaOperacional != null) {
-            this.politicaOperacional = politicaOperacional;
-        }
         calcularDataHoraFim();
     }
 
@@ -92,7 +84,7 @@ public class Sessao {
             throw new RegraNegocioException("Não é possível comprar ingressos para sessões já encerradas.");
         }
 
-        int tolerancia = this.politicaOperacional.getToleranciaMinutosCompra();
+        int tolerancia = sala.getCinema().getPoliticaOperacional().getToleranciaMinutosCompra();
         if (this.dataHoraInicio.plusMinutes(tolerancia).isBefore(momento)) {
             throw new RegraNegocioException(
                     "Tempo limite para compra ultrapassado. Tolerância: " + tolerancia + " minutos após o início.");
@@ -144,11 +136,6 @@ public class Sessao {
         }
     }
 
-    public void alterarPoliticaOperacional(PoliticaOperacional novaPolitica) {
-        if (novaPolitica != null) {
-            this.politicaOperacional = novaPolitica;
-        }
-    }
 
     public void alterarHorario(LocalDateTime novoHorario) {
         if (novoHorario != null) {

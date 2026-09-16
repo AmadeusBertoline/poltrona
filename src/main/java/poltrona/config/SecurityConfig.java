@@ -80,7 +80,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/sessoes/**").hasAuthority("PROPRIETARIO")
 
                         // ADMINS
-                        .requestMatchers("/admins").permitAll()
+                        .requestMatchers("/admins/**").hasAuthority("ADMIN")
 
                         // CLIENTES
                         .requestMatchers(HttpMethod.POST, "/clientes").permitAll()

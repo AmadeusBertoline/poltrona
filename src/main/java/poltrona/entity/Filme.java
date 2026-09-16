@@ -74,13 +74,15 @@ public class Filme {
 
     public Filme(String titulo, String sinopse, Set<GeneroFilme> generos, Integer duracao,
             String diretor, String distribuidora, LocalDate dataLancamento, String imagePath,
-            ClassificacaoIndicativa classificacaoIndicativa) {
+            ClassificacaoIndicativa classificacaoIndicativa, Set<FormatoFilme> formatos) {
         this.titulo = titulo;
         this.sinopse = sinopse;
 
         if (generos != null) {
             this.generos.addAll(generos);
         }
+
+        this.formatoFilme = formatos;
 
         this.duracaoMinutos = duracao;
         this.diretor = diretor;

@@ -36,7 +36,7 @@ public record FilmeRequestDTO(
 
         @ClassificacaoIndicativaValida ClassificacaoIndicativa classificacaoIndicativa,
 
-        @FormatoFilmeValido Set<FormatoFilme> formatos
+        Set<@FormatoFilmeValido FormatoFilme> formatos
 
 ) {
 }
