@@ -52,7 +52,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/cinemas/**").hasAuthority("PROPRIETARIO")
 
                         // FILMES
-                        .requestMatchers(HttpMethod.GET, "/filmes").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/filmes", "/filmes/**").permitAll()
                         .requestMatchers("/filmes/**").hasAuthority("ADMIN")
 
                         // PROPRIETARIOS
@@ -61,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers("/proprietarios/**").hasAuthority("PROPRIETARIO")
 
                         // POLTRONAS
+                        .requestMatchers(HttpMethod.GET,"/poltronas/**","/poltronas").permitAll()
                         .requestMatchers("/poltronas").hasAuthority("PROPRIETARIO")
 
                         // PRECOS
@@ -71,7 +72,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/salas").hasAuthority("PROPRIETARIO")
                         .requestMatchers(HttpMethod.PATCH, "/salas/**").hasAuthority("PROPRIETARIO")
                         .requestMatchers(HttpMethod.DELETE, "/salas/**").hasAuthority("PROPRIETARIO")
-                        .requestMatchers(HttpMethod.GET, "/salas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/salas/**", "/salas").permitAll()
 
                         // SESSAO
                         .requestMatchers(HttpMethod.POST, "/sessoes").hasAuthority("PROPRIETARIO")

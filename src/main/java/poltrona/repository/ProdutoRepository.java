@@ -19,7 +19,7 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
             SELECT p FROM Produto p
             WHERE (:ativo IS NULL OR p.ativo = :ativo)
             AND (:nome IS NULL OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :nome, '%')))
-            AND (:tipoProduto IS NULL OR p.tipoProduto = :tipoProduto)
+            AND (:tipoProduto IS NULL OR p.tipo = :tipoProduto)
             """)
     Page<Produto> findAllByFiltro(
             @Param("ativo") Boolean ativo,

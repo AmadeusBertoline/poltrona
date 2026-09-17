@@ -44,7 +44,7 @@ public class SalaController {
     public ResponseEntity<Page<SalaResponseDTO>> listar(
             @RequestParam(required = false) Long cinemaId,
             @RequestParam(required = false) Boolean ativo,
-            @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
+            @PageableDefault(page = 0, size = 10, sort = "numero", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<SalaResponseDTO> salas = salaService.listar(cinemaId, ativo, pageable);
 
@@ -72,10 +72,19 @@ public class SalaController {
 
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/desativar")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
 
         salaService.desativar(id);
+
+        return ResponseEntity.noContent().build();
+
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+
+        salaService.deletar(id);
 
         return ResponseEntity.noContent().build();
 

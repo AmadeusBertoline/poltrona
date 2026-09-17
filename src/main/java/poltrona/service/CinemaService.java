@@ -7,6 +7,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.cinema.AtualizaCinemaRequestDTO;
+import poltrona.dto.cinema.CinemaFiltroDTO;
 import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
 import poltrona.entity.Cinema;
@@ -61,8 +62,8 @@ public class CinemaService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CinemaResponseDTO> listarTodos(Pageable pageable) {
-        return cinemaRepository.findAll(pageable).map(cinemaMapper::toDTO);
+    public Page<CinemaResponseDTO> listarTodos(CinemaFiltroDTO filtro, Pageable pageable) {
+        return cinemaRepository.findAllByFiltro(filtro, pageable).map(cinemaMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
@@ -158,9 +159,7 @@ public class CinemaService {
                     "Não é possível deletar um cinema com sessões futuras que possuem ingressos vendidos.");
         }
 
-        cinema.encerrar();
-
-        cinemaRepository.save(cinema);
+        cinemaRepository.delete(cinema);
     }
 
     @Transactional(readOnly = true)

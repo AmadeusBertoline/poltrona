@@ -1,6 +1,8 @@
 package poltrona.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -132,6 +134,19 @@ public class FilmeService {
 
         return filmeRepository.buscarComFiltrosCliente(filtro, pageable).map(filmeMapper::toDTO);
 
+    }
+
+    @Transactional
+    public List<FilmeResponseDTO> cadastrarEmLote(List<FilmeRequestDTO> dtos) {
+        List<Filme> filmes = dtos.stream()
+                .map(dto -> filmeMapper.toEntity(dto))
+                .toList();
+
+        List<Filme> salvos = filmeRepository.saveAll(filmes);
+
+        return salvos.stream()
+                .map(dto -> filmeMapper.toDTO(dto))
+                .toList();
     }
 
 }

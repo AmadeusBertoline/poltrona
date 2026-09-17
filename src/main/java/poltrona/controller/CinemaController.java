@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import jakarta.validation.Valid;
 import poltrona.dto.cinema.AtualizaCinemaRequestDTO;
+import poltrona.dto.cinema.CinemaFiltroDTO;
 import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
 import poltrona.service.CinemaService;
@@ -41,10 +41,10 @@ public class CinemaController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<CinemaResponseDTO>> listarTodos(
+    public ResponseEntity<Page<CinemaResponseDTO>> listarTodos(CinemaFiltroDTO filtro,
             @PageableDefault(page = 0, size = 10, sort = "dataCriacao") Pageable pageable) {
 
-        Page<CinemaResponseDTO> lista = cinemaService.listarTodos(pageable);
+        Page<CinemaResponseDTO> lista = cinemaService.listarTodos(filtro, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(lista);
 

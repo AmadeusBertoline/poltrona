@@ -47,6 +47,8 @@ public interface IngressoRepository extends JpaRepository<Ingresso, Long> {
 
         Page<Ingresso> findAllByUsuarioIdOrderByDataCriacaoDesc(Long id, Pageable pageable);
 
+        boolean existsBySessaoSalaId(Long salaId);
+
         Long countBySessaoId(Long sessaoId);
 
 }

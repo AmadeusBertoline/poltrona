@@ -33,12 +33,12 @@ public interface SessaoRepository extends JpaRepository<Sessao, Long> {
   boolean existsByFilmeId(Long filmeId);
 
   @Query("""
-          SELECT s FROM Sessao s
-          WHERE (:#{#filtro.cinemaId} IS NULL OR s.sala.cinema.id = :#{#filtro.cinemaId})
-            AND (:#{#filtro.filmeId} IS NULL OR s.filme.id = :#{#filtro.filmeId})
-            AND (:#{#filtro.data} IS NULL OR CAST(s.dataHoraInicio AS LocalDate) = :#{#filtro.data})
-            AND (:#{#filtro.apenasDisponiveis} IS FALSE OR s.vagasDisponiveis > 0)
+              SELECT s FROM Sessao s
+              WHERE (:#{#filtro.cinemaId} IS NULL OR s.sala.cinema.id = :#{#filtro.cinemaId})
+                AND (:#{#filtro.filmeId} IS NULL OR s.filme.id = :#{#filtro.filmeId})
+                AND (:#{#filtro.data} IS NULL OR CAST(s.dataHoraInicio AS LocalDate) = :#{#filtro.data})
+                AND (:#{#filtro.apenasDisponiveis} IS FALSE OR
+                     (s.sala.capacidade - (SELECT COUNT(i) FROM Ingresso i WHERE i.sessao = s)) > 0)
       """)
   Page<Sessao> buscarComFiltros(@Param("filtro") SessaoFiltroDTO filtro, Pageable pageable);
-
 }

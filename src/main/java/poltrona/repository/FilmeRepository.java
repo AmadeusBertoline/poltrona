@@ -21,7 +21,7 @@ public interface FilmeRepository extends JpaRepository<Filme, Long> {
     @Query("""
                 SELECT DISTINCT f FROM Filme f
                 LEFT JOIN f.generos g
-                LEFT JOIN f.formatos fmt
+                LEFT JOIN f.formatoFilme fmt
                 WHERE f.ativo = true
                   AND (:#{#filtro.titulo} IS NULL OR LOWER(f.titulo) LIKE LOWER(CONCAT('%', :#{#filtro.titulo}, '%')))
                   AND (:#{#filtro.generoFilme} IS NULL OR g = :#{#filtro.generoFilme})

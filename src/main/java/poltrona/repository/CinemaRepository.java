@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import poltrona.dto.cinema.CinemaFiltroDTO;
 import poltrona.entity.Cinema;
 import poltrona.entity.Proprietario;
 
@@ -41,5 +43,16 @@ public interface CinemaRepository extends JpaRepository<Cinema, Long> {
         Optional<Cinema> findByIdAndProprietarioId(Long id, Long idProprietario);
 
         boolean existsByIdAndProprietarioId(Long id, Long idProprietario);
+
+        @Query("""
+                            SELECT c FROM Cinema c
+                            WHERE (:#{#filtro.nome} IS NULL OR LOWER(c.nomeFantasia) LIKE LOWER(CONCAT('%', :#{#filtro.nome}, '%')))
+                              AND (:#{#filtro.cnpj} IS NULL OR c.cnpj = :#{#filtro.cnpj})
+                              AND (:#{#filtro.cidade} IS NULL OR LOWER(c.endereco.cidade) LIKE LOWER(CONCAT('%', :#{#filtro.cidade}, '%')))
+                              AND (:#{#filtro.uf} IS NULL OR c.endereco.uf = :#{#filtro.uf})
+                              AND (:#{#filtro.status} IS NULL OR c.status = :#{#filtro.status})
+                              AND (:#{#filtro.proprietarioId} IS NULL OR c.proprietario.id = :#{#filtro.proprietarioId})
+                        """)
+        Page<Cinema> findAllByFiltro(@Param("filtro") CinemaFiltroDTO filtro, Pageable pageable);
 
 }

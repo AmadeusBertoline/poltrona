@@ -189,4 +189,28 @@ public class SalaService {
 
     }
 
+    @Transactional(readOnly = true)
+    public void deletar(Long id) {
+
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+
+        Sala sala = salaRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Sala não encontrada ou não pertence a nenhum de seus cinemas."));
+
+        boolean possuiIngressosRelacionados = ingressoRepository
+                .existsBySessaoSalaId(
+                        sala.getId());
+
+        if (possuiIngressosRelacionados) {
+            throw new RegraNegocioException(
+                    "Não é possível deletar a sala pois ela possui ingressos vendidos.");
+        }
+
+        salaRepository.delete(sala);
+
+        sala.getCinema().atualizarQuantidadeSalas();
+
+    }
+
 }

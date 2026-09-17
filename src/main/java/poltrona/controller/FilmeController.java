@@ -1,5 +1,7 @@
 package poltrona.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -43,8 +45,14 @@ public class FilmeController {
 
     }
 
+    @PostMapping("/lote")
+    public ResponseEntity<List<FilmeResponseDTO>> cadastrarEmLote(@RequestBody List<FilmeRequestDTO> dtos) {
+        List<FilmeResponseDTO> salvos = filmeService.cadastrarEmLote(dtos);
+        return ResponseEntity.status(HttpStatus.CREATED).body(salvos);
+    }
+
     @GetMapping
-    public ResponseEntity<Page<FilmeResponseDTO>> listagemClientes(
+    public ResponseEntity<Page<FilmeResponseDTO>> listar(
             FilmeFiltroDTO filtro,
             @PageableDefault(page = 0, size = 10, sort = "titulo", direction = Sort.Direction.ASC) Pageable pageable) {
 
