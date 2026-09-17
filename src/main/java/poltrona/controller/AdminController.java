@@ -9,10 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
 import poltrona.dto.admin.AdminRequestDTO;
 import poltrona.dto.admin.AdminResponseDTO;
 import poltrona.dto.admin.AtualizaAdminRequestDTO;
@@ -30,7 +32,7 @@ public class AdminController {
     }
 
     @PostMapping
-    public ResponseEntity<AdminResponseDTO> cadastrar(@RequestBody AdminRequestDTO dto) {
+    public ResponseEntity<AdminResponseDTO> cadastrar(@Valid @RequestBody AdminRequestDTO dto) {
 
         AdminResponseDTO admin = adminService.cadastrar(dto);
 
@@ -58,7 +60,7 @@ public class AdminController {
     }
 
     @PatchMapping
-    public ResponseEntity<AdminResponseDTO> atualizar(@RequestBody AtualizaAdminRequestDTO dto) {
+    public ResponseEntity<AdminResponseDTO> atualizar(@Valid @RequestBody AtualizaAdminRequestDTO dto) {
 
         AdminResponseDTO admin = adminService.atualizar(dto);
 
@@ -67,7 +69,7 @@ public class AdminController {
     }
 
     @PatchMapping("/senha")
-    public ResponseEntity<Void> atualizarSenha(@RequestBody AtualizaSenhaRequestDTO dto) {
+    public ResponseEntity<Void> atualizarSenha(@Valid @RequestBody AtualizaSenhaRequestDTO dto) {
 
         adminService.atualizarSenha(dto);
 
@@ -81,6 +83,15 @@ public class AdminController {
         adminService.encerrar();
 
         return ResponseEntity.noContent().build();
+
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity<AdminResponseDTO> buscarPorId(@PathVariable Long id){
+
+        AdminResponseDTO admin = adminService.buscarPorId(id);
+
+        return ResponseEntity.status(HttpStatus.OK).body(admin);
 
     }
 

@@ -15,6 +15,7 @@ import poltrona.dto.usuario.AtualizaSenhaRequestDTO;
 import poltrona.entity.Proprietario;
 import poltrona.entity.Usuario;
 import poltrona.exception.RegraNegocioException;
+import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.ProprietarioMapper;
 import poltrona.repository.CinemaRepository;
 import poltrona.repository.IngressoRepository;
@@ -130,6 +131,15 @@ public class ProprietarioService {
         proprietario.atualizarSenha(senha);
 
         proprietarioRepository.save(proprietario);
+
+    }
+
+    public ProprietarioResponseDTO buscarPorId(Long id) {
+
+        Proprietario proprietario = proprietarioRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Proprietario n~]ao encontrado de id " + id));
+
+        return proprietarioMapper.toDTO(proprietario);
 
     }
 

@@ -1,5 +1,6 @@
 package poltrona.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -9,11 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import jakarta.validation.Valid;
 import poltrona.dto.proprietario.AtualizaProprietarioRequestDTO;
 import poltrona.dto.proprietario.ProprietarioRequestDTO;
 import poltrona.dto.proprietario.ProprietarioResponseDTO;
@@ -24,14 +25,14 @@ import poltrona.service.ProprietarioService;
 @RequestMapping("/proprietarios")
 public class ProprietarioController {
 
-    private ProprietarioService proprietarioService;
+    private final ProprietarioService proprietarioService;
 
     public ProprietarioController(ProprietarioService proprietarioService) {
         this.proprietarioService = proprietarioService;
     }
 
     @PostMapping
-    public ResponseEntity<ProprietarioResponseDTO> cadastrar(@RequestBody ProprietarioRequestDTO dto) {
+    public ResponseEntity<ProprietarioResponseDTO> cadastrar(@Valid @RequestBody ProprietarioRequestDTO dto) {
 
         ProprietarioResponseDTO proprietario = proprietarioService.cadastrar(dto);
 
@@ -58,23 +59,37 @@ public class ProprietarioController {
 
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ProprietarioResponseDTO> buscarPorId(@PathVariable Long id) {
+
+        ProprietarioResponseDTO proprietario = proprietarioService.buscarPorId(id);
+
+        return ResponseEntity.status(HttpStatus.OK).body(proprietario);
+
+    }
+
     @PatchMapping
     public ResponseEntity<ProprietarioResponseDTO> atualizar(@Valid @RequestBody AtualizaProprietarioRequestDTO dto) {
+
         ProprietarioResponseDTO response = proprietarioService.atualizar(dto);
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+    }
+
+    @PatchMapping("/senha")
+    public ResponseEntity<Void> atualizarSenha(@Valid @RequestBody AtualizaSenhaRequestDTO dto) {
+
+        proprietarioService.atualizarSenha(dto);
+
+        return ResponseEntity.noContent().build();
+
     }
 
     @DeleteMapping
     public ResponseEntity<Void> encerrar() {
 
         proprietarioService.encerrar();
-        return ResponseEntity.noContent().build();
-    }
-
-    @PatchMapping("/senha")
-    public ResponseEntity<Void> atualizarSenha(@RequestBody AtualizaSenhaRequestDTO dto) {
-
-        proprietarioService.atualizarSenha(dto);
 
         return ResponseEntity.noContent().build();
 

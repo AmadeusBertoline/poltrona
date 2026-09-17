@@ -48,7 +48,6 @@ public class PrecoService {
             throw new RegraNegocioException("Não é possível cadastrar tabela de preços para um cinema inativo.");
         }
 
-
         if (precoRepository.existsByFormatoAndCinemaId(dto.formato(), dto.idCinema())) {
             throw new ResourceAlreadyExistsException("Já existe um preço cadastrado com este nome para este cinema.");
         }
@@ -108,6 +107,16 @@ public class PrecoService {
 
         return precoRepository.findAllByCinemaId(idCinema, pageable)
                 .map(precoMapper::toDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public PrecoResponseDTO buscarPorId(Long id) {
+
+        Preco preco = precoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Preco não encontrado de id " + id));
+
+        return precoMapper.toDTO(preco);
+
     }
 
 }

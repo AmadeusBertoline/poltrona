@@ -14,6 +14,7 @@ import poltrona.dto.poltrona.MapaPoltronasResponseDTO;
 import poltrona.dto.poltrona.PoltronaStatusDTO;
 import poltrona.dto.sessao.AtualizaSessaoRequestDTO;
 import poltrona.dto.sessao.GradeSessaoRequestDTO;
+import poltrona.dto.sessao.SessaoFiltroDTO;
 import poltrona.dto.sessao.SessaoRequestDTO;
 import poltrona.dto.sessao.SessaoResponseDTO;
 import poltrona.entity.Filme;
@@ -99,28 +100,9 @@ public class SessaoService {
         }
 
         @Transactional(readOnly = true)
-        public Page<SessaoResponseDTO> listar(
-                        Long cinemaId,
-                        LocalDate data,
-                        Long filmeId,
-                        Boolean apenasDisponiveis,
-                        Pageable pageable) {
-
-                LocalDateTime inicioDia = (data != null) ? data.atStartOfDay() : null;
-                LocalDateTime fimDia = (data != null) ? data.plusDays(1).atStartOfDay() : null;
-
-                LocalDateTime agora = LocalDateTime.now();
-
-                Boolean filtrarDisponiveis = (apenasDisponiveis != null) ? apenasDisponiveis : true;
-
-                return sessaoRepository.findAllByFiltro(
-                                cinemaId,
-                                inicioDia,
-                                fimDia,
-                                filmeId,
-                                filtrarDisponiveis,
-                                agora,
-                                pageable).map(sessaoMapper::toDTO);
+        public Page<SessaoResponseDTO> listar(SessaoFiltroDTO filtro, Pageable pageable) {
+                return sessaoRepository.buscarComFiltros(filtro, pageable)
+                                .map(sessaoMapper::toDTO);
         }
 
         @Transactional(readOnly = true)

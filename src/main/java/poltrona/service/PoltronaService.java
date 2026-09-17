@@ -21,6 +21,7 @@ import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.PoltronaMapper;
 import poltrona.repository.IngressoRepository;
 import poltrona.repository.PoltronaRepository;
+import poltrona.repository.SalaRepository;
 
 @Service
 public class PoltronaService {
@@ -29,13 +30,15 @@ public class PoltronaService {
     private final PoltronaMapper poltronaMapper;
     private final IngressoRepository ingressoRepository;
     private final UsuarioService usuarioService;
+    private final SalaRepository salaRepository;
 
     public PoltronaService(PoltronaRepository poltronaRepository, PoltronaMapper poltronaMapper,
-            IngressoRepository ingressoRepository, UsuarioService usuarioService) {
+            IngressoRepository ingressoRepository, UsuarioService usuarioService, SalaRepository salaRepository) {
         this.poltronaRepository = poltronaRepository;
         this.poltronaMapper = poltronaMapper;
         this.ingressoRepository = ingressoRepository;
         this.usuarioService = usuarioService;
+        this.salaRepository = salaRepository;
     }
 
     @Transactional
@@ -201,4 +204,28 @@ public class PoltronaService {
         String apenasDigitos = String.valueOf(valorNumero).replaceAll("\\D+", "");
         return apenasDigitos.isEmpty() ? 0 : Integer.parseInt(apenasDigitos);
     }
+
+    @Transactional(readOnly = true)
+    public List<PoltronaResponseDTO> listarPorSala(Long salaId) {
+        if (!salaRepository.existsById(salaId)) {
+            throw new ResourceNotFoundException("Sala não encontrada com o ID: " + salaId);
+        }
+
+        List<Poltrona> poltronas = poltronaRepository.findBySalaId(salaId);
+
+        return poltronas.stream()
+                .map(poltronaMapper::toDTO)
+                .toList();
+    }
+
+    @Transactional
+    public PoltronaResponseDTO alterarStatus(Long id, Boolean ativa) {
+        Poltrona poltrona = poltronaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada de id " + id));
+
+        poltrona.setAtiva(ativa);
+
+        return poltronaMapper.toDTO(poltrona);
+    }
+
 }

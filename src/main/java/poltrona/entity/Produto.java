@@ -2,7 +2,6 @@ package poltrona.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,11 +14,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import poltrona.enums.produto.TipoProduto;
 import poltrona.exception.RegraNegocioException;
 
@@ -120,11 +117,11 @@ public class Produto {
         }
     }
 
-    public void ativar() {
-        this.ativo = true;
-    }
+    public void alterarStatus(Boolean status) {
+        if (status != null) {
 
-    public void desativar() {
-        this.ativo = false;
+            this.ativo = status;
+
+        }
     }
 }

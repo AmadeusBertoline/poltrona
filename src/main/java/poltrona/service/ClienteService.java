@@ -18,6 +18,7 @@ import poltrona.enums.ingresso.StatusIngresso;
 import poltrona.enums.usuario.StatusConta;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceAlreadyExistsException;
+import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.ClienteMapper;
 import poltrona.repository.ClienteRepository;
 import poltrona.repository.IngressoRepository;
@@ -138,6 +139,16 @@ public class ClienteService {
         cliente.atualizarSenha(senha);
 
         clienteRepository.save(cliente);
+
+    }
+
+    @Transactional(readOnly = true)
+    public ClienteResponseDTO buscarPorId(Long id) {
+
+        Cliente cliente = clienteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado de id " + id));
+
+        return clienteMapper.toDTO(cliente);
 
     }
 

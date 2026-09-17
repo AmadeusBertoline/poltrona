@@ -1,5 +1,6 @@
 package poltrona.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,12 +14,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import poltrona.dto.produto.AtualizaProdutoRequestDTO;
 import poltrona.dto.produto.CadastroProdutoRequestDTO;
 import poltrona.dto.produto.ProdutoResponseDTO;
-import poltrona.entity.Produto;
-import poltrona.mapper.ProdutoMapper;
+import poltrona.enums.produto.TipoProduto;
 import poltrona.service.ProdutoService;
 
 @RestController
@@ -26,19 +27,15 @@ import poltrona.service.ProdutoService;
 public class ProdutoController {
 
     private final ProdutoService produtoService;
-    private final ProdutoMapper produtoMapper;
 
-    public ProdutoController(ProdutoService produtoService, ProdutoMapper produtoMapper) {
+    public ProdutoController(ProdutoService produtoService) {
         this.produtoService = produtoService;
-        this.produtoMapper = produtoMapper;
     }
 
     @PostMapping
-    public ResponseEntity<ProdutoResponseDTO> cadastrar(@RequestBody CadastroProdutoRequestDTO dto) {
+    public ResponseEntity<ProdutoResponseDTO> cadastrar(@Valid @RequestBody CadastroProdutoRequestDTO dto) {
 
-        Produto produto = produtoService.cadastrar(dto);
-
-        ProdutoResponseDTO response = produtoMapper.toDTO(produto);
+        ProdutoResponseDTO response = produtoService.cadastrar(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
@@ -46,9 +43,12 @@ public class ProdutoController {
 
     @GetMapping
     public ResponseEntity<Page<ProdutoResponseDTO>> listarTodos(
-            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
+            @RequestParam(required = false) Boolean ativo,
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) TipoProduto tipoProduto,
+            @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        Page<ProdutoResponseDTO> produtos = produtoService.listarTodos(pageable);
+        Page<ProdutoResponseDTO> produtos = produtoService.listarTodos(ativo, nome, tipoProduto, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(produtos);
 
@@ -57,9 +57,7 @@ public class ProdutoController {
     @GetMapping("/{id}")
     public ResponseEntity<ProdutoResponseDTO> buscarPorId(@PathVariable Long id) {
 
-        Produto produto = produtoService.buscarPorId(id);
-
-        ProdutoResponseDTO response = produtoMapper.toDTO(produto);
+        ProdutoResponseDTO response = produtoService.buscarPorId(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
 
@@ -68,22 +66,20 @@ public class ProdutoController {
     @PatchMapping("/{id}")
     public ResponseEntity<ProdutoResponseDTO> atualizar(
             @PathVariable Long id,
-            @RequestBody AtualizaProdutoRequestDTO dto) {
+            @Valid @RequestBody AtualizaProdutoRequestDTO dto) {
 
-        Produto produto = produtoService.atualizar(id, dto);
-
-        ProdutoResponseDTO response = produtoMapper.toDTO(produto);
+        ProdutoResponseDTO response = produtoService.atualizar(id, dto);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
 
     }
 
-    @PatchMapping("/{id}/desativar")
-    public ResponseEntity<ProdutoResponseDTO> desativar(@PathVariable Long id) {
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ProdutoResponseDTO> alterarStatus(
+            @PathVariable Long id,
+            @RequestParam Boolean ativo) {
 
-        Produto produto = produtoService.desativar(id);
-
-        ProdutoResponseDTO response = produtoMapper.toDTO(produto);
+        ProdutoResponseDTO response = produtoService.alterarStatus(id, ativo);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
 

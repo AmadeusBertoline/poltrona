@@ -5,6 +5,9 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import poltrona.entity.Sala;
 
 public interface SalaRepository extends JpaRepository<Sala, Long> {
@@ -18,5 +21,15 @@ public interface SalaRepository extends JpaRepository<Sala, Long> {
     boolean existsByCinemaIdAndCinemaProprietarioId(Long cinemaId, Long proprietarioId);
 
     Optional<Sala> findByIdAndCinemaProprietarioId(Long salaId, Long proprietarioId);
+
+    @Query("""
+                SELECT s FROM Sala s
+                WHERE (:cinemaId IS NULL OR s.cinema.id = :cinemaId)
+                  AND (:ativo IS NULL OR s.ativa = :ativo)
+            """)
+    Page<Sala> buscarSalas(
+            @Param("cinemaId") Long cinemaId,
+            @Param("ativo") Boolean ativo,
+            Pageable pageable);
 
 }

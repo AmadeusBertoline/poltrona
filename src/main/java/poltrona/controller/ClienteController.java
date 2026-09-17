@@ -9,10 +9,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.validation.Valid;
 import poltrona.dto.cliente.AtualizaClienteRequestDTO;
 import poltrona.dto.cliente.ClienteRequestDTO;
 import poltrona.dto.cliente.ClienteResponseDTO;
@@ -30,7 +33,7 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<ClienteResponseDTO> cadastrar(@RequestBody ClienteRequestDTO dto) {
+    public ResponseEntity<ClienteResponseDTO> cadastrar(@Valid @RequestBody ClienteRequestDTO dto) {
 
         ClienteResponseDTO cliente = clienteService.cadastrar(dto);
 
@@ -58,7 +61,7 @@ public class ClienteController {
     }
 
     @PatchMapping
-    public ResponseEntity<ClienteResponseDTO> atualizar(@RequestBody AtualizaClienteRequestDTO dto) {
+    public ResponseEntity<ClienteResponseDTO> atualizar(@Valid @RequestBody AtualizaClienteRequestDTO dto) {
 
         ClienteResponseDTO cliente = clienteService.atualizar(dto);
 
@@ -67,7 +70,7 @@ public class ClienteController {
     }
 
     @PatchMapping("/senha")
-    public ResponseEntity<Void> atualizarSenha(@RequestBody AtualizaSenhaRequestDTO dto) {
+    public ResponseEntity<Void> atualizarSenha(@Valid @RequestBody AtualizaSenhaRequestDTO dto) {
 
         clienteService.atualizarSenha(dto);
 
@@ -81,6 +84,15 @@ public class ClienteController {
         clienteService.encerrar();
 
         return ResponseEntity.noContent().build();
+
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity<ClienteResponseDTO> buscarPorId(@PathVariable Long id) {
+
+        ClienteResponseDTO cliente = clienteService.buscarPorId(id);
+
+        return ResponseEntity.status(HttpStatus.OK).body(cliente);
 
     }
 

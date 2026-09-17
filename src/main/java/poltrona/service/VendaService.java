@@ -16,6 +16,7 @@ import poltrona.entity.ItemVenda;
 import poltrona.entity.Produto;
 import poltrona.entity.Usuario;
 import poltrona.entity.Venda;
+import poltrona.enums.venda.StatusVenda;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.ItemVendaMapper;
@@ -90,8 +91,34 @@ public class VendaService {
     }
 
     @Transactional(readOnly = true)
-    public Page<VendaResponseDTO> listarTodas(Pageable pageable) {
-        return vendaRepository.findAll(pageable).map(vendaMapper::toDTO);
+    public VendaResponseDTO buscarPorId(Long id) {
+        Venda venda = vendaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Venda não encontrada de id " + id));
+        return vendaMapper.toDTO(venda);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<VendaResponseDTO> listarTodas(Long clienteId, Pageable pageable) {
+        return vendaRepository.buscarVendas(clienteId, pageable)
+                .map(vendaMapper::toDTO);
+    }
+
+    @Transactional
+    public VendaResponseDTO cancelar(Long id) {
+        Venda venda = vendaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Venda não encontrada de id " + id));
+
+        if (venda.getStatus() == StatusVenda.CANCELADA) {
+            throw new RegraNegocioException("Esta venda já se encontra cancelada.");
+        }
+
+        venda.setStatus(StatusVenda.CANCELADA);
+
+        if (venda.getIngressos() != null) {
+            venda.getIngressos().forEach(ingresso -> ingresso.cancelar());
+        }
+
+        return vendaMapper.toDTO(venda);
     }
 
     @Transactional(readOnly = true)

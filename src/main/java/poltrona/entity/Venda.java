@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -96,5 +97,16 @@ public class Venda {
 
     public List<ItemVenda> getItens() {
         return Collections.unmodifiableList(this.itens);
+    }
+
+    public void setStatus(StatusVenda statusVenda) {
+        this.status = statusVenda;
+    }
+
+    public List<Ingresso> getIngressos() {
+        return this.itens.stream()
+                .map(ItemVenda::getIngresso)
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

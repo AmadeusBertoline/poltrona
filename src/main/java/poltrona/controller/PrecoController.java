@@ -50,7 +50,8 @@ public class PrecoController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<PrecoResponseDTO> atualizar(@PathVariable Long id, @RequestBody AtualizaPrecoRequestDTO dto) {
+    public ResponseEntity<PrecoResponseDTO> atualizar(@PathVariable Long id,
+            @Valid @RequestBody AtualizaPrecoRequestDTO dto) {
 
         PrecoResponseDTO preco = precoService.atualizar(id, dto);
 
@@ -68,10 +69,19 @@ public class PrecoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Page<PrecoResponseDTO>> buscarPorCinema(@PathVariable Long id,
+    public ResponseEntity<PrecoResponseDTO> buscarPorId(@PathVariable Long id) {
+
+        PrecoResponseDTO preco = precoService.buscarPorId(id);
+
+        return ResponseEntity.status(HttpStatus.OK).body(preco);
+
+    }
+
+    @GetMapping("/cinema/{cinemaId}")
+    public ResponseEntity<Page<PrecoResponseDTO>> buscarPorCinema(@PathVariable Long cinemaId,
             @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        Page<PrecoResponseDTO> precos = precoService.buscarPorCinema(id, pageable);
+        Page<PrecoResponseDTO> precos = precoService.buscarPorCinema(cinemaId, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(precos);
 

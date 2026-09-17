@@ -1,12 +1,11 @@
 package poltrona.controller;
 
-import java.time.LocalDate;
 import java.util.List;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,10 +14,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import jakarta.validation.Valid;
 import poltrona.dto.sessao.GradeSessaoRequestDTO;
+import poltrona.dto.sessao.SessaoFiltroDTO;
 import poltrona.dto.sessao.SessaoRequestDTO;
 import poltrona.dto.sessao.SessaoResponseDTO;
 import poltrona.service.SessaoService;
@@ -34,7 +32,7 @@ public class SessaoController {
     }
 
     @PostMapping
-    public ResponseEntity<SessaoResponseDTO> cadastrar(@RequestBody @Valid SessaoRequestDTO dto) {
+    public ResponseEntity<SessaoResponseDTO> cadastrar(@Valid @RequestBody SessaoRequestDTO dto) {
 
         SessaoResponseDTO sessao = sessaoService.cadastrar(dto);
 
@@ -42,16 +40,24 @@ public class SessaoController {
 
     }
 
+    @PostMapping("/grade")
+    public ResponseEntity<List<SessaoResponseDTO>> cadastrarGrade(@Valid @RequestBody GradeSessaoRequestDTO dto) {
+
+        List<SessaoResponseDTO> sessoes = sessaoService.cadastrarGrade(dto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(sessoes);
+
+    }
+
     @GetMapping
     public ResponseEntity<Page<SessaoResponseDTO>> listar(
-            @RequestParam(required = false) Long cinemaId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
-            @RequestParam(required = false) Long filmeId,
-            @RequestParam(required = false, defaultValue = "true") Boolean apenasDisponiveis,
+            SessaoFiltroDTO filtro,
             @PageableDefault(page = 0, size = 10, sort = "dataHoraInicio", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        Page<SessaoResponseDTO> pagina = sessaoService.listar(cinemaId, data, filmeId, apenasDisponiveis, pageable);
+        Page<SessaoResponseDTO> pagina = sessaoService.listar(filtro, pageable);
+
         return ResponseEntity.ok(pagina);
+
     }
 
     @GetMapping("/{id}")
@@ -59,7 +65,7 @@ public class SessaoController {
 
         SessaoResponseDTO sessao = sessaoService.buscarPorId(id);
 
-        return ResponseEntity.status(HttpStatus.OK).body(sessao);
+        return ResponseEntity.ok(sessao);
 
     }
 
@@ -69,15 +75,6 @@ public class SessaoController {
         sessaoService.deletar(id);
 
         return ResponseEntity.noContent().build();
-
-    }
-
-    @PostMapping("/grade")
-    public ResponseEntity<List<SessaoResponseDTO>> cadastrarGrade(@RequestBody GradeSessaoRequestDTO dto) {
-
-        List<SessaoResponseDTO> sessoes = sessaoService.cadastrarGrade(dto);
-
-        return ResponseEntity.status(HttpStatus.OK).body(sessoes);
 
     }
 

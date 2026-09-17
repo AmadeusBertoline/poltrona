@@ -1,5 +1,6 @@
 package poltrona.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -31,7 +32,7 @@ public class SalaController {
     }
 
     @PostMapping
-    public ResponseEntity<SalaResponseDTO> cadastrar(@RequestBody SalaRequestDTO dto) {
+    public ResponseEntity<SalaResponseDTO> cadastrar(@Valid @RequestBody SalaRequestDTO dto) {
 
         SalaResponseDTO sala = salaService.cadastrar(dto);
 
@@ -40,16 +41,30 @@ public class SalaController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<SalaResponseDTO>> listarPorCinema(
-            @RequestParam Long cinemaId,
-            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
+    public ResponseEntity<Page<SalaResponseDTO>> listar(
+            @RequestParam(required = false) Long cinemaId,
+            @RequestParam(required = false) Boolean ativo,
+            @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        Page<SalaResponseDTO> salas = salaService.listarPorCinema(cinemaId, pageable);
-        return ResponseEntity.ok(salas);
+        Page<SalaResponseDTO> salas = salaService.listar(cinemaId, ativo, pageable);
+
+        return ResponseEntity.status(HttpStatus.OK).body(salas);
+
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SalaResponseDTO> buscarPorId(@PathVariable Long id) {
+
+        SalaResponseDTO sala = salaService.buscarPorId(id);
+
+        return ResponseEntity.status(HttpStatus.OK).body(sala);
+
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<SalaResponseDTO> atualizar(@PathVariable Long id, @RequestBody AtualizaSalaRequestDTO dto) {
+    public ResponseEntity<SalaResponseDTO> atualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody AtualizaSalaRequestDTO dto) {
 
         SalaResponseDTO sala = salaService.atualizar(id, dto);
 
@@ -59,8 +74,11 @@ public class SalaController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
+
         salaService.desativar(id);
+
         return ResponseEntity.noContent().build();
+
     }
 
 }

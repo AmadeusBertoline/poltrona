@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.validation.Valid;
 import poltrona.dto.cinema.AtualizaCinemaRequestDTO;
 import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
@@ -30,7 +32,7 @@ public class CinemaController {
     }
 
     @PostMapping
-    public ResponseEntity<CinemaResponseDTO> cadastrar(@RequestBody CinemaRequestDTO dto) {
+    public ResponseEntity<CinemaResponseDTO> cadastrar(@Valid @RequestBody CinemaRequestDTO dto) {
 
         CinemaResponseDTO cinema = cinemaService.cadastrar(dto);
 
@@ -40,7 +42,7 @@ public class CinemaController {
 
     @GetMapping
     public ResponseEntity<Page<CinemaResponseDTO>> listarTodos(
-            @PageableDefault(page = 0, size = 10, sort = "") Pageable pageable) {
+            @PageableDefault(page = 0, size = 10, sort = "dataCriacao") Pageable pageable) {
 
         Page<CinemaResponseDTO> lista = cinemaService.listarTodos(pageable);
 
@@ -59,7 +61,7 @@ public class CinemaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CinemaResponseDTO> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<CinemaResponseDTO> buscarPorId(@Valid @PathVariable Long id) {
 
         CinemaResponseDTO cinema = cinemaService.buscarPorId(id);
 
@@ -68,7 +70,7 @@ public class CinemaController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<CinemaResponseDTO> atualizar(@PathVariable Long id,
+    public ResponseEntity<CinemaResponseDTO> atualizar(@Valid @PathVariable Long id,
             @RequestBody AtualizaCinemaRequestDTO dto) {
 
         CinemaResponseDTO cinema = cinemaService.atualizar(id, dto);
@@ -78,9 +80,9 @@ public class CinemaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long cinemaId){
+    public ResponseEntity<Void> deletar(@Valid @PathVariable Long id){
 
-        cinemaService.deletar(cinemaId);
+        cinemaService.deletar(id);
 
         return ResponseEntity.noContent().build();
 

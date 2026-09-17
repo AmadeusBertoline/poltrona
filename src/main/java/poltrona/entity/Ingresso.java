@@ -72,4 +72,6 @@ public class Ingresso {
         }
         this.status = StatusIngresso.CANCELADO;
     }
+
+    
 }

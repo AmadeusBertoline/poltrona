@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import poltrona.dto.filme.FilmeFiltroDTO;
 import poltrona.dto.filme.FilmeRequestDTO;
 import poltrona.dto.filme.FilmeResponseDTO;
 import poltrona.entity.Filme;
@@ -113,6 +115,23 @@ public class FilmeService {
         }
 
         filmeRepository.delete(filme);
+    }
+
+    @Transactional(readOnly = true)
+    public FilmeResponseDTO buscarPorId(Long id) {
+
+        Filme filme = filmeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado de id " + id));
+
+        return filmeMapper.toDTO(filme);
+
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FilmeResponseDTO> listarParaClientes(FilmeFiltroDTO filtro, Pageable pageable) {
+
+        return filmeRepository.buscarComFiltrosCliente(filtro, pageable).map(filmeMapper::toDTO);
+
     }
 
 }

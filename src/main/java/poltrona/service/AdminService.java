@@ -15,6 +15,7 @@ import poltrona.entity.Admin;
 import poltrona.enums.usuario.StatusConta;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceAlreadyExistsException;
+import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.AdminMapper;
 import poltrona.repository.AdminRepository;
 
@@ -27,7 +28,7 @@ public class AdminService {
     private final UsuarioService usuarioService;
 
     public AdminService(AdminRepository adminRepository, AdminMapper adminMapper,
-                        PasswordEncoder passwordEncoder, UsuarioService usuarioService) {
+            PasswordEncoder passwordEncoder, UsuarioService usuarioService) {
         this.adminRepository = adminRepository;
         this.adminMapper = adminMapper;
         this.passwordEncoder = passwordEncoder;
@@ -84,7 +85,8 @@ public class AdminService {
             throw new RegraNegocioException("Uma conta bloqueada ou encerrada não pode atualizar dados");
         }
 
-        if (dto.usuario().email() != null && !dto.usuario().email().isBlank() && !dto.usuario().email().equalsIgnoreCase(admin.getEmail())) {
+        if (dto.usuario().email() != null && !dto.usuario().email().isBlank()
+                && !dto.usuario().email().equalsIgnoreCase(admin.getEmail())) {
             if (adminRepository.existsByEmailAndIdNot(dto.usuario().email(), admin.getId())) {
                 throw new ResourceAlreadyExistsException("Já existe uma conta para este e-mail");
             }
@@ -126,6 +128,16 @@ public class AdminService {
         admin.atualizarSenha(senha);
 
         adminRepository.save(admin);
+
+    }
+
+    @Transactional(readOnly = true)
+    public AdminResponseDTO buscarPorId(Long id) {
+
+        Admin admin = adminRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin não encontrado de id " + id));
+
+        return adminMapper.toDTO(admin);
 
     }
 

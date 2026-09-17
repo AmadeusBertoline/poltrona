@@ -4,14 +4,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import poltrona.dto.produto.AtualizaProdutoRequestDTO;
 import poltrona.dto.produto.CadastroProdutoRequestDTO;
 import poltrona.dto.produto.ProdutoResponseDTO;
 import poltrona.entity.Cinema;
 import poltrona.entity.Produto;
 import poltrona.entity.Proprietario;
-import poltrona.exception.RegraNegocioException;
+import poltrona.enums.produto.TipoProduto;
 import poltrona.exception.ResourceAlreadyExistsException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.ProdutoMapper;
@@ -35,7 +34,7 @@ public class ProdutoService {
     }
 
     @Transactional
-    public Produto cadastrar(CadastroProdutoRequestDTO dto) {
+    public ProdutoResponseDTO cadastrar(CadastroProdutoRequestDTO dto) {
 
         Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
@@ -50,31 +49,32 @@ public class ProdutoService {
 
         Produto salvo = produtoRepository.save(produto);
 
-        return salvo;
+        return produtoMapper.toDTO(salvo);
 
     }
 
     @Transactional(readOnly = true)
-    public Page<ProdutoResponseDTO> listarTodos(Pageable pageable) {
+    public Page<ProdutoResponseDTO> listarTodos(Boolean ativo, String nome, TipoProduto tipoProduto,
+            Pageable pageable) {
 
-        return produtoRepository.findAll(pageable).map(produtoMapper::toDTO);
+        return produtoRepository.findAllByFiltro(ativo, nome, tipoProduto, pageable).map(produtoMapper::toDTO);
 
     }
 
     @Transactional(readOnly = true)
-    public Produto buscarPorId(Long id) {
+    public ProdutoResponseDTO buscarPorId(Long id) {
 
         Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
         Produto produto = produtoRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado de id: " + id));
 
-        return produto;
+        return produtoMapper.toDTO(produto);
 
     }
 
     @Transactional
-    public Produto atualizar(Long id, AtualizaProdutoRequestDTO dto) {
+    public ProdutoResponseDTO atualizar(Long id, AtualizaProdutoRequestDTO dto) {
 
         Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
@@ -99,27 +99,23 @@ public class ProdutoService {
 
         Produto atualizado = produtoRepository.save(produto);
 
-        return atualizado;
+        return produtoMapper.toDTO(atualizado);
 
     }
 
     @Transactional
-    public Produto desativar(Long id) {
+    public ProdutoResponseDTO alterarStatus(Long id, Boolean status) {
 
         Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
         Produto produto = produtoRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado de id: " + id));
 
-        if (!produto.getAtivo()) {
-            throw new RegraNegocioException("O produto de id " + id + " já está desativado.");
-        }
+        produto.alterarStatus(status);
 
-        produto.desativar();
+        Produto alterado = produtoRepository.save(produto);
 
-        Produto desativado = produtoRepository.save(produto);
-
-        return desativado;
+        return produtoMapper.toDTO(alterado);
 
     }
 

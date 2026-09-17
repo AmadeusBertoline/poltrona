@@ -79,14 +79,12 @@ public class SalaService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SalaResponseDTO> listarPorCinema(Long cinemaId, Pageable pageable) {
-        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
-
-        if (!cinemaRepository.existsByIdAndProprietarioId(cinemaId, proprietario.getId())) {
-            throw new ResourceNotFoundException("Cinema não encontrado ou não pertence ao proprietário logado");
+    public Page<SalaResponseDTO> listar(Long cinemaId, Boolean ativo, Pageable pageable) {
+        if (cinemaId != null && !cinemaRepository.existsById(cinemaId)) {
+            throw new ResourceNotFoundException("Cinema não encontrado com o ID: " + cinemaId);
         }
 
-        return salaRepository.findAllByCinemaId(cinemaId, pageable)
+        return salaRepository.buscarSalas(cinemaId, ativo, pageable)
                 .map(salaMapper::toDTO);
     }
 
@@ -178,7 +176,17 @@ public class SalaService {
 
         sala.getCinema().atualizarQuantidadeSalas();
 
-        // 5. Persiste a alteração
         salaRepository.save(sala);
     }
+
+    @Transactional(readOnly = true)
+    public SalaResponseDTO buscarPorId(Long id) {
+
+        Sala sala = salaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada de id " + id));
+
+        return salaMapper.toDTO(sala);
+
+    }
+
 }
