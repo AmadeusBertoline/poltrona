@@ -64,9 +64,7 @@ public class ProdutoService {
     @Transactional(readOnly = true)
     public ProdutoResponseDTO buscarPorId(Long id) {
 
-        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
-
-        Produto produto = produtoRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
+        Produto produto = produtoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado de id: " + id));
 
         return produtoMapper.toDTO(produto);

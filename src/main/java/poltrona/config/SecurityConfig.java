@@ -61,12 +61,16 @@ public class SecurityConfig {
                         .requestMatchers("/proprietarios/**").hasAuthority("PROPRIETARIO")
 
                         // POLTRONAS
-                        .requestMatchers(HttpMethod.GET,"/poltronas/**","/poltronas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/poltronas/**", "/poltronas").permitAll()
                         .requestMatchers("/poltronas").hasAuthority("PROPRIETARIO")
 
-                        // PRECOS
+                        // PRECOS (REGRAS UNIFICADAS E CORRIGIDAS)
+                        .requestMatchers(HttpMethod.POST, "/precos").hasAuthority("PROPRIETARIO")
                         .requestMatchers(HttpMethod.GET, "/precos").hasAuthority("ADMIN")
-                        .requestMatchers("/precos", "/precos/**").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.GET, "/precos/cinema/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/precos/*").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/precos/*").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.DELETE, "/precos/*").hasAuthority("PROPRIETARIO")
 
                         // SALAS
                         .requestMatchers(HttpMethod.POST, "/salas").hasAuthority("PROPRIETARIO")
@@ -76,7 +80,7 @@ public class SecurityConfig {
 
                         // SESSAO
                         .requestMatchers(HttpMethod.POST, "/sessoes").hasAuthority("PROPRIETARIO")
-                        .requestMatchers(HttpMethod.GET, "/sessoes").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/sessoes", "/sessoes/**").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/sessoes/**").hasAuthority("PROPRIETARIO")
                         .requestMatchers(HttpMethod.DELETE, "/sessoes/**").hasAuthority("PROPRIETARIO")
 
@@ -85,19 +89,18 @@ public class SecurityConfig {
 
                         // CLIENTES
                         .requestMatchers(HttpMethod.POST, "/clientes").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/clientes").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/clientes/**", "/clientes").hasAuthority("ADMIN")
                         .requestMatchers("/clientes/**", "/clientes").hasAuthority("CLIENTE")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
-                        // PRECOS
-                        .requestMatchers(HttpMethod.GET, "/precos/**").permitAll()
-
                         // PRODUTOS
                         .requestMatchers(HttpMethod.POST, "/produtos").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.GET, "/produtos/*","/produtos").permitAll()
 
                         // VENDAS
                         .requestMatchers(HttpMethod.GET, "/vendas").hasAuthority("ADMIN")
-                        .requestMatchers("/vendas", "/vendas/**").hasAuthority("CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/vendas/*").hasAnyAuthority("ADMIN", "CLIENTE")
+                        .requestMatchers("/vendas/***","/vendas", "/vendas/**").hasAuthority("CLIENTE")
 
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception

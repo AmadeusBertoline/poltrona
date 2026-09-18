@@ -54,7 +54,7 @@ public class PoltronaController {
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<PoltronaResponseDTO> alteratStatus(@PathVariable Long id,
+    public ResponseEntity<PoltronaResponseDTO> alterarStatus(@PathVariable Long id,
             @RequestParam Boolean ativa) {
 
         PoltronaResponseDTO poltrona = poltronaService.alterarStatus(id, ativa);

@@ -13,5 +13,4 @@ public record AtualizaSenhaRequestDTO(
         @SenhaValida 
         String confirmarSenha
 
-) {
-}
+) {}
