@@ -17,7 +17,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import poltrona.enums.venda.TipoItemVenda;
-
 import java.math.BigDecimal;
 
 @Entity
