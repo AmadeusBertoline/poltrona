@@ -92,6 +92,7 @@ public class ProdutoService {
                 produto.adicionarEstoque(diferenca);
             } else if (diferenca < 0) {
                 produto.debitarEstoque(Math.abs(diferenca));
+                produtoRepository.reduzirEstoque(id, diferenca);
             }
         }
 

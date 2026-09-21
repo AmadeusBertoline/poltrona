@@ -73,12 +73,26 @@ public class VendaService {
         }
 
         if (dto.produtos() != null && !dto.produtos().isEmpty()) {
+
             for (ProdutoRequestDTO produtoDto : dto.produtos()) {
+
                 Produto produto = produtoRepository.findById(produtoDto.id())
                         .orElseThrow(() -> new ResourceNotFoundException(
                                 "Produto não encontrado ID: " + produtoDto.id()));
 
-                ItemVenda itemProduto = itemVendaMapper.toEntityProduto(produto, produtoDto.quantidade());
+                int linhasAfetadas = produtoRepository.reduzirEstoque(
+                        produtoDto.id(),
+                        produtoDto.quantidade());
+
+                if (linhasAfetadas == 0) {
+                    throw new RegraNegocioException(
+                            "Estoque do produto " + produto.getNome() + " insuficiente");
+                }
+
+                ItemVenda itemProduto = itemVendaMapper.toEntityProduto(
+                        produto,
+                        produtoDto.quantidade());
+
                 itens.add(itemProduto);
             }
         }
