@@ -41,4 +41,5 @@ public interface SessaoRepository extends JpaRepository<Sessao, Long> {
                      (s.sala.capacidade - (SELECT COUNT(i) FROM Ingresso i WHERE i.sessao = s)) > 0)
       """)
   Page<Sessao> buscarComFiltros(@Param("filtro") SessaoFiltroDTO filtro, Pageable pageable);
+
 }

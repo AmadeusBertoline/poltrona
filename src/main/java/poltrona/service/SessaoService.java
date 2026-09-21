@@ -58,11 +58,11 @@ public class SessaoService {
         @Transactional
         public SessaoResponseDTO cadastrar(SessaoRequestDTO dto) {
 
+                Sala sala = salaRepository.findByIdWithLock(dto.idSala())
+                                .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada"));
+
                 Filme filme = filmeRepository.findById(dto.idFilme())
                                 .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado"));
-
-                Sala sala = salaRepository.findById(dto.idSala())
-                                .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada"));
 
                 if (!filme.getFormatoFilme().contains(dto.formato())) {
                         throw new RegraNegocioException(
@@ -153,7 +153,7 @@ public class SessaoService {
                 Filme filme = filmeRepository.findById(dto.filmeId())
                                 .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado"));
 
-                Sala sala = salaRepository.findById(dto.salaId())
+                Sala sala = salaRepository.findByIdWithLock(dto.salaId())
                                 .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada"));
 
                 Preco preco = precoRepository.findByCinemaIdAndFormato(sala.getCinema().getId(), dto.formato())
