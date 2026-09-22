@@ -1,9 +1,13 @@
 package poltrona.service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import poltrona.dto.page.RespostaPaginadaDTO;
 import poltrona.dto.produto.AtualizaProdutoRequestDTO;
 import poltrona.dto.produto.CadastroProdutoRequestDTO;
 import poltrona.dto.produto.ProdutoResponseDTO;
@@ -33,6 +37,7 @@ public class ProdutoService {
         this.cinemaRepository = cinemaRepository;
     }
 
+    @CacheEvict(value = "produtos", allEntries = true)
     @Transactional
     public ProdutoResponseDTO cadastrar(CadastroProdutoRequestDTO dto) {
 
@@ -53,14 +58,22 @@ public class ProdutoService {
 
     }
 
+    @Cacheable(value = "produtos", key = "{ #ativo, #nome, #tipoProduto, #pageable.pageNumber, #pageable.pageSize, #pageable.sort.toString() }")
     @Transactional(readOnly = true)
-    public Page<ProdutoResponseDTO> listarTodos(Boolean ativo, String nome, TipoProduto tipoProduto,
+    public RespostaPaginadaDTO<ProdutoResponseDTO> listarTodos(
+            Boolean ativo,
+            String nome,
+            TipoProduto tipoProduto,
             Pageable pageable) {
 
-        return produtoRepository.findAllByFiltro(ativo, nome, tipoProduto, pageable).map(produtoMapper::toDTO);
+        Page<ProdutoResponseDTO> paginaResultados = produtoRepository
+                .findAllByFiltro(ativo, nome, tipoProduto, pageable)
+                .map(produtoMapper::toDTO);
 
+        return RespostaPaginadaDTO.de(paginaResultados);
     }
 
+    @Cacheable(value = "produtoPorId", key = "#id")
     @Transactional(readOnly = true)
     public ProdutoResponseDTO buscarPorId(Long id) {
 
@@ -71,6 +84,7 @@ public class ProdutoService {
 
     }
 
+    @CacheEvict(value = { "produtos", "produtoPorId" }, key = "#id", allEntries = true)
     @Transactional
     public ProdutoResponseDTO atualizar(Long id, AtualizaProdutoRequestDTO dto) {
 
@@ -102,6 +116,7 @@ public class ProdutoService {
 
     }
 
+    @CacheEvict(value = { "produtos", "produtoPorId" }, key = "#id", allEntries = true)
     @Transactional
     public ProdutoResponseDTO alterarStatus(Long id, Boolean status) {
 
@@ -118,6 +133,7 @@ public class ProdutoService {
 
     }
 
+    @CacheEvict(value = { "produtos", "produtoPorId" }, key = "#id", allEntries = true)
     @Transactional
     public void deletar(Long id) {
 

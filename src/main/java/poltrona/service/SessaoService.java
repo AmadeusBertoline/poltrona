@@ -6,10 +6,14 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import poltrona.dto.page.RespostaPaginadaDTO;
 import poltrona.dto.poltrona.MapaPoltronasResponseDTO;
 import poltrona.dto.poltrona.PoltronaStatusDTO;
 import poltrona.dto.sessao.AtualizaSessaoRequestDTO;
@@ -55,6 +59,7 @@ public class SessaoService {
                 this.ingressoRepository = ingressoRepository;
         }
 
+        @CacheEvict(value = "sessoes", allEntries = true)
         @Transactional
         public SessaoResponseDTO cadastrar(SessaoRequestDTO dto) {
 
@@ -99,12 +104,17 @@ public class SessaoService {
                 return sessaoMapper.toDTO(cadastrada);
         }
 
+        @Cacheable(value = "sessoes", key = "{ #filtro, #pageable.pageNumber, #pageable.pageSize, #pageable.sort.toString() }")
         @Transactional(readOnly = true)
-        public Page<SessaoResponseDTO> listar(SessaoFiltroDTO filtro, Pageable pageable) {
-                return sessaoRepository.buscarComFiltros(filtro, pageable)
+        public RespostaPaginadaDTO<SessaoResponseDTO> listar(SessaoFiltroDTO filtro, Pageable pageable) {
+                Page<SessaoResponseDTO> pagina = sessaoRepository
+                                .buscarComFiltros(filtro, pageable)
                                 .map(sessaoMapper::toDTO);
+
+                return RespostaPaginadaDTO.de(pagina);
         }
 
+        @Cacheable(value = "sessaoPorId", key = "#id")
         @Transactional(readOnly = true)
         public SessaoResponseDTO buscarPorId(Long id) {
 
@@ -115,6 +125,7 @@ public class SessaoService {
 
         }
 
+        @CacheEvict(value = { "sessoes", "sessaoPorId" }, key = "#id", allEntries = true)
         @Transactional
         public void deletar(Long id) {
 
@@ -148,6 +159,7 @@ public class SessaoService {
                 return new MapaPoltronasResponseDTO(sessao.getId(), sessao.getSala().getId(), poltronasStatus);
         }
 
+        @CacheEvict(value = "sessoes")
         @Transactional
         public List<SessaoResponseDTO> cadastrarGrade(GradeSessaoRequestDTO dto) {
                 Filme filme = filmeRepository.findById(dto.filmeId())
@@ -197,6 +209,7 @@ public class SessaoService {
                 return sessoesSalvas.stream().map(sessaoMapper::toDTO).toList();
         }
 
+        @CacheEvict(value = { "sessoes", "sessoesPorId" }, key = "#id", allEntries = true)
         @Transactional
         public SessaoResponseDTO atualizar(Long id, AtualizaSessaoRequestDTO dto) {
                 Sessao sessao = sessaoRepository.findById(id)
@@ -213,7 +226,7 @@ public class SessaoService {
                 }
 
                 if (dto.salaId() != null) {
-                        Sala novaSala = salaRepository.findById(dto.salaId())
+                        Sala novaSala = salaRepository.findByIdWithLock(dto.salaId())
                                         .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada."));
                         sessao.alterarSala(novaSala);
                 }

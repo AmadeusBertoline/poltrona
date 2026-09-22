@@ -2,7 +2,6 @@ package poltrona.controller;
 
 import java.util.List;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import poltrona.dto.page.RespostaPaginadaDTO;
 import poltrona.dto.sessao.GradeSessaoRequestDTO;
 import poltrona.dto.sessao.SessaoFiltroDTO;
 import poltrona.dto.sessao.SessaoRequestDTO;
@@ -50,14 +50,13 @@ public class SessaoController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<SessaoResponseDTO>> listar(
+    public ResponseEntity<RespostaPaginadaDTO<SessaoResponseDTO>> listar(
             SessaoFiltroDTO filtro,
             @PageableDefault(page = 0, size = 10, sort = "dataHoraInicio", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        Page<SessaoResponseDTO> pagina = sessaoService.listar(filtro, pageable);
+        RespostaPaginadaDTO<SessaoResponseDTO> pagina = sessaoService.listar(filtro, pageable);
 
         return ResponseEntity.ok(pagina);
-
     }
 
     @GetMapping("/{id}")

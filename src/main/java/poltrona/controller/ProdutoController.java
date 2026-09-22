@@ -1,7 +1,6 @@
 package poltrona.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import poltrona.dto.page.RespostaPaginadaDTO;
 import poltrona.dto.produto.AtualizaProdutoRequestDTO;
 import poltrona.dto.produto.CadastroProdutoRequestDTO;
 import poltrona.dto.produto.ProdutoResponseDTO;
@@ -42,16 +42,13 @@ public class ProdutoController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<ProdutoResponseDTO>> listarTodos(
+    public ResponseEntity<RespostaPaginadaDTO<ProdutoResponseDTO>> listarTodos(
             @RequestParam(required = false) Boolean ativo,
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) TipoProduto tipoProduto,
-            @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
+            @PageableDefault(size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        Page<ProdutoResponseDTO> produtos = produtoService.listarTodos(ativo, nome, tipoProduto, pageable);
-
-        return ResponseEntity.status(HttpStatus.OK).body(produtos);
-
+        return ResponseEntity.ok(produtoService.listarTodos(ativo, nome, tipoProduto, pageable));
     }
 
     @GetMapping("/{id}")
@@ -93,6 +90,5 @@ public class ProdutoController {
         return ResponseEntity.noContent().build();
 
     }
-
 
 }

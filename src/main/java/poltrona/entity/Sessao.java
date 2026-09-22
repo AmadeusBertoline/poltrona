@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,6 +31,9 @@ public class Sessao {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Version
+    private Long version;
 
     @Column(name = "data_hora_inicio", nullable = false)
     private LocalDateTime dataHoraInicio;
@@ -136,7 +140,6 @@ public class Sessao {
             this.formato = novoFormato;
         }
     }
-
 
     public void alterarHorario(LocalDateTime novoHorario) {
         if (novoHorario != null) {
