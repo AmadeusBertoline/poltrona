@@ -41,6 +41,14 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
+                        // GERENTES
+                        .requestMatchers(HttpMethod.POST, "/gerentes").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.GET, "/gerentes").hasAuthority("PROPRIETARIO")
+                        .requestMatchers("/gerentes/me").hasAuthority("GERENTE")
+                        .requestMatchers(HttpMethod.PATCH, "/gerentes", "/gerentes/*").hasAuthority("GERENTE")
+                        .requestMatchers(HttpMethod.DELETE, "/gerentes").hasAuthority("GERENTE")
+                        .requestMatchers(HttpMethod.GET, "/gerentes/*").hasAuthority("PROPRIETARIO")
+
                         // AUTH
                         .requestMatchers("/auth/**").permitAll()
 
@@ -73,16 +81,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/precos/*").hasAuthority("PROPRIETARIO")
 
                         // SALAS
-                        .requestMatchers(HttpMethod.POST, "/salas").hasAuthority("PROPRIETARIO")
-                        .requestMatchers(HttpMethod.PATCH, "/salas/**").hasAuthority("PROPRIETARIO")
-                        .requestMatchers(HttpMethod.DELETE, "/salas/**").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.POST, "/salas").hasAnyAuthority("PROPRIETARIO", "GERENTE")
+                        .requestMatchers(HttpMethod.PATCH, "/salas/**").hasAnyAuthority("PROPRIETARIO", "GERENTE")
+                        .requestMatchers(HttpMethod.DELETE, "/salas/**").hasAnyAuthority("PROPRIETARIO", "GERENTE")
                         .requestMatchers(HttpMethod.GET, "/salas/**", "/salas").permitAll()
 
                         // SESSAO
-                        .requestMatchers(HttpMethod.POST, "/sessoes").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.POST, "/sessoes").hasAnyAuthority("PROPRIETARIO", "GERENTE")
                         .requestMatchers(HttpMethod.GET, "/sessoes", "/sessoes/**").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/sessoes/**").hasAuthority("PROPRIETARIO")
-                        .requestMatchers(HttpMethod.DELETE, "/sessoes/**").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.PATCH, "/sessoes/**").hasAnyAuthority("PROPRIETARIO", "GERENTE")
+                        .requestMatchers(HttpMethod.DELETE, "/sessoes/**").hasAnyAuthority("PROPRIETARIO", "GERENTE")
 
                         // ADMINS
                         .requestMatchers("/admins/**").hasAuthority("ADMIN")
@@ -94,13 +102,13 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
                         // PRODUTOS
-                        .requestMatchers(HttpMethod.POST, "/produtos").hasAuthority("PROPRIETARIO")
-                        .requestMatchers(HttpMethod.GET, "/produtos/*","/produtos").permitAll()
+                        .requestMatchers("/produtos").hasAnyAuthority("PROPRIETARIO", "GERENTE")
+                        .requestMatchers(HttpMethod.GET, "/produtos/*", "/produtos").permitAll()
 
                         // VENDAS
                         .requestMatchers(HttpMethod.GET, "/vendas").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/vendas/*").hasAnyAuthority("ADMIN", "CLIENTE")
-                        .requestMatchers("/vendas/***","/vendas", "/vendas/**").hasAuthority("CLIENTE")
+                        .requestMatchers("/vendas/***", "/vendas", "/vendas/**").hasAuthority("CLIENTE")
 
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
