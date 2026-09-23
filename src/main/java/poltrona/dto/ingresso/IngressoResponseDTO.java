@@ -8,6 +8,7 @@ import poltrona.enums.poltrona.TipoPoltrona;
 public record IngressoResponseDTO(
 
         Long id,
+        String cinema,
         BigDecimal preco,
         TipoIngresso tipo,
         String tituloFilme,
@@ -15,6 +16,8 @@ public record IngressoResponseDTO(
         LocalDateTime inicioSessao,
         char fileira,
         Integer coluna,
-        TipoPoltrona tipoPoltrona
+        TipoPoltrona tipoPoltrona,
+        String cliente,
+        String endereco
 
 ) {}
