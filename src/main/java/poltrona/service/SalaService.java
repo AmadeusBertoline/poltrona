@@ -7,13 +7,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.sala.AtualizaSalaRequestDTO;
 import poltrona.dto.sala.SalaRequestDTO;
 import poltrona.dto.sala.SalaResponseDTO;
 import poltrona.entity.Cinema;
+import poltrona.entity.Gerente;
 import poltrona.entity.Poltrona;
 import poltrona.entity.Proprietario;
 import poltrona.entity.Sala;
@@ -50,13 +50,26 @@ public class SalaService {
     @Transactional
     public SalaResponseDTO cadastrar(SalaRequestDTO dto) {
 
-        Usuario usuarioLogado = usuarioService.usuarioLogado();
+        final Cinema cinema;
+        Usuario usuario = usuarioService.usuarioLogado();
 
-        Cinema cinema = cinemaRepository.findById(dto.idCinema())
-                .orElseThrow(() -> new ResourceNotFoundException("Cinema selecionado não existe"));
+        if (usuario instanceof Proprietario proprietario) {
 
-        if (!cinema.getProprietario().getId().equals(usuarioLogado.getId())) {
-            throw new AccessDeniedException("Você só pode cadastrar salas nos seus próprios cinemas.");
+            cinema = cinemaRepository.findByIdAndProprietarioId(dto.idCinema(), proprietario.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Cinema não encontrado ou não pertence a este proprietário: " + dto.idCinema()));
+
+        } else if (usuario instanceof Gerente gerente) {
+
+            if (!dto.idCinema().equals(gerente.getCinema().getId())) {
+                throw new RegraNegocioException(
+                        "Você não pode cadastrar salas em um cinema que não opera.");
+            }
+
+            cinema = gerente.getCinema();
+
+        } else {
+            throw new RegraNegocioException("Usuário sem permissão para realizar esta operação.");
         }
 
         if (cinema.getStatus() != StatusCinema.ATIVO) {
@@ -68,11 +81,9 @@ public class SalaService {
         }
 
         Sala sala = salaMapper.toEntity(dto, cinema);
-
         Sala salaSalva = salaRepository.save(sala);
 
         cinema.atualizarQuantidadeSalas();
-
         poltronaService.cadastrar(dto.poltronas(), salaSalva);
 
         return salaMapper.toDTO(salaSalva);
@@ -88,13 +99,16 @@ public class SalaService {
                 .map(salaMapper::toDTO);
     }
 
+    @Transactional(readOnly = true)
+    public SalaResponseDTO buscarPorId(Long id) {
+        Sala sala = buscarSalaEValidarAcesso(id);
+        return salaMapper.toDTO(sala);
+    }
+
     @Transactional
     public SalaResponseDTO atualizar(Long id, AtualizaSalaRequestDTO dto) {
 
-        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
-
-        Sala sala = salaRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Essa sala não pertence a nenhum de seus cinemas"));
+        Sala sala = buscarSalaEValidarAcesso(id);
 
         if (dto.numero() != null && !dto.numero().equals(sala.getNumero())) {
             if (salaRepository.existsByCinemaIdAndNumero(sala.getCinema().getId(), dto.numero())) {
@@ -146,20 +160,10 @@ public class SalaService {
         return salaMapper.toDTO(salaSalva);
     }
 
-    private int extrairNumeroInteiro(Object valorNumero) {
-        if (valorNumero == null)
-            return 0;
-        String apenasDigitos = String.valueOf(valorNumero).replaceAll("\\D+", "");
-        return apenasDigitos.isEmpty() ? 0 : Integer.parseInt(apenasDigitos);
-    }
-
     @Transactional
     public void desativar(Long id) {
-        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
 
-        Sala sala = salaRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Sala não encontrada ou não pertence a nenhum de seus cinemas."));
+        Sala sala = buscarSalaEValidarAcesso(id);
 
         boolean possuiIngressosFuturos = ingressoRepository
                 .existsBySessaoSalaIdAndSessaoDataHoraInicioAfterAndStatus(
@@ -173,34 +177,17 @@ public class SalaService {
         }
 
         sala.desativar();
-
         sala.getCinema().atualizarQuantidadeSalas();
-
         salaRepository.save(sala);
     }
 
-    @Transactional(readOnly = true)
-    public SalaResponseDTO buscarPorId(Long id) {
-
-        Sala sala = salaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada de id " + id));
-
-        return salaMapper.toDTO(sala);
-
-    }
-
-    @Transactional(readOnly = true)
+    @Transactional
     public void deletar(Long id) {
 
-        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
-
-        Sala sala = salaRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Sala não encontrada ou não pertence a nenhum de seus cinemas."));
+        Sala sala = buscarSalaEValidarAcesso(id);
 
         boolean possuiIngressosRelacionados = ingressoRepository
-                .existsBySessaoSalaId(
-                        sala.getId());
+                .existsBySessaoSalaId(sala.getId());
 
         if (possuiIngressosRelacionados) {
             throw new RegraNegocioException(
@@ -208,9 +195,39 @@ public class SalaService {
         }
 
         salaRepository.delete(sala);
-
         sala.getCinema().atualizarQuantidadeSalas();
-
     }
 
+    private int extrairNumeroInteiro(Object valorNumero) {
+        if (valorNumero == null)
+            return 0;
+        String apenasDigitos = String.valueOf(valorNumero).replaceAll("\\D+", "");
+        return apenasDigitos.isEmpty() ? 0 : Integer.parseInt(apenasDigitos);
+    }
+
+    private Sala buscarSalaEValidarAcesso(Long id) {
+
+        Usuario usuario = usuarioService.usuarioLogado();
+
+        if (usuario instanceof Proprietario proprietario) {
+
+            return salaRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada de id: " + id));
+
+        } else if (usuario instanceof Gerente gerente) {
+
+            Sala sala = salaRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada de id: " + id));
+
+            if (!sala.getCinema().getId().equals(gerente.getCinema().getId())) {
+                throw new RegraNegocioException(
+                        "Você não tem permissão para acessar ou alterar salas de outro cinema.");
+            }
+
+            return sala;
+
+        }
+
+        throw new RegraNegocioException("Usuário sem permissão para realizar esta operação.");
+    }
 }

@@ -12,7 +12,9 @@ import poltrona.dto.poltrona.PoltronaRequestDTO;
 import poltrona.dto.poltrona.PoltronaResponseDTO;
 import poltrona.dto.poltrona.TipoPoltronaRequestDTO;
 import poltrona.entity.Cinema;
+import poltrona.entity.Gerente;
 import poltrona.entity.Poltrona;
+import poltrona.entity.Proprietario;
 import poltrona.entity.Sala;
 import poltrona.entity.Usuario;
 import poltrona.enums.ingresso.StatusIngresso;
@@ -62,6 +64,7 @@ public class PoltronaService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public PoltronaResponseDTO buscarPorId(Long id) {
 
         Poltrona poltrona = poltronaRepository.findById(id)
@@ -74,15 +77,7 @@ public class PoltronaService {
     @Transactional
     public PoltronaResponseDTO atualizarTipo(Long id, TipoPoltronaRequestDTO tipo) {
 
-        Usuario usuarioLogado = usuarioService.usuarioLogado();
-
-        Poltrona poltrona = poltronaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada"));
-
-        Cinema cinema = poltrona.getSala().getCinema();
-        if (!cinema.getProprietario().getId().equals(usuarioLogado.getId())) {
-            throw new AccessDeniedException("Você não tem permissão para alterar poltronas deste cinema.");
-        }
+        Poltrona poltrona = buscarPoltronaEValidarAcesso(id);
 
         if (poltrona.getTipo() == tipo.tipo()) {
             throw new RegraNegocioException("A poltrona já está cadastrada com este tipo.");
@@ -109,16 +104,7 @@ public class PoltronaService {
     @Transactional
     public void desativar(Long id) {
 
-        Usuario usuarioLogado = usuarioService.usuarioLogado();
-
-        Poltrona poltrona = poltronaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada de id " + id));
-
-        Cinema cinema = poltrona.getSala().getCinema();
-
-        if (!cinema.getProprietario().getId().equals(usuarioLogado.getId())) {
-            throw new AccessDeniedException("Você não tem permissão para alterar poltronas deste cinema.");
-        }
+        Poltrona poltrona = buscarPoltronaEValidarAcesso(id);
 
         if (!poltrona.getAtiva()) {
             throw new RegraNegocioException("Esta poltrona já está inativa, id: " + id);
@@ -132,13 +118,38 @@ public class PoltronaService {
 
         if (possuiIngressoFuturo) {
             throw new RegraNegocioException(
-                    "Esta poltrona possui ingressos vendidos para sessões futuras e não pode ter seu tipo alterado.");
+                    "Esta poltrona possui ingressos vendidos para sessões futuras e não pode ser desativada.");
         }
 
         poltrona.desativar();
 
         poltronaRepository.save(poltrona);
 
+    }
+
+    @Transactional
+    public PoltronaResponseDTO alterarStatus(Long id, Boolean ativa) {
+
+        Poltrona poltrona = buscarPoltronaEValidarAcesso(id);
+
+        if (ativa != null && !ativa) {
+            boolean possuiIngressoFuturo = ingressoRepository
+                    .existsByPoltronaIdAndSessaoDataHoraInicioAfterAndStatus(
+                            id,
+                            LocalDateTime.now(),
+                            StatusIngresso.ATIVO);
+
+            if (possuiIngressoFuturo) {
+                throw new RegraNegocioException(
+                        "Esta poltrona possui ingressos vendidos para sessões futuras e não pode ser desativada.");
+            }
+        }
+
+        poltrona.setAtiva(ativa);
+
+        Poltrona salva = poltronaRepository.save(poltrona);
+
+        return poltronaMapper.toDTO(salva);
     }
 
     @Transactional
@@ -218,14 +229,31 @@ public class PoltronaService {
                 .toList();
     }
 
-    @Transactional
-    public PoltronaResponseDTO alterarStatus(Long id, Boolean ativa) {
+    private Poltrona buscarPoltronaEValidarAcesso(Long id) {
+
         Poltrona poltrona = poltronaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada de id " + id));
 
-        poltrona.setAtiva(ativa);
+        Usuario usuario = usuarioService.usuarioLogado();
+        Cinema cinema = poltrona.getSala().getCinema();
 
-        return poltronaMapper.toDTO(poltrona);
+        if (usuario instanceof Proprietario proprietario) {
+
+            if (!cinema.getProprietario().getId().equals(proprietario.getId())) {
+                throw new AccessDeniedException("Você não tem permissão para alterar poltronas deste cinema.");
+            }
+
+        } else if (usuario instanceof Gerente gerente) {
+
+            if (!cinema.getId().equals(gerente.getCinema().getId())) {
+                throw new AccessDeniedException("Você não tem permissão para alterar poltronas de outro cinema.");
+            }
+
+        } else {
+            throw new AccessDeniedException("Usuário sem permissão para realizar esta operação.");
+        }
+
+        return poltrona;
     }
 
 }

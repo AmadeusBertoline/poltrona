@@ -70,7 +70,7 @@ public class SecurityConfig {
 
                         // POLTRONAS
                         .requestMatchers(HttpMethod.GET, "/poltronas/**", "/poltronas").permitAll()
-                        .requestMatchers("/poltronas").hasAuthority("PROPRIETARIO")
+                        .requestMatchers("/poltronas").hasAnyAuthority("PROPRIETARIO", "GERENTE")
 
                         // PRECOS (REGRAS UNIFICADAS E CORRIGIDAS)
                         .requestMatchers(HttpMethod.POST, "/precos").hasAuthority("PROPRIETARIO")

@@ -51,6 +51,9 @@ public class Cinema {
     @OneToMany(mappedBy = "cinema", orphanRemoval = true)
     private List<Sala> salas = new ArrayList<>();
 
+    @OneToMany(mappedBy = "cinema", orphanRemoval = true)
+    private List<Gerente> gerentes = new ArrayList<>();
+
     @Column(nullable = false)
     private LocalDateTime dataCriacao;
 

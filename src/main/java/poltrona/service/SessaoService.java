@@ -12,7 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import poltrona.dto.page.RespostaPaginadaDTO;
 import poltrona.dto.poltrona.MapaPoltronasResponseDTO;
 import poltrona.dto.poltrona.PoltronaStatusDTO;
@@ -22,10 +21,13 @@ import poltrona.dto.sessao.SessaoFiltroDTO;
 import poltrona.dto.sessao.SessaoRequestDTO;
 import poltrona.dto.sessao.SessaoResponseDTO;
 import poltrona.entity.Filme;
+import poltrona.entity.Gerente;
 import poltrona.entity.Poltrona;
 import poltrona.entity.Preco;
+import poltrona.entity.Proprietario;
 import poltrona.entity.Sala;
 import poltrona.entity.Sessao;
+import poltrona.entity.Usuario;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.SessaoMapper;
@@ -46,10 +48,12 @@ public class SessaoService {
         private final PrecoRepository precoRepository;
         private final PoltronaRepository poltronaRepository;
         private final IngressoRepository ingressoRepository;
+        private final UsuarioService usuarioService;
 
         public SessaoService(SessaoRepository sessaoRepository, FilmeRepository filmeRepository,
                         SalaRepository salaRepository, SessaoMapper sessaoMapper, PrecoRepository precoRepository,
-                        PoltronaRepository poltronaRepository, IngressoRepository ingressoRepository) {
+                        PoltronaRepository poltronaRepository, IngressoRepository ingressoRepository,
+                        UsuarioService usuarioService) {
                 this.sessaoRepository = sessaoRepository;
                 this.filmeRepository = filmeRepository;
                 this.salaRepository = salaRepository;
@@ -57,14 +61,14 @@ public class SessaoService {
                 this.precoRepository = precoRepository;
                 this.poltronaRepository = poltronaRepository;
                 this.ingressoRepository = ingressoRepository;
+                this.usuarioService = usuarioService;
         }
 
         @CacheEvict(value = "sessoes", allEntries = true)
         @Transactional
         public SessaoResponseDTO cadastrar(SessaoRequestDTO dto) {
 
-                Sala sala = salaRepository.findByIdWithLock(dto.idSala())
-                                .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada"));
+                Sala sala = buscarSalaEValidarAcesso(dto.idSala());
 
                 Filme filme = filmeRepository.findById(dto.idFilme())
                                 .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado"));
@@ -118,8 +122,7 @@ public class SessaoService {
         @Transactional(readOnly = true)
         public SessaoResponseDTO buscarPorId(Long id) {
 
-                Sessao sessao = sessaoRepository.findById(id)
-                                .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada de id " + id));
+                Sessao sessao = buscarSessaoEValidarAcesso(id);
 
                 return sessaoMapper.toDTO(sessao);
 
@@ -129,8 +132,7 @@ public class SessaoService {
         @Transactional
         public void deletar(Long id) {
 
-                Sessao sessao = sessaoRepository.findById(id)
-                                .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada de id " + id));
+                Sessao sessao = buscarSessaoEValidarAcesso(id);
 
                 long ingressosVendidos = ingressoRepository.countBySessaoId(sessao.getId());
 
@@ -142,8 +144,7 @@ public class SessaoService {
 
         @Transactional(readOnly = true)
         public MapaPoltronasResponseDTO obterMapaPoltronas(Long sessaoId) {
-                Sessao sessao = sessaoRepository.findById(sessaoId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada"));
+                Sessao sessao = buscarSessaoEValidarAcesso(sessaoId);
 
                 List<Poltrona> poltronasDaSala = poltronaRepository.findBySalaId(sessao.getSala().getId());
 
@@ -165,8 +166,7 @@ public class SessaoService {
                 Filme filme = filmeRepository.findById(dto.filmeId())
                                 .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado"));
 
-                Sala sala = salaRepository.findByIdWithLock(dto.salaId())
-                                .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada"));
+                Sala sala = buscarSalaEValidarAcesso(dto.salaId());
 
                 Preco preco = precoRepository.findByCinemaIdAndFormato(sala.getCinema().getId(), dto.formato())
                                 .orElseThrow(
@@ -212,8 +212,7 @@ public class SessaoService {
         @CacheEvict(value = { "sessoes", "sessoesPorId" }, key = "#id", allEntries = true)
         @Transactional
         public SessaoResponseDTO atualizar(Long id, AtualizaSessaoRequestDTO dto) {
-                Sessao sessao = sessaoRepository.findById(id)
-                                .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada."));
+                Sessao sessao = buscarSessaoEValidarAcesso(id);
 
                 long ingressosVendidos = ingressoRepository.countBySessaoId(sessao.getId());
 
@@ -226,8 +225,7 @@ public class SessaoService {
                 }
 
                 if (dto.salaId() != null) {
-                        Sala novaSala = salaRepository.findByIdWithLock(dto.salaId())
-                                        .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada."));
+                        Sala novaSala = buscarSalaEValidarAcesso(dto.salaId());
                         sessao.alterarSala(novaSala);
                 }
 
@@ -240,10 +238,13 @@ public class SessaoService {
 
                 int tempoLimpeza = sessao.getSala().getCinema().getPoliticaOperacional().getIntervaloLimpezaMinutos();
 
+                LocalDateTime inicioParaValidacao = dto.dataHoraInicio() != null ? dto.dataHoraInicio()
+                                : sessao.getDataHoraInicio();
+
                 boolean conflito = sessaoRepository.existeConflitoDeHorario(
                                 sessao.getSala().getId(),
-                                null,
-                                dto.dataHoraInicio(),
+                                sessao.getId(),
+                                inicioParaValidacao,
                                 sessao.getDataHoraFim().plusMinutes(tempoLimpeza));
 
                 if (conflito) {
@@ -251,12 +252,56 @@ public class SessaoService {
                                         "O horário da sessão cadastrada está em conflito com outra sessão nesta sala");
                 }
 
-                if (conflito) {
-                        throw new RegraNegocioException(
-                                        "Já existe outra sessão agendada nesta sala para este horário.");
-                }
-
                 return sessaoMapper.toDTO(sessao);
         }
 
+        /**
+         * Métodos auxiliares para garantir que Gerente e Proprietario
+         * operem somente sobre salas e sessões de cinemas autorizados.
+         */
+        private Sala buscarSalaEValidarAcesso(Long salaId) {
+                Usuario usuario = usuarioService.usuarioLogado();
+
+                Sala sala = salaRepository.findByIdWithLock(salaId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada"));
+
+                if (usuario instanceof Proprietario proprietario) {
+                        if (!sala.getCinema().getProprietario().getId().equals(proprietario.getId())) {
+                                throw new RegraNegocioException(
+                                                "Você não tem permissão para acessar salas de um cinema que não lhe pertence.");
+                        }
+                } else if (usuario instanceof Gerente gerente) {
+                        if (!sala.getCinema().getId().equals(gerente.getCinema().getId())) {
+                                throw new RegraNegocioException(
+                                                "Você não tem permissão para acessar salas de um cinema que não opera.");
+                        }
+                } else {
+                        throw new RegraNegocioException("Usuário sem permissão para realizar esta operação.");
+                }
+
+                return sala;
+        }
+
+        private Sessao buscarSessaoEValidarAcesso(Long id) {
+                Usuario usuario = usuarioService.usuarioLogado();
+
+                Sessao sessao = sessaoRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada de id " + id));
+
+                if (usuario instanceof Proprietario proprietario) {
+                        if (!sessao.getSala().getCinema().getProprietario().getId().equals(proprietario.getId())) {
+                                throw new RegraNegocioException(
+                                                "Você não tem permissão para acessar ou alterar sessões de outro proprietário.");
+                        }
+                } else if (usuario instanceof Gerente gerente) {
+                        if (!sessao.getSala().getCinema().getId().equals(gerente.getCinema().getId())) {
+                                throw new RegraNegocioException(
+                                                "Você não tem permissão para acessar ou alterar sessões de outro cinema.");
+                        }
+                } else {
+                        throw new RegraNegocioException("Usuário sem permissão para realizar esta operação.");
+                }
+
+                return sessao;
+        }
 }
