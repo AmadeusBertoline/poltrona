@@ -165,18 +165,16 @@ public class VendaService {
         return out.toByteArray();
     }
 
-    @Transactional
+    @Transactional 
     public VendaResponseDTO cadastrar(VendaRequestDTO dto) {
-
-        Usuario cliente = usuarioService.usuarioLogado();
-
-        Venda venda = vendaMapper.toEntity(dto, cliente);
-
-        List<ItemVenda> itens = new ArrayList<>();
 
         if (dto.ingressos() == null || dto.ingressos().isEmpty()) {
             throw new RegraNegocioException("Nenhum ingresso selecionado");
         }
+
+        Usuario cliente = usuarioService.usuarioLogado();
+        Venda venda = vendaMapper.toEntity(dto, cliente);
+        List<ItemVenda> itens = new ArrayList<>();
 
         for (IngressoRequestDTO ingressoDto : dto.ingressos()) {
             Ingresso ingresso = ingressoService.cadastrar(ingressoDto);
@@ -213,7 +211,6 @@ public class VendaService {
         }
 
         venda.adicionarItens(itens);
-
         Venda salva = vendaRepository.save(venda);
 
         return vendaMapper.toDTO(salva);

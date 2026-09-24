@@ -2,8 +2,6 @@ package poltrona.enums.ingresso;
 
 import java.math.BigDecimal;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum TipoIngresso {
     INTEIRA(new BigDecimal("1.00")),
     MEIA(new BigDecimal("0.50"));
@@ -14,7 +12,10 @@ public enum TipoIngresso {
         this.multiplicador = multiplicador;
     }
 
-    @JsonValue
+    public BigDecimal getMultiplicador() {
+        return multiplicador;
+    }
+
     public BigDecimal calcularPrecoFinal(BigDecimal precoBase) {
         return precoBase.multiply(this.multiplicador);
     }
