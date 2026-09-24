@@ -41,6 +41,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
+                        // INGRESSOS
+                        .requestMatchers(HttpMethod.GET, "/ingressos/*", "/ingressos/**").hasAuthority("CLIENTE")
+                        .requestMatchers(HttpMethod.DELETE, "/ingressos/*").hasAuthority("CLIENTE")
+
                         // GERENTES
                         .requestMatchers(HttpMethod.POST, "/gerentes").hasAuthority("PROPRIETARIO")
                         .requestMatchers(HttpMethod.GET, "/gerentes").hasAuthority("PROPRIETARIO")
@@ -93,7 +97,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/sessoes/**").hasAnyAuthority("PROPRIETARIO", "GERENTE")
 
                         // ADMINS
-                        .requestMatchers("/admins/**").hasAuthority("ADMIN")
+                        .requestMatchers("/admins","/admins/**").hasAuthority("ADMIN")
 
                         // CLIENTES
                         .requestMatchers(HttpMethod.POST, "/clientes").permitAll()

@@ -8,6 +8,8 @@ import poltrona.enums.venda.StatusVenda;
 
 public record VendaResponseDTO(
         Long id,
+        String cliente,
+        String cinema,
         String codigoComprovante,
         LocalDateTime dataVenda,
         BigDecimal valorTotal,

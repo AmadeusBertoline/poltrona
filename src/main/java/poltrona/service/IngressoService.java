@@ -66,7 +66,6 @@ public class IngressoService {
     @Transactional(readOnly = true)
     public byte[] gerarPdfIngresso(Long id) {
 
-        // 1. A busca do DTO e validação de existência acontecem internamente na Service
         IngressoResponseDTO dto = buscarPorId(id);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
