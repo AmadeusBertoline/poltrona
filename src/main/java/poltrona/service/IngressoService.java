@@ -22,6 +22,7 @@ import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.PdfWriter;
 import poltrona.dto.ingresso.IngressoRequestDTO;
 import poltrona.dto.ingresso.IngressoResponseDTO;
+import poltrona.entity.Cliente;
 import poltrona.entity.Ingresso;
 import poltrona.entity.PoliticaOperacional;
 import poltrona.entity.Poltrona;
@@ -66,7 +67,16 @@ public class IngressoService {
     @Transactional(readOnly = true)
     public byte[] gerarPdfIngresso(Long id) {
 
-        IngressoResponseDTO dto = buscarPorId(id);
+        Cliente cliente = (Cliente) usuarioService.usuarioLogado();
+
+        Ingresso ingresso = ingressoRepository.findById(id)
+                .orElseThrow((() -> new ResourceNotFoundException("Ingresso não encontrado de id " + id)));
+
+        if (!ingresso.getUsuario().getId().equals(cliente.getId())) {
+            throw new RegraNegocioException("Você não pode baixar um ingresso que não te pertence");
+        }
+
+        IngressoResponseDTO dto = ingressoMapper.toDTO(ingresso);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Document document = new Document(PageSize.A6, 20, 20, 20, 20);
