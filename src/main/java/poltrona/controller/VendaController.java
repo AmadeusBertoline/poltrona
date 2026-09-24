@@ -1,6 +1,5 @@
 package poltrona.controller;
 
-import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -17,10 +16,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import poltrona.dto.venda.VendaRequestDTO;
 import poltrona.dto.venda.VendaResponseDTO;
 import poltrona.service.VendaService;
 
+@Tag(name = "Vendas", description = "Gerenciamento e processamento de vendas de ingressos e produtos da bomboniere")
 @RestController
 @RequestMapping("/vendas")
 public class VendaController {
@@ -31,6 +35,7 @@ public class VendaController {
         this.vendaService = vendaService;
     }
 
+    @Operation(summary = "Realizar venda", description = "Registra uma nova compra no sistema contendo ingressos e/ou itens de bomboniere")
     @PostMapping
     public ResponseEntity<VendaResponseDTO> cadastrar(@Valid @RequestBody VendaRequestDTO dto) {
 
@@ -40,6 +45,7 @@ public class VendaController {
 
     }
 
+    @Operation(summary = "Listar todas as vendas", description = "Lista o histórico de vendas cadastradas de forma paginada com suporte a filtro por cliente (acesso administrativo)")
     @GetMapping
     public ResponseEntity<Page<VendaResponseDTO>> listarTodas(
             @RequestParam(required = false) Long clienteId,
@@ -51,9 +57,10 @@ public class VendaController {
 
     }
 
+    @Operation(summary = "Minhas compras", description = "Retorna o histórico de compras paginado do cliente atualmente autenticado")
     @GetMapping("/me")
     public ResponseEntity<Page<VendaResponseDTO>> me(
-            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<VendaResponseDTO> compras = vendaService.me(pageable);
 
@@ -61,6 +68,7 @@ public class VendaController {
 
     }
 
+    @Operation(summary = "Buscar venda por ID", description = "Busca os detalhes completos de uma transação de venda pelo seu identificador")
     @GetMapping("/{id}")
     public ResponseEntity<VendaResponseDTO> buscarPorId(@PathVariable Long id) {
 
@@ -70,6 +78,7 @@ public class VendaController {
 
     }
 
+    @Operation(summary = "Cancelar venda", description = "Cancela uma venda existente, liberando os ingressos/poltronas associados e estornando os itens")
     @PatchMapping("/{id}/cancelar")
     public ResponseEntity<VendaResponseDTO> cancelar(@PathVariable Long id) {
 

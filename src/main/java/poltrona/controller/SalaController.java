@@ -1,6 +1,5 @@
 package poltrona.controller;
 
-import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -16,11 +15,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import poltrona.dto.sala.AtualizaSalaRequestDTO;
 import poltrona.dto.sala.SalaRequestDTO;
 import poltrona.dto.sala.SalaResponseDTO;
 import poltrona.service.SalaService;
 
+@Tag(name = "Salas", description = "Gerenciamento e consulta de salas de exibição dos cinemas")
 @RestController
 @RequestMapping("/salas")
 public class SalaController {
@@ -31,6 +35,7 @@ public class SalaController {
         this.salaService = salaService;
     }
 
+    @Operation(summary = "Cadastrar sala", description = "Cadastra uma nova sala de exibição vinculada a um cinema")
     @PostMapping
     public ResponseEntity<SalaResponseDTO> cadastrar(@Valid @RequestBody SalaRequestDTO dto) {
 
@@ -40,6 +45,7 @@ public class SalaController {
 
     }
 
+    @Operation(summary = "Listar salas", description = "Lista as salas cadastradas com suporte a filtros por cinema e status de atividade de forma paginada")
     @GetMapping
     public ResponseEntity<Page<SalaResponseDTO>> listar(
             @RequestParam(required = false) Long cinemaId,
@@ -52,6 +58,7 @@ public class SalaController {
 
     }
 
+    @Operation(summary = "Buscar sala por ID", description = "Busca os detalhes de uma sala específica pelo seu identificador")
     @GetMapping("/{id}")
     public ResponseEntity<SalaResponseDTO> buscarPorId(@PathVariable Long id) {
 
@@ -61,6 +68,7 @@ public class SalaController {
 
     }
 
+    @Operation(summary = "Atualizar sala", description = "Atualiza os dados de uma sala existente (ex: nome, capacidade ou tipo de tela)")
     @PatchMapping("/{id}")
     public ResponseEntity<SalaResponseDTO> atualizar(
             @PathVariable Long id,
@@ -72,6 +80,7 @@ public class SalaController {
 
     }
 
+    @Operation(summary = "Desativar sala", description = "Desativa uma sala de cinema (Soft Delete), impedindo o agendamento de novas sessões")
     @DeleteMapping("/{id}/desativar")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
 
@@ -81,6 +90,7 @@ public class SalaController {
 
     }
 
+    @Operation(summary = "Deletar sala", description = "Remove fisicamente uma sala do sistema pelo seu ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
 
