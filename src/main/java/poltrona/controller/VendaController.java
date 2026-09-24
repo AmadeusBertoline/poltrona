@@ -5,7 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -75,6 +77,19 @@ public class VendaController {
 
         return ResponseEntity.ok(venda);
 
+    }
+
+    @GetMapping("/{id}/download")
+    public ResponseEntity<byte[]> downloadPdf(@PathVariable Long id) {
+
+        byte[] pdfBytes = vendaService.gerarPdfComprovanteVenda(id);
+
+        String filename = "compra-" + id + ".pdf";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
     }
 
 }

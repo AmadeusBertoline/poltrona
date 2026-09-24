@@ -1,12 +1,25 @@
 package poltrona.service;
 
 import org.springframework.security.access.AccessDeniedException;
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.lowagie.text.Document;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.Image;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.PdfWriter;
 import poltrona.dto.ingresso.IngressoRequestDTO;
 import poltrona.dto.ingresso.IngressoResponseDTO;
 import poltrona.entity.Ingresso;
@@ -39,6 +52,68 @@ public class IngressoService {
         this.poltronaRepository = poltronaRepository;
         this.ingressoMapper = ingressoMapper;
         this.usuarioService = usuarioService;
+    }
+
+    private byte[] gerarQrCodeImage(String texto, int largura, int altura) throws Exception {
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = qrCodeWriter.encode(texto, BarcodeFormat.QR_CODE, largura, altura);
+
+        ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+        MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+        return pngOutputStream.toByteArray();
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] gerarPdfIngresso(Long id) {
+
+        IngressoResponseDTO dto = buscarPorId(id);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A6, 20, 20, 20, 20);
+
+        try {
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            Font fonteTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
+            Font fonteSubtitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
+            Font fonteTexto = FontFactory.getFont(FontFactory.HELVETICA, 10);
+
+            Paragraph titulo = new Paragraph("CINE POLTRONA", fonteTitulo);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            document.add(titulo);
+
+            Paragraph divisor = new Paragraph("--------------------------------------------------", fonteTexto);
+            divisor.setAlignment(Element.ALIGN_CENTER);
+            document.add(divisor);
+
+            document.add(new Paragraph("Cinema: " + dto.cinema(), fonteSubtitulo));
+            document.add(new Paragraph("Filme: " + dto.tituloFilme(), fonteSubtitulo));
+            document.add(new Paragraph("Sala: " + dto.sala(), fonteTexto));
+            document.add(new Paragraph("Sessão: " + dto.inicioSessao(), fonteTexto));
+            document.add(new Paragraph("Tipo da sessão: " + dto.tipo(), fonteTexto));
+            document.add(new Paragraph("Poltrona: " + dto.fileira() + dto.coluna(), fonteSubtitulo));
+            document.add(new Paragraph("Tipo Poltrona: " + dto.tipoPoltrona(), fonteSubtitulo));
+            document.add(new Paragraph("Preço: R$ " + dto.preco(), fonteTexto));
+            document.add(new Paragraph("Cliente: " + dto.cliente(), fonteTexto));
+            document.add(new Paragraph("Código do Ingresso: " + dto.id(), fonteTexto));
+            document.add(new Paragraph("Endereço: " + dto.endereco(), fonteTexto));
+
+            String conteudoQrCode = "POLTRONA-INGRESSO-ID:" + dto.id() + "-CLIENTE:" + dto.cliente();
+
+            byte[] qrCodeBytes = gerarQrCodeImage(conteudoQrCode, 120, 120);
+            Image qrCodeImage = Image.getInstance(qrCodeBytes);
+            qrCodeImage.setAlignment(Element.ALIGN_CENTER);
+
+            document.add(new Paragraph(" ", fonteTexto));
+            document.add(qrCodeImage);
+
+            document.close();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar PDF do ingresso", e);
+        }
+
+        return out.toByteArray();
     }
 
     @Transactional
@@ -126,5 +201,15 @@ public class IngressoService {
         ingresso.cancelar();
 
         ingressoRepository.save(ingresso);
+    }
+
+    @Transactional
+    public IngressoResponseDTO buscarPorId(Long id) {
+
+        Ingresso ingresso = ingressoRepository.findById(id)
+                .orElseThrow((() -> new ResourceNotFoundException("Ingresso não encontrado de id " + id)));
+
+        return ingressoMapper.toDTO(ingresso);
+
     }
 }

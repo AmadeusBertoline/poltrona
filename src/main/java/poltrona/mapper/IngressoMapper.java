@@ -21,6 +21,7 @@ public class IngressoMapper {
 
         return new IngressoResponseDTO(
                 ingresso.getId(),
+                ingresso.getPoltrona().getSala().getCinema().getNomeFantasia(),
                 ingresso.getPreco(),
                 ingresso.getTipo(),
                 ingresso.getSessao().getFilme().getTitulo(),
@@ -28,7 +29,9 @@ public class IngressoMapper {
                 ingresso.getSessao().getDataHoraInicio(),
                 ingresso.getPoltrona().getFileira(),
                 ingresso.getPoltrona().getColuna(),
-                ingresso.getPoltrona().getTipo());
+                ingresso.getPoltrona().getTipo(),
+                ingresso.getUsuario().getNome(),
+                ingresso.getPoltrona().getSala().getCinema().getEndereco().getResumoEndereco());
 
     }
 

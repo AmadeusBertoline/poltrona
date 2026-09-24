@@ -70,4 +70,13 @@ public class Endereco {
         }
     }
 
+    public String getResumoEndereco() {
+
+        return String.format("%s, %s - %s",
+                this.logradouro,
+                this.numero,
+                this.bairro);
+
+    }
+
 }

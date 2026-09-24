@@ -34,8 +34,12 @@ public class VendaMapper {
                 .map(itemVendaMapper::toDTO)
                 .toList();
 
+        String cinema = venda.getIngressos().get(0).getSessao().getSala().getCinema().getNomeFantasia();
+
         return new VendaResponseDTO(
                 venda.getId(),
+                venda.getCliente().getNome(),
+                cinema,
                 venda.getCodigoComprovante(),
                 venda.getDataCriacao(),
                 venda.getValorTotal(),
