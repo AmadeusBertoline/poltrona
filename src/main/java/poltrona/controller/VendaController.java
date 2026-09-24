@@ -18,6 +18,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import poltrona.dto.venda.VendaRequestDTO;
@@ -88,7 +92,12 @@ public class VendaController {
 
     }
 
-    @GetMapping("/{id}/download")
+    @Operation(summary = "Download do comprovante em PDF", description = "Gera e realiza o download do comprovante de venda no formato PDF")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Comprovante gerado com sucesso", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE, schema = @Schema(type = "string", format = "binary"))),
+            @ApiResponse(responseCode = "404", description = "Venda não encontrada para o ID informado", content = @Content)
+    })
+    @GetMapping(value = "/{id}/download", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> downloadPdf(@PathVariable Long id) {
 
         byte[] pdfBytes = vendaService.gerarPdfComprovanteVenda(id);
@@ -100,5 +109,4 @@ public class VendaController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfBytes);
     }
-
 }
