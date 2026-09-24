@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import poltrona.dto.cliente.AtualizaClienteRequestDTO;
 import poltrona.dto.cliente.ClienteRequestDTO;
@@ -21,6 +24,7 @@ import poltrona.dto.cliente.ClienteResponseDTO;
 import poltrona.dto.usuario.AtualizaSenhaRequestDTO;
 import poltrona.service.ClienteService;
 
+@Tag(name = "Clientes", description = "Gerenciamento de clientes")
 @RestController
 @RequestMapping("/clientes")
 public class ClienteController {
@@ -31,6 +35,7 @@ public class ClienteController {
         this.clienteService = clienteService;
     }
 
+    @Operation(summary = "Cadastrar cliente", description = "Cadastra um novo cliente no sistema")
     @PostMapping
     public ResponseEntity<ClienteResponseDTO> cadastrar(@Valid @RequestBody ClienteRequestDTO dto) {
 
@@ -40,6 +45,7 @@ public class ClienteController {
 
     }
 
+    @Operation(summary = "Listar todos os clientes", description = "Lista todos os clientes cadastrados de forma paginada")
     @GetMapping
     public ResponseEntity<Page<ClienteResponseDTO>> listarTodos(
             @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
@@ -50,6 +56,7 @@ public class ClienteController {
 
     }
 
+    @Operation(summary = "Meus dados de cliente", description = "Retorna os dados do cliente autenticado")
     @GetMapping("/me")
     public ResponseEntity<ClienteResponseDTO> me() {
 
@@ -59,6 +66,7 @@ public class ClienteController {
 
     }
 
+    @Operation(summary = "Atualizar cliente", description = "Atualiza os dados cadastrais do cliente autenticado")
     @PatchMapping
     public ResponseEntity<ClienteResponseDTO> atualizar(@Valid @RequestBody AtualizaClienteRequestDTO dto) {
 
@@ -68,6 +76,7 @@ public class ClienteController {
 
     }
 
+    @Operation(summary = "Atualizar senha", description = "Atualiza a senha do cliente autenticado")
     @PatchMapping("/senha")
     public ResponseEntity<Void> atualizarSenha(@Valid @RequestBody AtualizaSenhaRequestDTO dto) {
 
@@ -77,6 +86,7 @@ public class ClienteController {
 
     }
 
+    @Operation(summary = "Encerrar conta", description = "O cliente autenticado encerra sua própria conta no sistema")
     @DeleteMapping
     public ResponseEntity<Void> encerrar() {
 
@@ -86,7 +96,8 @@ public class ClienteController {
 
     }
 
-    @GetMapping("{id}")
+    @Operation(summary = "Buscar cliente por ID", description = "Busca os dados de um cliente específico pelo identificador")
+    @GetMapping("/{id}")
     public ResponseEntity<ClienteResponseDTO> buscarPorId(@PathVariable Long id) {
 
         ClienteResponseDTO cliente = clienteService.buscarPorId(id);

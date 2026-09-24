@@ -6,10 +6,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import poltrona.dto.login.LoginRequestDTO;
 import poltrona.dto.login.LoginResponseDTO;
 import poltrona.service.AuthService;
 
+@Tag(name = "Auth", description = "Autenticação/login de usuários do sistema")
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -20,6 +23,7 @@ public class AuthController {
         this.authService = authService;
     }
 
+    @Operation(summary = "Login", description = "Autentica um usuário")
     @PostMapping
     public ResponseEntity<LoginResponseDTO> logar(@RequestBody LoginRequestDTO dto) {
 

@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import poltrona.dto.admin.AdminRequestDTO;
 import poltrona.dto.admin.AdminResponseDTO;
@@ -21,6 +24,7 @@ import poltrona.dto.admin.AtualizaAdminRequestDTO;
 import poltrona.dto.usuario.AtualizaSenhaRequestDTO;
 import poltrona.service.AdminService;
 
+@Tag(name = "Admins", description = "Gestão de admins")
 @RestController
 @RequestMapping("/admins")
 public class AdminController {
@@ -31,6 +35,7 @@ public class AdminController {
         this.adminService = adminService;
     }
 
+    @Operation(summary = "Cadastrar um admin", description = "Cadastra um Admin")
     @PostMapping
     public ResponseEntity<AdminResponseDTO> cadastrar(@Valid @RequestBody AdminRequestDTO dto) {
 
@@ -40,6 +45,7 @@ public class AdminController {
 
     }
 
+    @Operation(summary = "Listar todos os admins", description = "Lista todos os admins")
     @GetMapping
     public ResponseEntity<Page<AdminResponseDTO>> listarTodos(
             @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
@@ -50,6 +56,7 @@ public class AdminController {
 
     }
 
+    @Operation(summary = "Meus dados de admins", description = "Lista informações do admin logado")
     @GetMapping("/me")
     public ResponseEntity<AdminResponseDTO> me() {
 
@@ -59,6 +66,7 @@ public class AdminController {
 
     }
 
+    @Operation(summary = "Atualizar admin", description = "Atualiza dados do admin logado")
     @PatchMapping
     public ResponseEntity<AdminResponseDTO> atualizar(@Valid @RequestBody AtualizaAdminRequestDTO dto) {
 
@@ -68,6 +76,7 @@ public class AdminController {
 
     }
 
+    @Operation(summary = "Atualizar senha", description = "Atualiza senha do admin logado")
     @PatchMapping("/senha")
     public ResponseEntity<Void> atualizarSenha(@Valid @RequestBody AtualizaSenhaRequestDTO dto) {
 
@@ -77,6 +86,7 @@ public class AdminController {
 
     }
 
+    @Operation(summary = "Encerrar conta", description = "O admin logado encerra sua conta")
     @DeleteMapping
     public ResponseEntity<Void> encerrar() {
 
@@ -86,6 +96,7 @@ public class AdminController {
 
     }
 
+    @Operation(summary = "Buscar admin por id", description = "Busca dados do admin pelo")
     @GetMapping("{id}")
     public ResponseEntity<AdminResponseDTO> buscarPorId(@PathVariable Long id){
 

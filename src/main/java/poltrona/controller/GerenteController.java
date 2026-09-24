@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import poltrona.dto.gerente.AtualizaGerenteRequestDTO;
 import poltrona.dto.gerente.GerenteRequestDTO;
@@ -21,6 +24,7 @@ import poltrona.dto.gerente.GerenteResponseDTO;
 import poltrona.dto.usuario.AtualizaSenhaRequestDTO;
 import poltrona.service.GerenteService;
 
+@Tag(name = "Gerentes", description = "Gerenciamento de gerentes")
 @RestController
 @RequestMapping("/gerentes")
 public class GerenteController {
@@ -31,6 +35,7 @@ public class GerenteController {
         this.gerenteService = gerenteService;
     }
 
+    @Operation(summary = "Cadastrar gerente", description = "Cadastra um novo gerente no sistema")
     @PostMapping
     public ResponseEntity<GerenteResponseDTO> cadastrar(@Valid @RequestBody GerenteRequestDTO dto) {
 
@@ -40,6 +45,7 @@ public class GerenteController {
 
     }
 
+    @Operation(summary = "Listar todos os gerentes", description = "Lista todos os gerentes cadastrados de forma paginada")
     @GetMapping
     public ResponseEntity<Page<GerenteResponseDTO>> listarTodos(
             @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
@@ -50,6 +56,7 @@ public class GerenteController {
 
     }
 
+    @Operation(summary = "Meus dados de gerente", description = "Retorna os dados do gerente autenticado")
     @GetMapping("/me")
     public ResponseEntity<GerenteResponseDTO> me() {
 
@@ -59,6 +66,7 @@ public class GerenteController {
 
     }
 
+    @Operation(summary = "Atualizar gerente", description = "Atualiza os dados cadastrais do gerente autenticado")
     @PatchMapping
     public ResponseEntity<GerenteResponseDTO> atualizar(@Valid @RequestBody AtualizaGerenteRequestDTO dto) {
 
@@ -68,6 +76,7 @@ public class GerenteController {
 
     }
 
+    @Operation(summary = "Atualizar senha", description = "Atualiza a senha do gerente autenticado")
     @PatchMapping("/senha")
     public ResponseEntity<Void> atualizarSenha(@Valid @RequestBody AtualizaSenhaRequestDTO dto) {
 
@@ -77,6 +86,7 @@ public class GerenteController {
 
     }
 
+    @Operation(summary = "Encerrar conta", description = "O gerente autenticado encerra sua própria conta no sistema")
     @DeleteMapping
     public ResponseEntity<Void> encerrar() {
 
@@ -86,6 +96,7 @@ public class GerenteController {
 
     }
 
+    @Operation(summary = "Buscar gerente por ID", description = "Busca os dados de um gerente específico pelo identificador")
     @GetMapping("/{id}")
     public ResponseEntity<GerenteResponseDTO> buscarPorId(@PathVariable Long id) {
 

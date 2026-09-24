@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import poltrona.dto.cinema.AtualizaCinemaRequestDTO;
 import poltrona.dto.cinema.CinemaFiltroDTO;
@@ -21,6 +24,7 @@ import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
 import poltrona.service.CinemaService;
 
+@Tag(name = "Cinemas", description = "Gerenciamento de cinemas")
 @RestController
 @RequestMapping("/cinemas")
 public class CinemaController {
@@ -31,6 +35,7 @@ public class CinemaController {
         this.cinemaService = cinemaService;
     }
 
+    @Operation(summary = "Cadastrar um cinema", description = "Cadastra um novo cinema no sistema")
     @PostMapping
     public ResponseEntity<CinemaResponseDTO> cadastrar(@Valid @RequestBody CinemaRequestDTO dto) {
 
@@ -40,6 +45,7 @@ public class CinemaController {
 
     }
 
+    @Operation(summary = "Listar todos os cinemas", description = "Lista todos os cinemas de forma paginada com suporte a filtros de busca")
     @GetMapping
     public ResponseEntity<Page<CinemaResponseDTO>> listarTodos(CinemaFiltroDTO filtro,
             @PageableDefault(page = 0, size = 10, sort = "dataCriacao") Pageable pageable) {
@@ -50,6 +56,7 @@ public class CinemaController {
 
     }
 
+    @Operation(summary = "Meus cinemas", description = "Lista os cinemas vinculados ao usuário/admin autenticado de forma paginada")
     @GetMapping("/me")
     public ResponseEntity<Page<CinemaResponseDTO>> me(
             @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
@@ -60,8 +67,9 @@ public class CinemaController {
 
     }
 
+    @Operation(summary = "Buscar cinema por ID", description = "Busca as informações detalhadas de um cinema pelo seu identificador")
     @GetMapping("/{id}")
-    public ResponseEntity<CinemaResponseDTO> buscarPorId(@Valid @PathVariable Long id) {
+    public ResponseEntity<CinemaResponseDTO> buscarPorId(@PathVariable Long id) {
 
         CinemaResponseDTO cinema = cinemaService.buscarPorId(id);
 
@@ -69,9 +77,10 @@ public class CinemaController {
 
     }
 
+    @Operation(summary = "Atualizar cinema", description = "Atualiza os dados cadastrais de um cinema existente pelo ID")
     @PatchMapping("/{id}")
-    public ResponseEntity<CinemaResponseDTO> atualizar(@Valid @PathVariable Long id,
-            @RequestBody AtualizaCinemaRequestDTO dto) {
+    public ResponseEntity<CinemaResponseDTO> atualizar(@PathVariable Long id,
+            @Valid @RequestBody AtualizaCinemaRequestDTO dto) {
 
         CinemaResponseDTO cinema = cinemaService.atualizar(id, dto);
 
@@ -79,8 +88,9 @@ public class CinemaController {
 
     }
 
+    @Operation(summary = "Deletar cinema", description = "Remove um cinema do sistema pelo seu ID")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@Valid @PathVariable Long id){
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
 
         cinemaService.deletar(id);
 
