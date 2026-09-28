@@ -66,6 +66,8 @@ public class AdminServiceTest {
     private UsuarioResponseDTO usuarioResponseDTO;
     private AtualizaAdminRequestDTO atualizaAdminDTO;
     private AtualizaSenhaRequestDTO atualizaSenhaRequestDTO;
+    private AdminRequestDTO requestComSenhasDiferentes;
+    private UsuarioRequestDTO usuarioComSenhasDiferentes;
 
     @BeforeEach
     void setUp() {
@@ -118,6 +120,16 @@ public class AdminServiceTest {
 
         atualizaSenhaRequestDTO = new AtualizaSenhaRequestDTO("Senha@123", "SenhaNova123!",
                 "SenhaNova123!");
+
+        usuarioComSenhasDiferentes = new UsuarioRequestDTO(
+                "Admin Silva",
+                "admin@poltrona.com",
+                "12345678900",
+                "Senha@123",
+                "senhaErrada",
+                LocalDate.of(1990, 5, 15));
+
+        requestComSenhasDiferentes = new AdminRequestDTO(usuarioComSenhasDiferentes);
 
     }
 
@@ -183,12 +195,11 @@ public class AdminServiceTest {
     void deveLancarExcecaoSenhaOuConfirmacaoDiferentes() {
 
         // ARRANGE
-        ReflectionTestUtils.setField(usuarioRequestDTO, "confirmarSenha", "senhaErrada");
-        when(adminRepository.existsByCpf(adminRequestDTO.usuario().cpf())).thenReturn(false);
-        when(adminRepository.existsByEmail(adminRequestDTO.usuario().email())).thenReturn(false);
+        when(adminRepository.existsByCpf(requestComSenhasDiferentes.usuario().cpf())).thenReturn(false);
+        when(adminRepository.existsByEmail(requestComSenhasDiferentes.usuario().email())).thenReturn(false);
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> adminService.cadastrar(adminRequestDTO))
+        assertThatThrownBy(() -> adminService.cadastrar(requestComSenhasDiferentes))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("A senha e a confirmação de senha não coincidem");
 
