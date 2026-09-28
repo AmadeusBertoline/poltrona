@@ -53,7 +53,7 @@ public class ClienteService {
         }
 
         if (!dto.usuario().senha().equals(dto.usuario().confirmarSenha())) {
-            throw new RegraNegocioException("A senha e a confirmação de senha não coincidem");
+            throw new BadCredentialsException("A senha e a confirmação de senha não coincidem");
         }
 
         String senha = passwordEncoder.encode(dto.usuario().confirmarSenha());
@@ -133,7 +133,7 @@ public class ClienteService {
         }
 
         if (!dto.novaSenha().equals(dto.confirmarSenha())) {
-            throw new RegraNegocioException("A senha nova deve ser igual a confirmação de senha");
+            throw new BadCredentialsException("A senha nova deve ser igual a confirmação de senha");
         }
 
         String senha = passwordEncoder.encode(dto.confirmarSenha());
