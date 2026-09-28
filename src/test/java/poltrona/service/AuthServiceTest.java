@@ -1,23 +1,28 @@
 package poltrona.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
+
 import poltrona.dto.login.LoginRequestDTO;
 import poltrona.dto.login.LoginResponseDTO;
 import poltrona.entity.Admin;
@@ -30,102 +35,106 @@ import poltrona.security.JwtService;
 @ExtendWith(MockitoExtension.class)
 public class AuthServiceTest {
 
-    @Mock
-    private UsuarioRepository usuarioRepository;
+        @Mock
+        private UsuarioRepository usuarioRepository;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+        @Mock
+        private PasswordEncoder passwordEncoder;
 
-    @Mock
-    private JwtService jwtService;
+        @Mock
+        private JwtService jwtService;
 
-    @InjectMocks
-    private AuthService authService;
+        @InjectMocks
+        private AuthService authService;
 
-    private LoginRequestDTO loginRequestDTO;
-    private Usuario usuario;
+        private LoginRequestDTO loginRequestDTO;
+        private Usuario usuario;
 
-    @BeforeEach
-    void setUp() {
-        loginRequestDTO = new LoginRequestDTO("admin@poltrona.com", "Senha123@");
+        @BeforeEach
+        void setUp() {
+                loginRequestDTO = new LoginRequestDTO("admin@poltrona.com", "Senha123@");
 
-        // Instanciamos uma implementação concreta de Usuario (Admin)
-        usuario = new Admin(
-                "Admin Silva",
-                "admin@poltrona.com",
-                "senha_criptografada",
-                "12345678900",
-                LocalDate.of(1990, 5, 15));
-        ReflectionTestUtils.setField(usuario, "id", 1L);
-    }
+                usuario = new Admin(
+                                "Admin Silva",
+                                "admin@poltrona.com",
+                                "senha_criptografada",
+                                "12345678900",
+                                LocalDate.of(1990, 5, 15));
+                ReflectionTestUtils.setField(usuario, "id", 1L);
+        }
 
-    @Test
-    @DisplayName("Deve realizar login com sucesso quando as credenciais forem válidas e a conta estiver ativa")
-    void deveLogarComSucesso() {
-        // ARRANGE
-        String tokenGerado = "token_jwt_valido";
-        String tipoUsuario = "ADMIN";
+        // =========================================================================
+        // 1. TESTES DE AUTENTICAÇÃO E LOGIN (logar)
+        // =========================================================================
 
-        when(usuarioRepository.findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA))
-                .thenReturn(Optional.of(usuario));
-        when(passwordEncoder.matches(loginRequestDTO.senha(), usuario.getSenha()))
-                .thenReturn(true);
-        when(jwtService.gerarToken(usuario))
-                .thenReturn(tokenGerado);
-        when(jwtService.extrairTipoUsuario(tokenGerado))
-                .thenReturn(tipoUsuario);
+        @Test
+        @DisplayName("Deve realizar login com sucesso quando as credenciais forem válidas e a conta estiver ativa")
+        void deveLogarComSucesso() {
+                // ARRANGE
+                String tokenGerado = "token_jwt_valido";
+                String tipoUsuario = "ADMIN";
 
-        // ACT
-        LoginResponseDTO resposta = authService.logar(loginRequestDTO);
+                when(usuarioRepository.findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA))
+                                .thenReturn(Optional.of(usuario));
+                when(passwordEncoder.matches(loginRequestDTO.senha(), usuario.getSenha()))
+                                .thenReturn(true);
+                when(jwtService.gerarToken(usuario))
+                                .thenReturn(tokenGerado);
+                when(jwtService.extrairTipoUsuario(tokenGerado))
+                                .thenReturn(tipoUsuario);
 
-        // ASSERT
-        assertThat(resposta).isNotNull();
-        assertThat(resposta.token()).isEqualTo(tokenGerado);
-        assertThat(resposta.tipo()).isEqualTo("Bearer");
-        assertThat(resposta.id()).isEqualTo(1L);
-        assertThat(resposta.email()).isEqualTo("admin@poltrona.com");
-        assertThat(resposta.role()).isEqualTo(tipoUsuario);
+                // ACT
+                LoginResponseDTO resposta = authService.logar(loginRequestDTO);
 
-        verify(usuarioRepository, times(1)).findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA);
-        verify(passwordEncoder, times(1)).matches(loginRequestDTO.senha(), usuario.getSenha());
-        verify(jwtService, times(1)).gerarToken(usuario);
-        verify(jwtService, times(1)).extrairTipoUsuario(tokenGerado);
-    }
+                // ASSERT
+                assertThat(resposta).isNotNull();
+                assertThat(resposta.token()).isEqualTo(tokenGerado);
+                assertThat(resposta.tipo()).isEqualTo("Bearer");
+                assertThat(resposta.id()).isEqualTo(1L);
+                assertThat(resposta.email()).isEqualTo("admin@poltrona.com");
+                assertThat(resposta.role()).isEqualTo(tipoUsuario);
 
-    @Test
-    @DisplayName("Deve lançar ResourceNotFoundException quando o usuário não for encontrado ou não estiver ativo")
-    void deveLancarExcecaoQuandoUsuarioNaoEncontradoOuInativo() {
-        // ARRANGE
-        when(usuarioRepository.findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA))
-                .thenReturn(Optional.empty());
+                verify(usuarioRepository, times(1)).findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(),
+                                StatusConta.ATIVA);
+                verify(passwordEncoder, times(1)).matches(loginRequestDTO.senha(), usuario.getSenha());
+                verify(jwtService, times(1)).gerarToken(usuario);
+                verify(jwtService, times(1)).extrairTipoUsuario(tokenGerado);
+        }
 
-        // ACT + ASSERT
-        assertThatThrownBy(() -> authService.logar(loginRequestDTO))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Usuário ou senha inválidos");
+        @Test
+        @DisplayName("Deve lançar ResourceNotFoundException quando o usuário não for encontrado ou não estiver ativo")
+        void deveLancarExcecaoQuandoUsuarioNaoEncontradoOuInativo() {
+                // ARRANGE
+                when(usuarioRepository.findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA))
+                                .thenReturn(Optional.empty());
 
-        // VERIFY
-        verify(usuarioRepository, times(1)).findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA);
-        verifyNoInteractions(passwordEncoder, jwtService);
-    }
+                // ACT & ASSERT
+                assertThatThrownBy(() -> authService.logar(loginRequestDTO))
+                                .isInstanceOf(ResourceNotFoundException.class)
+                                .hasMessage("Usuário ou senha inválidos");
 
-    @Test
-    @DisplayName("Deve lançar BadCredentialsException quando a senha estiver incorreta")
-    void deveLancarExcecaoQuandoSenhaForIncorreta() {
-        // ARRANGE
-        when(usuarioRepository.findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA))
-                .thenReturn(Optional.of(usuario));
-        when(passwordEncoder.matches(loginRequestDTO.senha(), usuario.getSenha()))
-                .thenReturn(false);
+                verify(usuarioRepository, times(1)).findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(),
+                                StatusConta.ATIVA);
+                verifyNoInteractions(passwordEncoder, jwtService);
+        }
 
-        // ACT + ASSERT
-        assertThatThrownBy(() -> authService.logar(loginRequestDTO))
-                .isInstanceOf(BadCredentialsException.class)
-                .hasMessage("Usuário ou senha inválidos");
+        @Test
+        @DisplayName("Deve lançar BadCredentialsException quando a senha estiver incorreta")
+        void deveLancarExcecaoQuandoSenhaForIncorreta() {
+                // ARRANGE
+                when(usuarioRepository.findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA))
+                                .thenReturn(Optional.of(usuario));
+                when(passwordEncoder.matches(loginRequestDTO.senha(), usuario.getSenha()))
+                                .thenReturn(false);
 
-        // VERIFY
-        verify(usuarioRepository, times(1)).findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA);
-        verify(passwordEncoder, times(1)).matches(loginRequestDTO.senha(), usuario.getSenha());
-        verifyNoInteractions(jwtService);
-    }
+                // ACT & ASSERT
+                assertThatThrownBy(() -> authService.logar(loginRequestDTO))
+                                .isInstanceOf(BadCredentialsException.class)
+                                .hasMessage("Usuário ou senha inválidos");
+
+                verify(usuarioRepository, times(1)).findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(),
+                                StatusConta.ATIVA);
+                verify(passwordEncoder, times(1)).matches(loginRequestDTO.senha(), usuario.getSenha());
+                verifyNoInteractions(jwtService);
+        }
 }
