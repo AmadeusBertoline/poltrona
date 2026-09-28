@@ -21,132 +21,137 @@ import poltrona.repository.SessaoRepository;
 @Service
 public class FilmeService {
 
-    private final FilmeRepository filmeRepository;
-    private final FilmeMapper filmeMapper;
-    private final SessaoRepository sessaoRepository;
+        private final FilmeRepository filmeRepository;
+        private final FilmeMapper filmeMapper;
+        private final SessaoRepository sessaoRepository;
 
-    public FilmeService(FilmeRepository filmeRepository, FilmeMapper filmeMapper,
-            SessaoRepository sessaoRepository) {
-        this.filmeRepository = filmeRepository;
-        this.filmeMapper = filmeMapper;
-        this.sessaoRepository = sessaoRepository;
-    }
-
-    @Transactional
-    public FilmeResponseDTO cadastrar(FilmeRequestDTO dto) {
-
-        if (filmeRepository.existsByTituloIgnoreCaseAndDataLancamento(dto.titulo(), dto.dataLancamento())) {
-            throw new RegraNegocioException("Filme já cadastrado no catálogo com este título e ano.");
+        public FilmeService(FilmeRepository filmeRepository, FilmeMapper filmeMapper,
+                        SessaoRepository sessaoRepository) {
+                this.filmeRepository = filmeRepository;
+                this.filmeMapper = filmeMapper;
+                this.sessaoRepository = sessaoRepository;
         }
 
-        Filme filme = filmeMapper.toEntity(dto);
-        Filme cadastrado = filmeRepository.save(filme);
+        @Transactional
+        public FilmeResponseDTO cadastrar(FilmeRequestDTO dto) {
 
-        return filmeMapper.toDTO(cadastrado);
-    }
+                if (filmeRepository.existsByTituloIgnoreCaseAndDataLancamento(dto.titulo(), dto.dataLancamento())) {
+                        throw new RegraNegocioException("Filme já cadastrado no catálogo com este título e ano.");
+                }
 
-    public Page<FilmeResponseDTO> listarTodos(Pageable pageable) {
+                Filme filme = filmeMapper.toEntity(dto);
+                Filme cadastrado = filmeRepository.save(filme);
 
-        return filmeRepository.findAll(pageable).map(filmeMapper::toDTO);
-
-    }
-
-    @Transactional
-    public FilmeResponseDTO atualizar(Long id, FilmeRequestDTO dto) {
-        Filme filme = filmeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado com o ID: " + id));
-
-        if (filmeRepository.existsByTituloIgnoreCaseAndDataLancamentoAndIdNot(dto.titulo(), dto.dataLancamento(), id)) {
-            throw new RegraNegocioException("Já existe outro filme cadastrado com este título e data de lançamento.");
+                return filmeMapper.toDTO(cadastrado);
         }
 
-        boolean possuiSessoesFuturas = sessaoRepository.existsByFilmeIdAndDataHoraFimAfterAndAtivoTrue(id,
-                LocalDateTime.now());
+        public Page<FilmeResponseDTO> listarTodos(Pageable pageable) {
 
-        if (possuiSessoesFuturas && !filme.getDuracaoMinutos().equals(dto.duracao())) {
-            throw new RegraNegocioException(
-                    "Não é possível alterar a duração de um filme que possui sessões futuras agendadas.");
+                return filmeRepository.findAll(pageable).map(filmeMapper::toDTO);
+
         }
 
-        filme.atualizarDados(
-                dto.titulo(),
-                dto.sinopse(),
-                dto.duracao(),
-                dto.diretor(),
-                dto.distribuidora(),
-                dto.dataLancamento(),
-                dto.imagePath(),
-                dto.formatos(),
-                dto.generos());
+        @Transactional
+        public FilmeResponseDTO atualizar(Long id, FilmeRequestDTO dto) {
+                Filme filme = filmeRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Filme não encontrado com o ID: " + id));
 
-        return filmeMapper.toDTO(filme);
-    }
+                if (filmeRepository.existsByTituloIgnoreCaseAndDataLancamentoAndIdNot(dto.titulo(),
+                                dto.dataLancamento(), id)) {
+                        throw new RegraNegocioException(
+                                        "Já existe outro filme cadastrado com este título e data de lançamento.");
+                }
 
-    @Transactional
-    public void inativar(Long id) {
+                boolean possuiSessoesFuturas = sessaoRepository.existsByFilmeIdAndDataHoraFimAfterAndAtivoTrue(id,
+                                LocalDateTime.now());
 
-        Filme filme = filmeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado com o ID: " + id));
+                if (possuiSessoesFuturas && !filme.getDuracaoMinutos().equals(dto.duracao())) {
+                        throw new RegraNegocioException(
+                                        "Não é possível alterar a duração de um filme que possui sessões futuras agendadas.");
+                }
 
-        if (!filme.getAtivo()) {
-            throw new RegraNegocioException("Este filme já está inativo no catálogo.");
+                filme.atualizarDados(
+                                dto.titulo(),
+                                dto.sinopse(),
+                                dto.duracao(),
+                                dto.diretor(),
+                                dto.distribuidora(),
+                                dto.dataLancamento(),
+                                dto.imagePath(),
+                                dto.formatos(),
+                                dto.generos());
+
+                return filmeMapper.toDTO(filme);
         }
 
-        boolean possuiSessoesFuturas = sessaoRepository
-                .existsByFilmeIdAndDataHoraFimAfterAndAtivoTrue(id, LocalDateTime.now());
+        @Transactional
+        public void inativar(Long id) {
 
-        if (possuiSessoesFuturas) {
-            throw new RegraNegocioException(
-                    "Não é possível inativar o filme pois existem sessões futuras agendadas em cinemas da rede.");
+                Filme filme = filmeRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Filme não encontrado com o ID: " + id));
+
+                if (!filme.getAtivo()) {
+                        throw new RegraNegocioException("Este filme já está inativo no catálogo.");
+                }
+
+                boolean possuiSessoesFuturas = sessaoRepository
+                                .existsByFilmeIdAndDataHoraFimAfterAndAtivoTrue(id, LocalDateTime.now());
+
+                if (possuiSessoesFuturas) {
+                        throw new RegraNegocioException(
+                                        "Não é possível inativar o filme pois existem sessões futuras agendadas em cinemas da rede.");
+                }
+
+                filme.inativar();
         }
 
-        filme.inativar();
-    }
+        @Transactional
+        public void deletar(Long id) {
 
-    @Transactional
-    public void deletar(Long id) {
+                Filme filme = filmeRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Filme não encontrado com o id " + id));
 
-        Filme filme = filmeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado com o id " + id));
+                boolean possuiSessoes = sessaoRepository.existsByFilmeId(id);
 
-        boolean possuiSessoes = sessaoRepository.existsByFilmeId(id);
+                if (possuiSessoes) {
+                        throw new RegraNegocioException(
+                                        "Não é possível excluir o filme permanentemente pois ele possui sessões vinculadas. Utilize a opção de inativação.");
+                }
 
-        if (possuiSessoes) {
-            throw new RegraNegocioException(
-                    "Não é possível excluir o filme permanentemente pois ele possui sessões vinculadas. Utilize a opção de inativação.");
+                filmeRepository.delete(filme);
         }
 
-        filmeRepository.delete(filme);
-    }
+        @Transactional(readOnly = true)
+        public FilmeResponseDTO buscarPorId(Long id) {
 
-    @Transactional(readOnly = true)
-    public FilmeResponseDTO buscarPorId(Long id) {
+                Filme filme = filmeRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado de id " + id));
 
-        Filme filme = filmeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Filme não encontrado de id " + id));
+                return filmeMapper.toDTO(filme);
 
-        return filmeMapper.toDTO(filme);
+        }
 
-    }
+        @Transactional(readOnly = true)
+        public Page<FilmeResponseDTO> listarParaClientes(FilmeFiltroDTO filtro, Pageable pageable) {
 
-    @Transactional(readOnly = true)
-    public Page<FilmeResponseDTO> listarParaClientes(FilmeFiltroDTO filtro, Pageable pageable) {
+                return filmeRepository.buscarComFiltrosCliente(filtro, pageable).map(filmeMapper::toDTO);
 
-        return filmeRepository.buscarComFiltrosCliente(filtro, pageable).map(filmeMapper::toDTO);
+        }
 
-    }
+        @Transactional
+        public List<FilmeResponseDTO> cadastrarEmLote(List<FilmeRequestDTO> dtos) {
+                List<Filme> filmes = dtos.stream()
+                                .map(dto -> filmeMapper.toEntity(dto))
+                                .toList();
 
-    @Transactional
-    public List<FilmeResponseDTO> cadastrarEmLote(List<FilmeRequestDTO> dtos) {
-        List<Filme> filmes = dtos.stream()
-                .map(dto -> filmeMapper.toEntity(dto))
-                .toList();
+                List<Filme> salvos = filmeRepository.saveAll(filmes);
 
-        List<Filme> salvos = filmeRepository.saveAll(filmes);
-
-        return salvos.stream()
-                .map(dto -> filmeMapper.toDTO(dto))
-                .toList();
-    }
+                return salvos.stream()
+                                .map(dto -> filmeMapper.toDTO(dto))
+                                .toList();
+        }
 
 }
