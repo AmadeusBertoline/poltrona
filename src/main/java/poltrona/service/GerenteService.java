@@ -87,7 +87,9 @@ public class GerenteService {
 
         gerente.atualizar(dto.nome(), dto.email(), dto.dataNascimento());
 
-        return gerenteMapper.toDTO(gerente);
+        Gerente salvo = gerenteRepository.save(gerente);
+
+        return gerenteMapper.toDTO(salvo);
     }
 
     @Transactional

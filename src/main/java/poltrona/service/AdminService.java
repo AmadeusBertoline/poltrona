@@ -47,7 +47,7 @@ public class AdminService {
         }
 
         if (!dto.usuario().senha().equals(dto.usuario().confirmarSenha())) {
-            throw new RegraNegocioException("A senha e a confirmação de senha não coincidem");
+            throw new IllegalArgumentException("A senha e a confirmação de senha não coincidem");
         }
 
         String senha = passwordEncoder.encode(dto.usuario().confirmarSenha());
@@ -94,7 +94,9 @@ public class AdminService {
 
         admin.atualizar(dto.usuario().nome(), dto.usuario().email(), dto.usuario().dataNascimento());
 
-        return adminMapper.toDTO(admin);
+        Admin salvo = adminRepository.save(admin);
+
+        return adminMapper.toDTO(salvo);
     }
 
     @Transactional
@@ -120,7 +122,7 @@ public class AdminService {
         }
 
         if (!dto.novaSenha().equals(dto.confirmarSenha())) {
-            throw new RegraNegocioException("A senha nova deve ser igual a confirmação de senha");
+            throw new BadCredentialsException("A senha nova deve ser igual a confirmação de senha");
         }
 
         String senha = passwordEncoder.encode(dto.confirmarSenha());

@@ -91,7 +91,9 @@ public class ProprietarioService {
 
         proprietario.atualizar(dto.usuario().nome(), dto.usuario().email(), dto.usuario().dataNascimento());
 
-        return proprietarioMapper.toDTO(proprietario);
+        Proprietario salvo = proprietarioRepository.save(proprietario);
+
+        return proprietarioMapper.toDTO(salvo);
 
     }
 

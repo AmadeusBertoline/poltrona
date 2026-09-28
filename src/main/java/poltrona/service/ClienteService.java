@@ -99,7 +99,9 @@ public class ClienteService {
 
         cliente.atualizar(dto.nome(), dto.email(), dto.dataNascimento());
 
-        return clienteMapper.toDTO(cliente);
+        Cliente salvo = clienteRepository.save(cliente);
+
+        return clienteMapper.toDTO(salvo);
     }
 
     @Transactional

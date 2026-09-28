@@ -5,7 +5,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import poltrona.dto.usuario.UsuarioResponseDTO;
 import poltrona.entity.Usuario;
 import poltrona.enums.usuario.StatusConta;
@@ -56,9 +55,9 @@ public class UsuarioService {
             throw new RegraNegocioException("E-mail já está em uso no sistema.");
         }
 
-        if (usuarioRepository.existsByCpfAndStatus(cpf, StatusConta.ATIVA)) {
-            throw new RegraNegocioException("CPF já está em uso no sistema.");
-        }
+        // if (usuarioRepository.existsByCpfAndStatus(cpf, StatusConta.ATIVA)) {
+        //     throw new RegraNegocioException("CPF já está em uso no sistema.");
+        // }
 
         return false;
 
