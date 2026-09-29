@@ -4,15 +4,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -20,13 +17,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
-
 import poltrona.dto.page.RespostaPaginadaDTO;
 import poltrona.dto.produto.AtualizaProdutoRequestDTO;
 import poltrona.dto.produto.CadastroProdutoRequestDTO;
@@ -49,10 +44,6 @@ import poltrona.repository.ProdutoRepository;
 @DisplayName("ProdutoService - Testes Unitários")
 class ProdutoServiceTest {
 
-    // ==============================================
-    // DEPENDÊNCIAS / MOCKS
-    // ==============================================
-
     @Mock
     private ProdutoRepository produtoRepository;
 
@@ -68,10 +59,6 @@ class ProdutoServiceTest {
     @InjectMocks
     private ProdutoService produtoService;
 
-    // ==============================================
-    // VARIÁVEIS GLOBAIS - ENTIDADES DE DOMÍNIO
-    // ==============================================
-
     private Proprietario proprietario;
     private Gerente gerente;
     private Gerente gerenteOutroCinema;
@@ -79,10 +66,6 @@ class ProdutoServiceTest {
     private Cinema cinema1;
     private Cinema cinema2;
     private Produto produto;
-
-    // ==============================================
-    // VARIÁVEIS GLOBAIS - DTOs / RECORDS
-    // ==============================================
 
     private CadastroProdutoRequestDTO cadastroDTO;
     private CadastroProdutoRequestDTO cadastroCinemaOutroDTO;
