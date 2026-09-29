@@ -139,7 +139,7 @@ public class AdminServiceTest {
         }
 
         // =========================================================================
-        // 1. TESTES DE CADASTRO DE ADMIN (cadastrar)
+        // cadastrar
         // =========================================================================
 
         @Test
@@ -209,7 +209,7 @@ public class AdminServiceTest {
         }
 
         // =========================================================================
-        // 2. TESTES DE CONSULTA E LISTAGEM (listarTodos, me, buscarPorId)
+        // listar todos, buscar por id
         // =========================================================================
 
         @Test
@@ -267,7 +267,7 @@ public class AdminServiceTest {
         }
 
         // =========================================================================
-        // 3. TESTES DE ATUALIZAÇÃO DE PERFIL (atualizar)
+        // atualizar
         // =========================================================================
 
         @Test
@@ -320,7 +320,7 @@ public class AdminServiceTest {
         }
 
         // =========================================================================
-        // 4. TESTES DE ALTERAÇÃO DE SENHA (atualizarSenha)
+        // atualizar senha
         // =========================================================================
 
         @Test
@@ -380,7 +380,7 @@ public class AdminServiceTest {
         }
 
         // =========================================================================
-        // 5. TESTES DE ENCERRAMENTO DE CONTA (encerrar)
+        // encerrarConta
         // =========================================================================
 
         @Test

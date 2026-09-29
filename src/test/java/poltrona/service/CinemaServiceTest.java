@@ -4,15 +4,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.InjectMocks;
@@ -21,14 +18,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.util.ReflectionTestUtils;
-
 import poltrona.dto.cinema.AtualizaCinemaRequestDTO;
 import poltrona.dto.cinema.CinemaFiltroDTO;
 import poltrona.dto.cinema.CinemaRequestDTO;
@@ -118,7 +113,7 @@ class CinemaServiceTest {
     }
 
     // =========================================================================
-    // 1. TESTES DE CADASTRO DE CINEMA (cadastrar)
+    // cadastrar
     // =========================================================================
 
     @Test
@@ -190,7 +185,7 @@ class CinemaServiceTest {
     }
 
     // =========================================================================
-    // 2. TESTES DE LISTAGEM E CONSULTA (listarTodos, me)
+    // listarTodos, me
     // =========================================================================
 
     @Test
@@ -247,7 +242,7 @@ class CinemaServiceTest {
     }
 
     // =========================================================================
-    // 3. TESTES DE ATUALIZAÇÃO DE CINEMA (atualizar)
+    // atualizar
     // =========================================================================
 
     @Test
@@ -325,7 +320,7 @@ class CinemaServiceTest {
     }
 
     // =========================================================================
-    // 4. TESTES DE ENCERRAMENTO E DESATIVAÇÃO (encerrar)
+    // vibe code
     // =========================================================================
 
     @Test
@@ -363,7 +358,7 @@ class CinemaServiceTest {
     }
 
     // =========================================================================
-    // 5. TESTES DE REMOÇÃO FÍSICA (deletar)
+    // deletar
     // =========================================================================
 
     @Test
