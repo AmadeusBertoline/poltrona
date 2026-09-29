@@ -7,7 +7,8 @@ public enum TipoPoltrona {
     COMUM("Comum"),
     PREFERENCIAL("Preferencial"),
     NAMORADEIRA("Namoradeira"),
-    D_BOX("D-Box");
+    D_BOX("D-Box"),
+    VIP("Vip");
 
     private final String descricao;
 
