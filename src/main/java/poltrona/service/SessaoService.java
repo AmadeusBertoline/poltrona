@@ -255,10 +255,6 @@ public class SessaoService {
                 return sessaoMapper.toDTO(sessao);
         }
 
-        /**
-         * Métodos auxiliares para garantir que Gerente e Proprietario
-         * operem somente sobre salas e sessões de cinemas autorizados.
-         */
         private Sala buscarSalaEValidarAcesso(Long salaId) {
                 Usuario usuario = usuarioService.usuarioLogado();
 
