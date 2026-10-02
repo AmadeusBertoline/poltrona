@@ -76,7 +76,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/poltronas/**", "/poltronas").permitAll()
                         .requestMatchers("/poltronas").hasAnyAuthority("PROPRIETARIO", "GERENTE")
 
-                        // PRECOS (REGRAS UNIFICADAS E CORRIGIDAS)
+                        // PRECOS
                         .requestMatchers(HttpMethod.POST, "/precos").hasAuthority("PROPRIETARIO")
                         .requestMatchers(HttpMethod.GET, "/precos").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/precos/cinema/**").permitAll()
@@ -90,29 +90,32 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/salas/**").hasAnyAuthority("PROPRIETARIO", "GERENTE")
                         .requestMatchers(HttpMethod.GET, "/salas/**", "/salas").permitAll()
 
-                        // SESSAO
+                        // SESSÕES
                         .requestMatchers(HttpMethod.POST, "/sessoes").hasAnyAuthority("PROPRIETARIO", "GERENTE")
                         .requestMatchers(HttpMethod.GET, "/sessoes", "/sessoes/**").permitAll()
                         .requestMatchers(HttpMethod.PATCH, "/sessoes/**").hasAnyAuthority("PROPRIETARIO", "GERENTE")
                         .requestMatchers(HttpMethod.DELETE, "/sessoes/**").hasAnyAuthority("PROPRIETARIO", "GERENTE")
 
                         // ADMINS
-                        .requestMatchers("/admins","/admins/**").hasAuthority("ADMIN")
+                        .requestMatchers("/admins", "/admins/**").hasAuthority("ADMIN")
 
                         // CLIENTES
                         .requestMatchers(HttpMethod.POST, "/clientes").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/clientes/me").hasAuthority("CLIENTE")
                         .requestMatchers(HttpMethod.GET, "/clientes/**", "/clientes").hasAuthority("ADMIN")
                         .requestMatchers("/clientes/**", "/clientes").hasAuthority("CLIENTE")
+
+                        // SWAGGER
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
                         // PRODUTOS
-                        .requestMatchers("/produtos").hasAnyAuthority("PROPRIETARIO", "GERENTE")
                         .requestMatchers(HttpMethod.GET, "/produtos/*", "/produtos").permitAll()
+                        .requestMatchers("/produtos/**").hasAnyAuthority("PROPRIETARIO", "GERENTE")
 
                         // VENDAS
                         .requestMatchers(HttpMethod.GET, "/vendas").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/vendas/*").hasAnyAuthority("ADMIN", "CLIENTE")
-                        .requestMatchers("/vendas/***", "/vendas", "/vendas/**").hasAuthority("CLIENTE")
+                        .requestMatchers("/vendas", "/vendas/**").hasAuthority("CLIENTE")
 
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
