@@ -273,7 +273,7 @@ O Flyway cria o schema automaticamente na primeira execução.
 ./mvnw test
 ```
 
-Suíte de **testes unitários** (JUnit 5 + Mockito) cobrindo as 15 classes de serviço — regras de negócio, validações de acesso por papel, cenários de erro e fluxos de venda/cancelamento.
+Suíte de **testes unitários** (JUnit 5 + Mockito) cobrindo as 15 classes de serviço, 228 testes — regras de negócio, validações de acesso por papel, cenários de erro e fluxos de venda/cancelamento.
 
 ## 🗺️ Roadmap
 
