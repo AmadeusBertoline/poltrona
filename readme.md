@@ -19,6 +19,11 @@ O foco do projeto é a **consistência de dados sob concorrência**: dois client
 | **Base URL** | https://poltrona.onrender.com/ |
 | **Swagger UI** | https://poltrona.onrender.com/swagger-ui.html |
 
+**Infraestrutura de produção:**
+
+- **Render** — hospeda a API (Spring Boot) e o Redis usado como cache
+- **Aiven** — hospeda o banco de dados MySQL como serviço gerenciado
+
 > Hospedado em plano gratuito: a primeira requisição após um período ocioso pode levar alguns segundos (*cold start*).
 
 ## 📑 Sumário
@@ -221,6 +226,14 @@ erDiagram
 | Documentação | springdoc-openapi / Swagger UI |
 | Build / infra | Maven, Docker, Docker Compose |
 | Testes | JUnit 5, Mockito, Spring Boot Test |
+| Hospedagem | **Render** (API e Redis), **Aiven** (MySQL gerenciado) |
+| Ferramentas de desenvolvimento | **VS Code** (IDE), **Insomnia** (testes manuais da API), **DBeaver** (cliente de banco de dados) |
+
+### Ferramentas utilizadas no desenvolvimento
+
+- **VS Code** — ambiente de desenvolvimento do código Java/Spring Boot.
+- **Insomnia** — requisições HTTP para testar os endpoints, os fluxos de autenticação com JWT e os cenários de venda durante o desenvolvimento.
+- **DBeaver** — inspeção do schema MySQL, conferência das migrações do Flyway e análise dos índices e dados gerados pelas vendas.
 
 ## ▶️ Como executar
 
