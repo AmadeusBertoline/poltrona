@@ -2,6 +2,7 @@ package poltrona.controller;
 
 import java.util.List;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -60,6 +61,7 @@ public class SessaoController {
     @GetMapping
     public ResponseEntity<RespostaPaginadaDTO<SessaoResponseDTO>> listar(
             SessaoFiltroDTO filtro,
+            @ParameterObject 
             @PageableDefault(page = 0, size = 10, sort = "dataHoraInicio", direction = Sort.Direction.ASC) Pageable pageable) {
 
         RespostaPaginadaDTO<SessaoResponseDTO> pagina = sessaoService.listar(filtro, pageable);

@@ -1,5 +1,6 @@
 package poltrona.controller;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -53,6 +54,7 @@ public class VendaController {
     @GetMapping
     public ResponseEntity<Page<VendaResponseDTO>> listarTodas(
             @RequestParam(required = false) Long clienteId,
+            @ParameterObject 
             @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<VendaResponseDTO> vendas = vendaService.listarTodas(clienteId, pageable);

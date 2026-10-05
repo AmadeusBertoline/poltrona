@@ -1,5 +1,6 @@
 package poltrona.controller;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -47,7 +48,7 @@ public class PrecoController {
     @Operation(summary = "Listar todos os preços", description = "Lista todas as configurações de preços cadastradas de forma paginada")
     @GetMapping
     public ResponseEntity<Page<PrecoResponseDTO>> listarTodos(
-            @PageableDefault(page = 0, size = 10, sort = "valor", direction = Sort.Direction.ASC) Pageable pageable) {
+            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "valor", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<PrecoResponseDTO> precos = precoService.listarTodos(pageable);
 

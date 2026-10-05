@@ -1,5 +1,6 @@
 package poltrona.controller;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -47,9 +48,10 @@ public class SalaController {
 
     @Operation(summary = "Listar salas", description = "Lista as salas cadastradas com suporte a filtros por cinema e status de atividade de forma paginada")
     @GetMapping
-    public ResponseEntity<Page<SalaResponseDTO>> listar(
+    public ResponseEntity<Page<SalaResponseDTO>> listar( 
             @RequestParam(required = false) Long cinemaId,
             @RequestParam(required = false) Boolean ativo,
+            @ParameterObject
             @PageableDefault(page = 0, size = 10, sort = "numero", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<SalaResponseDTO> salas = salaService.listar(cinemaId, ativo, pageable);

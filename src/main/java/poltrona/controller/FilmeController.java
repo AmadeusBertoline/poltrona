@@ -2,6 +2,7 @@ package poltrona.controller;
 
 import java.util.List;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -60,7 +61,7 @@ public class FilmeController {
     @GetMapping
     public ResponseEntity<Page<FilmeResponseDTO>> listar(
             FilmeFiltroDTO filtro,
-            @PageableDefault(page = 0, size = 10, sort = "titulo", direction = Sort.Direction.ASC) Pageable pageable) {
+            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "titulo", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<FilmeResponseDTO> lista = filmeService.listarParaClientes(filtro, pageable);
 

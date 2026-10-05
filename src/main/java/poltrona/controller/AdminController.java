@@ -1,5 +1,6 @@
 package poltrona.controller;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -48,7 +49,7 @@ public class AdminController {
     @Operation(summary = "Listar todos os admins", description = "Lista todos os admins")
     @GetMapping
     public ResponseEntity<Page<AdminResponseDTO>> listarTodos(
-            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
+            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<AdminResponseDTO> admins = adminService.listarTodos(pageable);
 

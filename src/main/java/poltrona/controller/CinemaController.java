@@ -1,5 +1,6 @@
 package poltrona.controller;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -48,7 +49,7 @@ public class CinemaController {
     @Operation(summary = "Listar todos os cinemas", description = "Lista todos os cinemas de forma paginada com suporte a filtros de busca")
     @GetMapping
     public ResponseEntity<Page<CinemaResponseDTO>> listarTodos(CinemaFiltroDTO filtro,
-            @PageableDefault(page = 0, size = 10, sort = "dataCriacao") Pageable pageable) {
+           @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao") Pageable pageable) {
 
         Page<CinemaResponseDTO> lista = cinemaService.listarTodos(filtro, pageable);
 

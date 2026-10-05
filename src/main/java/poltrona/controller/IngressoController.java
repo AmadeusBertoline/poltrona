@@ -1,8 +1,12 @@
 package poltrona.controller;
 
 import jakarta.validation.Valid;
+
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -44,7 +48,7 @@ public class IngressoController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<IngressoResponseDTO>> listarTodos(Pageable pageable) {
+    public ResponseEntity<Page<IngressoResponseDTO>> listarTodos(@ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
         return ResponseEntity.ok(ingressoService.listarTodos(pageable));
     }
 

@@ -1,5 +1,6 @@
 package poltrona.controller;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -52,6 +53,7 @@ public class ProdutoController {
             @RequestParam(required = false) Boolean ativo,
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) TipoProduto tipoProduto,
+            @ParameterObject 
             @PageableDefault(size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
 
         return ResponseEntity.ok(produtoService.listarTodos(ativo, nome, tipoProduto, pageable));

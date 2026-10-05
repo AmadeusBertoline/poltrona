@@ -1,5 +1,6 @@
 package poltrona.controller;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -47,7 +48,7 @@ public class ProprietarioController {
 
     @Operation(summary = "Listar todos os proprietários", description = "Lista todos os proprietários cadastrados de forma paginada")
     @GetMapping
-    public ResponseEntity<Page<ProprietarioResponseDTO>> listarTodos(
+    public ResponseEntity<Page<ProprietarioResponseDTO>> listarTodos(@ParameterObject 
             @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<ProprietarioResponseDTO> proprietarios = proprietarioService.listarTodos(pageable);
