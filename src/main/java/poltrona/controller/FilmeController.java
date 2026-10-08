@@ -43,9 +43,14 @@ public class FilmeController implements FilmeControllerDoc {
 
     @Override
     @PostMapping("/lote")
-    public ResponseEntity<List<FilmeResponseDTO>> cadastrarEmLote(@RequestBody List<@Valid FilmeRequestDTO> dtos) {
+    public ResponseEntity<List<FilmeResponseDTO>> cadastrarEmLote(
+            @RequestBody @Valid List<FilmeRequestDTO> dtos) {
+
         List<FilmeResponseDTO> salvos = filmeService.cadastrarEmLote(dtos);
-        return ResponseEntity.status(HttpStatus.CREATED).body(salvos);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(salvos);
     }
 
     @Override
