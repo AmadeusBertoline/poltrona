@@ -26,6 +26,7 @@ import poltrona.mapper.SalaMapper;
 import poltrona.repository.CinemaRepository;
 import poltrona.repository.IngressoRepository;
 import poltrona.repository.SalaRepository;
+import poltrona.repository.SessaoRepository;
 
 @Service
 public class SalaService {
@@ -36,15 +37,18 @@ public class SalaService {
     private final CinemaRepository cinemaRepository;
     private final UsuarioService usuarioService;
     private final IngressoRepository ingressoRepository;
+    private final SessaoRepository sessaoRepository;
 
     public SalaService(SalaRepository salaRepository, SalaMapper salaMapper, PoltronaService poltronaService,
-            CinemaRepository cinemaRepository, UsuarioService usuarioService, IngressoRepository ingressoRepository) {
+            CinemaRepository cinemaRepository, UsuarioService usuarioService, IngressoRepository ingressoRepository,
+            SessaoRepository sessaoRepository) {
         this.salaRepository = salaRepository;
         this.salaMapper = salaMapper;
         this.poltronaService = poltronaService;
         this.cinemaRepository = cinemaRepository;
         this.usuarioService = usuarioService;
         this.ingressoRepository = ingressoRepository;
+        this.sessaoRepository = sessaoRepository;
     }
 
     @Transactional
@@ -186,12 +190,12 @@ public class SalaService {
 
         Sala sala = buscarSalaEValidarAcesso(id);
 
-        boolean possuiIngressosRelacionados = ingressoRepository
-                .existsBySessaoSalaId(sala.getId());
+        boolean possuiSessaoMarcada = sessaoRepository
+                .existsBySalaId(sala.getId());
 
-        if (possuiIngressosRelacionados) {
+        if (possuiSessaoMarcada) {
             throw new RegraNegocioException(
-                    "Não é possível deletar a sala pois ela possui ingressos vendidos.");
+                    "Não é possível deletar a sala pois ela está relacionada a uma sessão.");
         }
 
         salaRepository.delete(sala);

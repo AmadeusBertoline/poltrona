@@ -1,8 +1,12 @@
 package poltrona.service;
 
 import java.time.LocalDateTime;
+
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,7 +66,8 @@ public class CinemaService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CinemaResponseDTO> listarTodos(CinemaFiltroDTO filtro, Pageable pageable) {
+    public Page<CinemaResponseDTO> listarTodos(@ParameterObject CinemaFiltroDTO filtro,
+            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
         return cinemaRepository.findAllByFiltro(filtro, pageable).map(cinemaMapper::toDTO);
     }
 

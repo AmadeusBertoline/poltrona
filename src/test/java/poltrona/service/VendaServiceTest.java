@@ -17,12 +17,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.data.domain.Page;
@@ -36,8 +39,9 @@ import poltrona.dto.produto.ProdutoRequestDTO;
 import poltrona.dto.venda.ItemVendaResponseDTO;
 import poltrona.dto.venda.VendaRequestDTO;
 import poltrona.dto.venda.VendaResponseDTO;
-import poltrona.entity.Cinema;
+import poltrona.entity.Admin;
 import poltrona.entity.Cliente;
+import poltrona.entity.Cinema;
 import poltrona.entity.Ingresso;
 import poltrona.entity.ItemVenda;
 import poltrona.entity.Poltrona;
@@ -57,7 +61,8 @@ import poltrona.repository.ProdutoRepository;
 import poltrona.repository.VendaRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class VendaServiceTest {
+@DisplayName("VendaService - Testes Unitários")
+class VendaServiceTest {
 
     @Mock
     private VendaRepository vendaRepository;
@@ -107,15 +112,21 @@ public class VendaServiceTest {
     @Mock
     private ProdutoRequestDTO produtoRequestDTO;
 
+    @Mock
+    private Admin admin;
+
     @InjectMocks
     private VendaService vendaService;
 
     private Cliente cliente;
     private Cliente outroCliente;
+
     private Venda venda;
     private Venda vendaCancelada;
+
     private Produto produto;
     private Ingresso ingresso;
+
     private ItemVenda itemVendaIngresso;
     private ItemVenda itemVendaProduto;
 
@@ -124,7 +135,11 @@ public class VendaServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Clientes
+
+        // =========================================================
+        // CLIENTES
+        // =========================================================
+
         cliente = new Cliente(
                 "Cliente Teste",
                 "cliente@email.com",
@@ -141,10 +156,17 @@ public class VendaServiceTest {
                 LocalDate.of(1998, 2, 2));
         ReflectionTestUtils.setField(outroCliente, "id", 2L);
 
-        // Retorno do mock da sessão antes de instanciar o Ingresso
-        when(sessao.getPreco()).thenReturn(BigDecimal.valueOf(25.00));
+        // =========================================================
+        // SESSÃO
+        // =========================================================
 
-        // Instanciação de Produto
+        when(sessao.getPreco())
+                .thenReturn(BigDecimal.valueOf(25.00));
+
+        // =========================================================
+        // PRODUTO
+        // =========================================================
+
         produto = new Produto(
                 cinema,
                 "Pipoca Grande",
@@ -152,16 +174,26 @@ public class VendaServiceTest {
                 TipoProduto.PIPOCAS,
                 BigDecimal.valueOf(15.00),
                 10);
-        ReflectionTestUtils.setField(produto, "id", 5L);
 
-        // Instanciação de Ingresso real
+        ReflectionTestUtils.setField(
+                produto,
+                "id",
+                5L);
+
+        // =========================================================
+        // INGRESSO
+        // =========================================================
+
         ingresso = new Ingresso(
                 TipoIngresso.INTEIRA,
                 sessao,
                 poltrona,
                 cliente);
 
-        // Instanciação de ItemVenda
+        // =========================================================
+        // ITENS DA VENDA
+        // =========================================================
+
         itemVendaIngresso = new ItemVenda(
                 "Ingresso - INTEIRA",
                 BigDecimal.valueOf(25.00),
@@ -178,20 +210,64 @@ public class VendaServiceTest {
                 null,
                 produto);
 
-        // Vendas com lista mutável
-        venda = new Venda(cliente, FormaPagamento.PIX);
-        ReflectionTestUtils.setField(venda, "id", 100L);
-        ReflectionTestUtils.setField(venda, "status", StatusVenda.PAGA);
-        ReflectionTestUtils.setField(venda, "itens", new ArrayList<>(List.of(itemVendaIngresso)));
+        // =========================================================
+        // VENDA PAGA
+        // =========================================================
 
-        vendaCancelada = new Venda(cliente, FormaPagamento.PIX);
-        ReflectionTestUtils.setField(vendaCancelada, "id", 101L);
-        ReflectionTestUtils.setField(vendaCancelada, "status", StatusVenda.CANCELADA);
-        ReflectionTestUtils.setField(vendaCancelada, "itens", new ArrayList<>(List.of(itemVendaIngresso)));
+        venda = new Venda(
+                cliente,
+                FormaPagamento.PIX);
 
-        // Paginação
-        pageable = PageRequest.of(0, 10);
-        paginaVenda = new PageImpl<>(List.of(venda));
+        ReflectionTestUtils.setField(
+                venda,
+                "id",
+                100L);
+
+        ReflectionTestUtils.setField(
+                venda,
+                "status",
+                StatusVenda.PAGA);
+
+        ReflectionTestUtils.setField(
+                venda,
+                "itens",
+                new ArrayList<>(
+                        List.of(itemVendaIngresso)));
+
+        // =========================================================
+        // VENDA CANCELADA
+        // =========================================================
+
+        vendaCancelada = new Venda(
+                cliente,
+                FormaPagamento.PIX);
+
+        ReflectionTestUtils.setField(
+                vendaCancelada,
+                "id",
+                101L);
+
+        ReflectionTestUtils.setField(
+                vendaCancelada,
+                "status",
+                StatusVenda.CANCELADA);
+
+        ReflectionTestUtils.setField(
+                vendaCancelada,
+                "itens",
+                new ArrayList<>(
+                        List.of(itemVendaIngresso)));
+
+        // =========================================================
+        // PAGINAÇÃO
+        // =========================================================
+
+        pageable = PageRequest.of(
+                0,
+                10);
+
+        paginaVenda = new PageImpl<>(
+                List.of(venda));
     }
 
     // =========================================================================
@@ -199,76 +275,209 @@ public class VendaServiceTest {
     // =========================================================================
 
     @Test
-    @DisplayName("Deve gerar PDF de comprovante de venda com sucesso")
-    void deveGerarPdfComprovanteVendaComSucesso() {
-        when(usuarioService.usuarioLogado()).thenReturn(cliente);
-        when(vendaRepository.findById(100L)).thenReturn(Optional.of(venda));
-        when(vendaMapper.toDTO(venda)).thenReturn(vendaResponseDTO);
+    @DisplayName("Deve gerar PDF de comprovante de venda com sucesso para Cliente")
+    void deveGerarPdfComprovanteVendaComSucessoParaCliente() {
 
-        when(vendaResponseDTO.id()).thenReturn(100L);
-        when(vendaResponseDTO.codigoComprovante()).thenReturn("COMP-12345");
-        when(vendaResponseDTO.cinema()).thenReturn("Cine Poltrona");
-        when(vendaResponseDTO.cliente()).thenReturn("Cliente Teste");
-        when(vendaResponseDTO.dataVenda()).thenReturn(LocalDateTime.now());
-        when(vendaResponseDTO.formaPagamento()).thenReturn(FormaPagamento.PIX);
-        when(vendaResponseDTO.status()).thenReturn(StatusVenda.PAGA);
-        when(vendaResponseDTO.itens()).thenReturn(List.of(itemVendaResponseDTO));
-        when(vendaResponseDTO.valorTotal()).thenReturn(BigDecimal.valueOf(50.00));
+        when(usuarioService.usuarioLogado())
+                .thenReturn(cliente);
 
-        when(itemVendaResponseDTO.quantidade()).thenReturn(2);
-        when(itemVendaResponseDTO.descricao()).thenReturn("Pipoca Grande");
-        when(itemVendaResponseDTO.precoUnitario()).thenReturn(BigDecimal.valueOf(25.00));
+        when(vendaRepository.findById(100L))
+                .thenReturn(Optional.of(venda));
+
+        when(vendaMapper.toDTO(venda))
+                .thenReturn(vendaResponseDTO);
+
+        when(vendaResponseDTO.id())
+                .thenReturn(100L);
+
+        when(vendaResponseDTO.codigoComprovante())
+                .thenReturn("COMP-12345");
+
+        when(vendaResponseDTO.cinema())
+                .thenReturn("Cine Poltrona");
+
+        when(vendaResponseDTO.cliente())
+                .thenReturn("Cliente Teste");
+
+        when(vendaResponseDTO.dataVenda())
+                .thenReturn(LocalDateTime.now());
+
+        when(vendaResponseDTO.formaPagamento())
+                .thenReturn(FormaPagamento.PIX);
+
+        when(vendaResponseDTO.status())
+                .thenReturn(StatusVenda.PAGA);
+
+        when(vendaResponseDTO.itens())
+                .thenReturn(List.of(itemVendaResponseDTO));
+
+        when(vendaResponseDTO.valorTotal())
+                .thenReturn(BigDecimal.valueOf(50.00));
+
+        when(itemVendaResponseDTO.quantidade())
+                .thenReturn(2);
+
+        when(itemVendaResponseDTO.descricao())
+                .thenReturn("Pipoca Grande");
+
+        when(itemVendaResponseDTO.precoUnitario())
+                .thenReturn(BigDecimal.valueOf(25.00));
 
         byte[] pdf = vendaService.gerarPdfComprovanteVenda(100L);
 
-        assertThat(pdf).isNotNull().isNotEmpty();
-        verify(vendaRepository, times(1)).findById(100L);
-        verify(vendaMapper, times(1)).toDTO(venda);
+        assertThat(pdf)
+                .isNotNull()
+                .isNotEmpty();
+
+        verify(vendaRepository, times(1))
+                .findById(100L);
+
+        verify(vendaMapper, times(1))
+                .toDTO(venda);
+    }
+
+    @Test
+    @DisplayName("Deve gerar PDF de comprovante de venda para Admin")
+    void deveGerarPdfComprovanteVendaParaAdmin() {
+
+        when(usuarioService.usuarioLogado())
+                .thenReturn(admin);
+
+        when(vendaRepository.findById(100L))
+                .thenReturn(Optional.of(venda));
+
+        when(vendaMapper.toDTO(venda))
+                .thenReturn(vendaResponseDTO);
+
+        when(vendaResponseDTO.id())
+                .thenReturn(100L);
+
+        when(vendaResponseDTO.codigoComprovante())
+                .thenReturn("COMP-12345");
+
+        when(vendaResponseDTO.cinema())
+                .thenReturn("Cine Poltrona");
+
+        when(vendaResponseDTO.cliente())
+                .thenReturn("Cliente Teste");
+
+        when(vendaResponseDTO.dataVenda())
+                .thenReturn(LocalDateTime.now());
+
+        when(vendaResponseDTO.formaPagamento())
+                .thenReturn(FormaPagamento.PIX);
+
+        when(vendaResponseDTO.status())
+                .thenReturn(StatusVenda.PAGA);
+
+        when(vendaResponseDTO.itens())
+                .thenReturn(List.of(itemVendaResponseDTO));
+
+        when(vendaResponseDTO.valorTotal())
+                .thenReturn(BigDecimal.valueOf(50.00));
+
+        when(itemVendaResponseDTO.quantidade())
+                .thenReturn(1);
+
+        when(itemVendaResponseDTO.descricao())
+                .thenReturn("Ingresso");
+
+        when(itemVendaResponseDTO.precoUnitario())
+                .thenReturn(BigDecimal.valueOf(50.00));
+
+        byte[] pdf = vendaService.gerarPdfComprovanteVenda(100L);
+
+        assertThat(pdf)
+                .isNotNull()
+                .isNotEmpty();
+
+        verify(vendaRepository)
+                .findById(100L);
+
+        verify(vendaMapper)
+                .toDTO(venda);
     }
 
     @Test
     @DisplayName("Deve gerar PDF de comprovante de venda com sucesso quando não houver itens")
     void deveGerarPdfComprovanteVendaQuandoNaoHouverItens() {
-        when(usuarioService.usuarioLogado()).thenReturn(cliente);
-        when(vendaRepository.findById(100L)).thenReturn(Optional.of(venda));
-        when(vendaMapper.toDTO(venda)).thenReturn(vendaResponseDTO);
 
-        when(vendaResponseDTO.id()).thenReturn(100L);
-        when(vendaResponseDTO.codigoComprovante()).thenReturn("COMP-12345");
-        when(vendaResponseDTO.cinema()).thenReturn("Cine Poltrona");
-        when(vendaResponseDTO.cliente()).thenReturn("Cliente Teste");
-        when(vendaResponseDTO.dataVenda()).thenReturn(null);
-        when(vendaResponseDTO.formaPagamento()).thenReturn(FormaPagamento.CARTAO_CREDITO);
-        when(vendaResponseDTO.status()).thenReturn(StatusVenda.PAGA);
-        when(vendaResponseDTO.itens()).thenReturn(null);
-        when(vendaResponseDTO.valorTotal()).thenReturn(BigDecimal.ZERO);
+        when(usuarioService.usuarioLogado())
+                .thenReturn(cliente);
+
+        when(vendaRepository.findById(100L))
+                .thenReturn(Optional.of(venda));
+
+        when(vendaMapper.toDTO(venda))
+                .thenReturn(vendaResponseDTO);
+
+        when(vendaResponseDTO.id())
+                .thenReturn(100L);
+
+        when(vendaResponseDTO.codigoComprovante())
+                .thenReturn("COMP-12345");
+
+        when(vendaResponseDTO.cinema())
+                .thenReturn("Cine Poltrona");
+
+        when(vendaResponseDTO.cliente())
+                .thenReturn("Cliente Teste");
+
+        when(vendaResponseDTO.dataVenda())
+                .thenReturn(null);
+
+        when(vendaResponseDTO.formaPagamento())
+                .thenReturn(FormaPagamento.CARTAO_CREDITO);
+
+        when(vendaResponseDTO.status())
+                .thenReturn(StatusVenda.PAGA);
+
+        when(vendaResponseDTO.itens())
+                .thenReturn(null);
+
+        when(vendaResponseDTO.valorTotal())
+                .thenReturn(BigDecimal.ZERO);
 
         byte[] pdf = vendaService.gerarPdfComprovanteVenda(100L);
 
-        assertThat(pdf).isNotNull().isNotEmpty();
-        verify(vendaRepository, times(1)).findById(100L);
+        assertThat(pdf)
+                .isNotNull()
+                .isNotEmpty();
+
+        verify(vendaRepository, times(1))
+                .findById(100L);
     }
 
     @Test
     @DisplayName("Deve lançar ResourceNotFoundException ao tentar gerar PDF de venda inexistente")
     void deveLancarExcecaoQuandoVendaNaoEncontradaAoGerarPdf() {
-        when(usuarioService.usuarioLogado()).thenReturn(cliente);
-        when(vendaRepository.findById(999L)).thenReturn(Optional.empty());
+
+        when(usuarioService.usuarioLogado())
+                .thenReturn(cliente);
+
+        when(vendaRepository.findById(999L))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> vendaService.gerarPdfComprovanteVenda(999L))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Venda não encontrada de id 999");
+                .hasMessage(
+                        "Venda não encontrada de id 999");
     }
 
     @Test
     @DisplayName("Deve lançar RegraNegocioException ao tentar gerar PDF de venda pertencente a outro cliente")
     void deveLancarExcecaoQuandoVendaNaoPertencerAoClienteLogado() {
-        when(usuarioService.usuarioLogado()).thenReturn(outroCliente);
-        when(vendaRepository.findById(100L)).thenReturn(Optional.of(venda));
+
+        when(usuarioService.usuarioLogado())
+                .thenReturn(outroCliente);
+
+        when(vendaRepository.findById(100L))
+                .thenReturn(Optional.of(venda));
 
         assertThatThrownBy(() -> vendaService.gerarPdfComprovanteVenda(100L))
                 .isInstanceOf(RegraNegocioException.class)
-                .hasMessage("Você não pode baixar uma comprovante de uma venda que não te pertence");
+                .hasMessage(
+                        "Você não pode baixar uma comprovante de uma venda que não te pertence");
     }
 
     // =========================================================================
@@ -278,111 +487,213 @@ public class VendaServiceTest {
     @Test
     @DisplayName("Deve lançar RegraNegocioException quando a lista de ingressos for nula ou vazia")
     void deveLancarExcecaoQuandoNenhumIngressoForSelecionado() {
-        when(vendaRequestSemIngressoDTO.ingressos()).thenReturn(null);
 
-        assertThatThrownBy(() -> vendaService.cadastrar(vendaRequestSemIngressoDTO))
+        when(vendaRequestSemIngressoDTO.ingressos())
+                .thenReturn(null);
+
+        assertThatThrownBy(() -> vendaService.cadastrar(
+                vendaRequestSemIngressoDTO))
                 .isInstanceOf(RegraNegocioException.class)
-                .hasMessage("Nenhum ingresso selecionado");
+                .hasMessage(
+                        "Nenhum ingresso selecionado");
 
-        verify(vendaRepository, never()).save(any());
+        verify(vendaRepository, never())
+                .save(any());
     }
 
     @Test
     @DisplayName("Deve cadastrar venda com sucesso incluindo ingressos e produtos")
     void deveCadastrarVendaComSucessoComIngressosEProdutos() {
-        when(vendaRequestDTO.ingressos()).thenReturn(List.of(ingressoRequestDTO));
-        when(vendaRequestDTO.produtos()).thenReturn(List.of(produtoRequestDTO));
 
-        when(usuarioService.usuarioLogado()).thenReturn(cliente);
-        when(vendaMapper.toEntity(vendaRequestDTO, cliente)).thenReturn(venda);
+        when(vendaRequestDTO.ingressos())
+                .thenReturn(List.of(ingressoRequestDTO));
 
-        when(ingressoService.cadastrar(ingressoRequestDTO)).thenReturn(ingresso);
-        when(itemVendaMapper.toEntityIngresso(any(), anyString())).thenReturn(itemVendaIngresso);
+        when(vendaRequestDTO.produtos())
+                .thenReturn(List.of(produtoRequestDTO));
 
-        when(produtoRequestDTO.id()).thenReturn(5L);
-        when(produtoRequestDTO.quantidade()).thenReturn(2);
-        when(produtoRepository.findById(5L)).thenReturn(Optional.of(produto));
-        when(produtoRepository.reduzirEstoque(5L, 2)).thenReturn(1);
-        when(itemVendaMapper.toEntityProduto(produto, 2)).thenReturn(itemVendaProduto);
+        when(usuarioService.usuarioLogado())
+                .thenReturn(cliente);
 
-        when(vendaRepository.save(venda)).thenReturn(venda);
-        when(vendaMapper.toDTO(venda)).thenReturn(vendaResponseDTO);
+        when(vendaMapper.toEntity(
+                vendaRequestDTO,
+                cliente)).thenReturn(venda);
+
+        when(ingressoService.cadastrar(
+                ingressoRequestDTO)).thenReturn(ingresso);
+
+        when(itemVendaMapper.toEntityIngresso(
+                any(),
+                anyString())).thenReturn(itemVendaIngresso);
+
+        when(produtoRequestDTO.id())
+                .thenReturn(5L);
+
+        when(produtoRequestDTO.quantidade())
+                .thenReturn(2);
+
+        when(produtoRepository.findById(5L))
+                .thenReturn(Optional.of(produto));
+
+        when(produtoRepository.reduzirEstoque(
+                5L,
+                2)).thenReturn(1);
+
+        when(itemVendaMapper.toEntityProduto(
+                produto,
+                2)).thenReturn(itemVendaProduto);
+
+        when(vendaRepository.save(venda))
+                .thenReturn(venda);
+
+        when(vendaMapper.toDTO(venda))
+                .thenReturn(vendaResponseDTO);
 
         VendaResponseDTO resposta = vendaService.cadastrar(vendaRequestDTO);
 
-        assertThat(resposta).isNotNull().isEqualTo(vendaResponseDTO);
-        verify(ingressoService, times(1)).cadastrar(ingressoRequestDTO);
-        verify(produtoRepository, times(1)).reduzirEstoque(5L, 2);
-        verify(vendaRepository, times(1)).save(venda);
+        assertThat(resposta)
+                .isNotNull()
+                .isEqualTo(vendaResponseDTO);
+
+        verify(ingressoService, times(1))
+                .cadastrar(ingressoRequestDTO);
+
+        verify(produtoRepository, times(1))
+                .reduzirEstoque(5L, 2);
+
+        verify(vendaRepository, times(1))
+                .save(venda);
     }
 
     @Test
     @DisplayName("Deve cadastrar venda com sucesso contendo apenas ingressos")
     void deveCadastrarVendaComSucessoApenasComIngressos() {
-        when(vendaRequestApenasIngressoDTO.ingressos()).thenReturn(List.of(ingressoRequestDTO));
-        when(vendaRequestApenasIngressoDTO.produtos()).thenReturn(null);
 
-        when(usuarioService.usuarioLogado()).thenReturn(cliente);
-        when(vendaMapper.toEntity(vendaRequestApenasIngressoDTO, cliente)).thenReturn(venda);
+        when(vendaRequestApenasIngressoDTO.ingressos())
+                .thenReturn(List.of(ingressoRequestDTO));
 
-        when(ingressoService.cadastrar(ingressoRequestDTO)).thenReturn(ingresso);
-        when(itemVendaMapper.toEntityIngresso(any(), anyString())).thenReturn(itemVendaIngresso);
+        when(vendaRequestApenasIngressoDTO.produtos())
+                .thenReturn(null);
 
-        when(vendaRepository.save(venda)).thenReturn(venda);
-        when(vendaMapper.toDTO(venda)).thenReturn(vendaResponseDTO);
+        when(usuarioService.usuarioLogado())
+                .thenReturn(cliente);
 
-        VendaResponseDTO resposta = vendaService.cadastrar(vendaRequestApenasIngressoDTO);
+        when(vendaMapper.toEntity(
+                vendaRequestApenasIngressoDTO,
+                cliente)).thenReturn(venda);
 
-        assertThat(resposta).isNotNull().isEqualTo(vendaResponseDTO);
-        verify(ingressoService, times(1)).cadastrar(ingressoRequestDTO);
-        verify(produtoRepository, never()).findById(any());
-        verify(vendaRepository, times(1)).save(venda);
+        when(ingressoService.cadastrar(
+                ingressoRequestDTO)).thenReturn(ingresso);
+
+        when(itemVendaMapper.toEntityIngresso(
+                any(),
+                anyString())).thenReturn(itemVendaIngresso);
+
+        when(vendaRepository.save(venda))
+                .thenReturn(venda);
+
+        when(vendaMapper.toDTO(venda))
+                .thenReturn(vendaResponseDTO);
+
+        VendaResponseDTO resposta = vendaService.cadastrar(
+                vendaRequestApenasIngressoDTO);
+
+        assertThat(resposta)
+                .isNotNull()
+                .isEqualTo(vendaResponseDTO);
+
+        verify(ingressoService, times(1))
+                .cadastrar(ingressoRequestDTO);
+
+        verify(produtoRepository, never())
+                .findById(any());
+
+        verify(vendaRepository, times(1))
+                .save(venda);
     }
 
     @Test
     @DisplayName("Deve lançar ResourceNotFoundException ao cadastrar venda se produto não for encontrado")
     void deveLancarExcecaoQuandoProdutoNaoEncontradoAoCadastrarVenda() {
-        when(vendaRequestDTO.ingressos()).thenReturn(List.of(ingressoRequestDTO));
-        when(vendaRequestDTO.produtos()).thenReturn(List.of(produtoRequestDTO));
 
-        when(usuarioService.usuarioLogado()).thenReturn(cliente);
-        when(vendaMapper.toEntity(vendaRequestDTO, cliente)).thenReturn(venda);
+        when(vendaRequestDTO.ingressos())
+                .thenReturn(List.of(ingressoRequestDTO));
 
-        when(ingressoService.cadastrar(ingressoRequestDTO)).thenReturn(ingresso);
-        when(itemVendaMapper.toEntityIngresso(any(), anyString())).thenReturn(itemVendaIngresso);
+        when(vendaRequestDTO.produtos())
+                .thenReturn(List.of(produtoRequestDTO));
 
-        when(produtoRequestDTO.id()).thenReturn(5L);
-        when(produtoRepository.findById(5L)).thenReturn(Optional.empty());
+        when(usuarioService.usuarioLogado())
+                .thenReturn(cliente);
+
+        when(vendaMapper.toEntity(
+                vendaRequestDTO,
+                cliente)).thenReturn(venda);
+
+        when(ingressoService.cadastrar(
+                ingressoRequestDTO)).thenReturn(ingresso);
+
+        when(itemVendaMapper.toEntityIngresso(
+                any(),
+                anyString())).thenReturn(itemVendaIngresso);
+
+        when(produtoRequestDTO.id())
+                .thenReturn(5L);
+
+        when(produtoRepository.findById(5L))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> vendaService.cadastrar(vendaRequestDTO))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Produto não encontrado ID: 5");
+                .hasMessage(
+                        "Produto não encontrado ID: 5");
 
-        verify(vendaRepository, never()).save(any());
+        verify(vendaRepository, never())
+                .save(any());
     }
 
     @Test
     @DisplayName("Deve lançar RegraNegocioException ao cadastrar venda se o estoque do produto for insuficiente")
     void deveLancarExcecaoQuandoEstoqueInsuficienteAoCadastrarVenda() {
-        when(vendaRequestDTO.ingressos()).thenReturn(List.of(ingressoRequestDTO));
-        when(vendaRequestDTO.produtos()).thenReturn(List.of(produtoRequestDTO));
 
-        when(usuarioService.usuarioLogado()).thenReturn(cliente);
-        when(vendaMapper.toEntity(vendaRequestDTO, cliente)).thenReturn(venda);
+        when(vendaRequestDTO.ingressos())
+                .thenReturn(List.of(ingressoRequestDTO));
 
-        when(ingressoService.cadastrar(ingressoRequestDTO)).thenReturn(ingresso);
-        when(itemVendaMapper.toEntityIngresso(any(), anyString())).thenReturn(itemVendaIngresso);
+        when(vendaRequestDTO.produtos())
+                .thenReturn(List.of(produtoRequestDTO));
 
-        when(produtoRequestDTO.id()).thenReturn(5L);
-        when(produtoRequestDTO.quantidade()).thenReturn(2);
-        when(produtoRepository.findById(5L)).thenReturn(Optional.of(produto));
-        when(produtoRepository.reduzirEstoque(5L, 2)).thenReturn(0);
+        when(usuarioService.usuarioLogado())
+                .thenReturn(cliente);
+
+        when(vendaMapper.toEntity(
+                vendaRequestDTO,
+                cliente)).thenReturn(venda);
+
+        when(ingressoService.cadastrar(
+                ingressoRequestDTO)).thenReturn(ingresso);
+
+        when(itemVendaMapper.toEntityIngresso(
+                any(),
+                anyString())).thenReturn(itemVendaIngresso);
+
+        when(produtoRequestDTO.id())
+                .thenReturn(5L);
+
+        when(produtoRequestDTO.quantidade())
+                .thenReturn(2);
+
+        when(produtoRepository.findById(5L))
+                .thenReturn(Optional.of(produto));
+
+        when(produtoRepository.reduzirEstoque(
+                5L,
+                2)).thenReturn(0);
 
         assertThatThrownBy(() -> vendaService.cadastrar(vendaRequestDTO))
                 .isInstanceOf(RegraNegocioException.class)
-                .hasMessage("Estoque do produto Pipoca Grande insuficiente");
+                .hasMessage(
+                        "Estoque do produto Pipoca Grande insuficiente");
 
-        verify(vendaRepository, never()).save(any());
+        verify(vendaRepository, never())
+                .save(any());
     }
 
     // =========================================================================
@@ -392,23 +703,34 @@ public class VendaServiceTest {
     @Test
     @DisplayName("Deve buscar venda por id com sucesso")
     void deveBuscarVendaPorIdComSucesso() {
-        when(vendaRepository.findById(100L)).thenReturn(Optional.of(venda));
-        when(vendaMapper.toDTO(venda)).thenReturn(vendaResponseDTO);
+
+        when(vendaRepository.findById(100L))
+                .thenReturn(Optional.of(venda));
+
+        when(vendaMapper.toDTO(venda))
+                .thenReturn(vendaResponseDTO);
 
         VendaResponseDTO resposta = vendaService.buscarPorId(100L);
 
-        assertThat(resposta).isNotNull().isEqualTo(vendaResponseDTO);
-        verify(vendaRepository, times(1)).findById(100L);
+        assertThat(resposta)
+                .isNotNull()
+                .isEqualTo(vendaResponseDTO);
+
+        verify(vendaRepository, times(1))
+                .findById(100L);
     }
 
     @Test
     @DisplayName("Deve lançar ResourceNotFoundException ao buscar venda inexistente por id")
     void deveLancarExcecaoQuandoVendaNaoEncontradaPorId() {
-        when(vendaRepository.findById(999L)).thenReturn(Optional.empty());
+
+        when(vendaRepository.findById(999L))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> vendaService.buscarPorId(999L))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Venda não encontrada de id 999");
+                .hasMessage(
+                        "Venda não encontrada de id 999");
     }
 
     // =========================================================================
@@ -418,16 +740,31 @@ public class VendaServiceTest {
     @Test
     @DisplayName("Deve listar todas as vendas paginadas por id do cliente")
     void deveListarTodasAsVendasPaginadas() {
-        when(vendaRepository.buscarVendas(1L, pageable)).thenReturn(paginaVenda);
-        when(vendaMapper.toDTO(venda)).thenReturn(vendaResponseDTO);
 
-        Page<VendaResponseDTO> resposta = vendaService.listarTodas(1L, pageable);
+        when(vendaRepository.buscarVendas(
+                1L,
+                pageable)).thenReturn(paginaVenda);
 
-        assertThat(resposta).isNotNull();
-        assertThat(resposta.getContent()).hasSize(1);
-        assertThat(resposta.getContent().get(0)).isEqualTo(vendaResponseDTO);
+        when(vendaMapper.toDTO(venda))
+                .thenReturn(vendaResponseDTO);
 
-        verify(vendaRepository, times(1)).buscarVendas(1L, pageable);
+        Page<VendaResponseDTO> resposta = vendaService.listarTodas(
+                1L,
+                pageable);
+
+        assertThat(resposta)
+                .isNotNull();
+
+        assertThat(resposta.getContent())
+                .hasSize(1);
+
+        assertThat(resposta.getContent().get(0))
+                .isEqualTo(vendaResponseDTO);
+
+        verify(vendaRepository, times(1))
+                .buscarVendas(
+                        1L,
+                        pageable);
     }
 
     // =========================================================================
@@ -437,34 +774,50 @@ public class VendaServiceTest {
     @Test
     @DisplayName("Deve cancelar venda com sucesso e cancelar seus ingressos")
     void deveCancelarVendaComSucesso() {
-        when(vendaRepository.findById(100L)).thenReturn(Optional.of(venda));
-        when(vendaMapper.toDTO(venda)).thenReturn(vendaResponseDTO);
+
+        when(vendaRepository.findById(100L))
+                .thenReturn(Optional.of(venda));
+
+        when(vendaMapper.toDTO(venda))
+                .thenReturn(vendaResponseDTO);
 
         VendaResponseDTO resposta = vendaService.cancelar(100L);
 
-        assertThat(resposta).isNotNull().isEqualTo(vendaResponseDTO);
-        assertThat(venda.getStatus()).isEqualTo(StatusVenda.CANCELADA);
-        verify(vendaRepository, times(1)).findById(100L);
+        assertThat(resposta)
+                .isNotNull()
+                .isEqualTo(vendaResponseDTO);
+
+        assertThat(venda.getStatus())
+                .isEqualTo(StatusVenda.CANCELADA);
+
+        verify(vendaRepository, times(1))
+                .findById(100L);
     }
 
     @Test
     @DisplayName("Deve lançar ResourceNotFoundException ao tentar cancelar venda inexistente")
     void deveLancarExcecaoQuandoVendaNaoEncontradaAoCancelar() {
-        when(vendaRepository.findById(999L)).thenReturn(Optional.empty());
+
+        when(vendaRepository.findById(999L))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> vendaService.cancelar(999L))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Venda não encontrada de id 999");
+                .hasMessage(
+                        "Venda não encontrada de id 999");
     }
 
     @Test
     @DisplayName("Deve lançar RegraNegocioException ao tentar cancelar uma venda que já está cancelada")
     void deveLancarExcecaoQuandoVendaJaEstiverCancelada() {
-        when(vendaRepository.findById(101L)).thenReturn(Optional.of(vendaCancelada));
+
+        when(vendaRepository.findById(101L))
+                .thenReturn(Optional.of(vendaCancelada));
 
         assertThatThrownBy(() -> vendaService.cancelar(101L))
                 .isInstanceOf(RegraNegocioException.class)
-                .hasMessage("Esta venda já se encontra cancelada.");
+                .hasMessage(
+                        "Esta venda já se encontra cancelada.");
     }
 
     // =========================================================================
@@ -474,17 +827,34 @@ public class VendaServiceTest {
     @Test
     @DisplayName("Deve listar as vendas paginadas pertencentes ao cliente logado")
     void deveListarVendasDoClienteLogado() {
-        when(usuarioService.usuarioLogado()).thenReturn(cliente);
-        when(vendaRepository.findByCliente(cliente, pageable)).thenReturn(paginaVenda);
-        when(vendaMapper.toDTO(venda)).thenReturn(vendaResponseDTO);
+
+        when(usuarioService.usuarioLogado())
+                .thenReturn(cliente);
+
+        when(vendaRepository.findByCliente(
+                cliente,
+                pageable)).thenReturn(paginaVenda);
+
+        when(vendaMapper.toDTO(venda))
+                .thenReturn(vendaResponseDTO);
 
         Page<VendaResponseDTO> resposta = vendaService.me(pageable);
 
-        assertThat(resposta).isNotNull();
-        assertThat(resposta.getContent()).hasSize(1);
-        assertThat(resposta.getContent().get(0)).isEqualTo(vendaResponseDTO);
+        assertThat(resposta)
+                .isNotNull();
 
-        verify(usuarioService, times(1)).usuarioLogado();
-        verify(vendaRepository, times(1)).findByCliente(cliente, pageable);
+        assertThat(resposta.getContent())
+                .hasSize(1);
+
+        assertThat(resposta.getContent().get(0))
+                .isEqualTo(vendaResponseDTO);
+
+        verify(usuarioService, times(1))
+                .usuarioLogado();
+
+        verify(vendaRepository, times(1))
+                .findByCliente(
+                        cliente,
+                        pageable);
     }
 }

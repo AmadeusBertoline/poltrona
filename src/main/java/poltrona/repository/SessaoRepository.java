@@ -38,4 +38,6 @@ public interface SessaoRepository extends JpaRepository<Sessao, Long> {
       """)
   Page<Sessao> buscarComFiltros(@Param("filtro") SessaoFiltroDTO filtro, Pageable pageable);
 
+  boolean existsBySalaId(Long id);
+
 }

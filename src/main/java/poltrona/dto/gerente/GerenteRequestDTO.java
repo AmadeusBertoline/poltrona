@@ -4,6 +4,7 @@ import poltrona.dto.usuario.UsuarioRequestDTO;
 
 public record GerenteRequestDTO (
 
-    UsuarioRequestDTO usuario
+    UsuarioRequestDTO usuario,
+    Long cinemaId
 
 ){}

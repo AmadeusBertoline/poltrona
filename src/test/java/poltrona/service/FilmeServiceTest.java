@@ -77,7 +77,7 @@ public class FilmeServiceTest {
                 ClassificacaoIndicativa.DEZESSEIS_ANOS,
                 Set.of(FormatoFilme.DUAS_D));
 
-        // Instanciação utilizando o construtor público de negócio da Entidade
+
         filmeSemId = new Filme(
                 filmeRequestDTO.titulo(),
                 filmeRequestDTO.sinopse(),
@@ -101,7 +101,6 @@ public class FilmeServiceTest {
                 filmeRequestDTO.imagePath(),
                 filmeRequestDTO.classificacaoIndicativa(),
                 filmeRequestDTO.formatos());
-        // Reflection do ID restrita a simular a geração pelo banco de dados (IDENTITY)
         ReflectionTestUtils.setField(filmeSalvo, "id", 1L);
 
         filmeResponseDTO = new FilmeResponseDTO(

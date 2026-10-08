@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "gerentes")
-@Getter 
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Gerente extends Usuario {
 
@@ -20,8 +20,9 @@ public class Gerente extends Usuario {
     @JoinColumn(nullable = false)
     private Cinema cinema;
 
-    public Gerente(String nome, String email, String senha, String cpf, LocalDate dataNascimento) {
+    public Gerente(String nome, String email, String senha, String cpf, LocalDate dataNascimento, Cinema cinema) {
         super(nome, email, senha, cpf, dataNascimento);
+        this.cinema = cinema;
     }
 
 }

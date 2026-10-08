@@ -48,7 +48,7 @@ public class CinemaController {
 
     @Operation(summary = "Listar todos os cinemas", description = "Lista todos os cinemas de forma paginada com suporte a filtros de busca")
     @GetMapping
-    public ResponseEntity<Page<CinemaResponseDTO>> listarTodos(CinemaFiltroDTO filtro,
+    public ResponseEntity<Page<CinemaResponseDTO>> listarTodos(@ParameterObject CinemaFiltroDTO filtro,
            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao") Pageable pageable) {
 
         Page<CinemaResponseDTO> lista = cinemaService.listarTodos(filtro, pageable);
@@ -60,7 +60,7 @@ public class CinemaController {
     @Operation(summary = "Meus cinemas", description = "Lista os cinemas vinculados ao usuário/admin autenticado de forma paginada")
     @GetMapping("/me")
     public ResponseEntity<Page<CinemaResponseDTO>> me(
-            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
+            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<CinemaResponseDTO> cinema = cinemaService.me(pageable);
 

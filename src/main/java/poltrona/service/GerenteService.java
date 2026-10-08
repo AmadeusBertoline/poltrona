@@ -2,6 +2,7 @@ package poltrona.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,12 +13,15 @@ import poltrona.dto.gerente.GerenteRequestDTO;
 import poltrona.dto.gerente.GerenteResponseDTO;
 import poltrona.dto.usuario.AtualizaSenhaRequestDTO;
 import poltrona.entity.Gerente;
+import poltrona.entity.Proprietario;
 import poltrona.enums.usuario.StatusConta;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceAlreadyExistsException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.GerenteMapper;
+import poltrona.repository.CinemaRepository;
 import poltrona.repository.GerenteRepository;
+import poltrona.entity.Cinema;
 
 @Service
 public class GerenteService {
@@ -26,17 +30,26 @@ public class GerenteService {
     private final UsuarioService usuarioService;
     private final GerenteMapper gerenteMapper;
     private final PasswordEncoder passwordEncoder;
+    private final CinemaRepository cinemaRepository;
 
     public GerenteService(GerenteRepository gerenteRepository, UsuarioService usuarioService,
-            GerenteMapper gerenteMapper, PasswordEncoder passwordEncoder) {
+            GerenteMapper gerenteMapper, PasswordEncoder passwordEncoder, CinemaRepository cinemaRepository) {
         this.gerenteRepository = gerenteRepository;
         this.usuarioService = usuarioService;
         this.gerenteMapper = gerenteMapper;
         this.passwordEncoder = passwordEncoder;
+        this.cinemaRepository = cinemaRepository;
     }
 
     @Transactional
     public GerenteResponseDTO cadastrar(GerenteRequestDTO dto) {
+
+        Proprietario proprietario = (Proprietario) usuarioService.usuarioLogado();
+
+        Cinema cinema = cinemaRepository.findByIdAndProprietarioId(dto.cinemaId(),
+                proprietario.getId())
+                .orElseThrow(() -> new AccessDeniedException(
+                        "Você não pode cadastrar gerentes em cinemas que não te pertencem"));
 
         if (gerenteRepository.existsByCpf(dto.usuario().cpf())) {
             throw new ResourceAlreadyExistsException("Já existe uma conta com este CPF");
@@ -52,7 +65,7 @@ public class GerenteService {
 
         String senha = passwordEncoder.encode(dto.usuario().senha());
 
-        Gerente gerente = gerenteMapper.toEntity(dto, senha);
+        Gerente gerente = gerenteMapper.toEntity(dto, senha, cinema);
 
         Gerente salvo = gerenteRepository.save(gerente);
 

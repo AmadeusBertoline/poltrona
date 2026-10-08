@@ -60,7 +60,7 @@ public class FilmeController {
     @Operation(summary = "Listar filmes", description = "Lista todos os filmes de forma paginada com suporte a filtros de busca")
     @GetMapping
     public ResponseEntity<Page<FilmeResponseDTO>> listar(
-            FilmeFiltroDTO filtro,
+            @ParameterObject FilmeFiltroDTO filtro,
             @ParameterObject @PageableDefault(page = 0, size = 10, sort = "titulo", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<FilmeResponseDTO> lista = filmeService.listarParaClientes(filtro, pageable);

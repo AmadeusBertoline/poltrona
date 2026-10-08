@@ -67,13 +67,15 @@ public class IngressoService {
     @Transactional(readOnly = true)
     public byte[] gerarPdfIngresso(Long id) {
 
-        Cliente cliente = (Cliente) usuarioService.usuarioLogado();
+        Usuario usuario = usuarioService.usuarioLogado();
 
         Ingresso ingresso = ingressoRepository.findById(id)
                 .orElseThrow((() -> new ResourceNotFoundException("Ingresso não encontrado de id " + id)));
 
-        if (!ingresso.getUsuario().getId().equals(cliente.getId())) {
-            throw new RegraNegocioException("Você não pode baixar um ingresso que não te pertence");
+        if (usuario instanceof Cliente) {
+            if (!ingresso.getUsuario().getId().equals(usuario.getId())) {
+                throw new RegraNegocioException("Você não pode baixar um ingresso que não te pertence");
+            }
         }
 
         IngressoResponseDTO dto = ingressoMapper.toDTO(ingresso);

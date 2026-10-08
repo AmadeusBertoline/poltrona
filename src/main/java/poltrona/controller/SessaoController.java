@@ -60,7 +60,7 @@ public class SessaoController {
     @Operation(summary = "Listar sessões", description = "Lista as sessões cadastradas de forma paginada com suporte a filtros dinâmicos (ex: por filme, sala, cinema ou data)")
     @GetMapping
     public ResponseEntity<RespostaPaginadaDTO<SessaoResponseDTO>> listar(
-            SessaoFiltroDTO filtro,
+            @ParameterObject SessaoFiltroDTO filtro,
             @ParameterObject 
             @PageableDefault(page = 0, size = 10, sort = "dataHoraInicio", direction = Sort.Direction.ASC) Pageable pageable) {
 

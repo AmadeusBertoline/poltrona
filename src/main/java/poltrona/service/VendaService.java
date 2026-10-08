@@ -76,13 +76,16 @@ public class VendaService {
     @Transactional(readOnly = true)
     public byte[] gerarPdfComprovanteVenda(Long id) {
 
-        Cliente cliente = (Cliente) usuarioService.usuarioLogado();
+        Usuario usuario = usuarioService.usuarioLogado();
 
         Venda venda = vendaRepository.findById(id)
                 .orElseThrow((() -> new ResourceNotFoundException("Venda não encontrada de id " + id)));
 
-        if (!venda.getCliente().getId().equals(cliente.getId())) {
-            throw new RegraNegocioException("Você não pode baixar uma comprovante de uma venda que não te pertence");
+        if (usuario instanceof Cliente) {
+            if (!venda.getCliente().getId().equals(usuario.getId())) {
+                throw new RegraNegocioException(
+                        "Você não pode baixar uma comprovante de uma venda que não te pertence");
+            }
         }
 
         VendaResponseDTO dto = vendaMapper.toDTO(venda);
@@ -165,7 +168,7 @@ public class VendaService {
         return out.toByteArray();
     }
 
-    @Transactional 
+    @Transactional
     public VendaResponseDTO cadastrar(VendaRequestDTO dto) {
 
         if (dto.ingressos() == null || dto.ingressos().isEmpty()) {

@@ -4,6 +4,7 @@ import poltrona.dto.usuario.UsuarioResponseDTO;
 
 public record GerenteResponseDTO (
 
-    UsuarioResponseDTO usuario
+    UsuarioResponseDTO usuario,
+    String cinema
 
 ){}

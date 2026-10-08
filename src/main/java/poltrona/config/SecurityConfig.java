@@ -42,16 +42,22 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // INGRESSOS
-                        .requestMatchers(HttpMethod.GET, "/ingressos/*", "/ingressos/**").hasAuthority("CLIENTE")
-                        .requestMatchers(HttpMethod.DELETE, "/ingressos/*").hasAuthority("CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/ingressos")
+                        .hasAnyAuthority("ADMIN", "GERENTE", "PROPRIETARIO")
+                        .requestMatchers(HttpMethod.GET, "/ingressos/meus")
+                        .hasAuthority("CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/ingressos/*/download")
+                        .hasAnyAuthority("ADMIN", "GERENTE", "PROPRIETARIO", "CLIENTE")
+                        .requestMatchers(HttpMethod.DELETE, "/ingressos/*")
+                        .hasAuthority("CLIENTE")
 
                         // GERENTES
                         .requestMatchers(HttpMethod.POST, "/gerentes").hasAuthority("PROPRIETARIO")
-                        .requestMatchers(HttpMethod.GET, "/gerentes").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.GET, "/gerentes").hasAuthority("ADMIN")
                         .requestMatchers("/gerentes/me").hasAuthority("GERENTE")
                         .requestMatchers(HttpMethod.PATCH, "/gerentes", "/gerentes/*").hasAuthority("GERENTE")
                         .requestMatchers(HttpMethod.DELETE, "/gerentes").hasAuthority("GERENTE")
-                        .requestMatchers(HttpMethod.GET, "/gerentes/*").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.GET, "/gerentes/*").hasAnyAuthority("PROPRIETARIO", "ADMIN")
 
                         // AUTH
                         .requestMatchers("/auth/**").permitAll()
@@ -69,7 +75,8 @@ public class SecurityConfig {
 
                         // PROPRIETARIOS
                         .requestMatchers(HttpMethod.POST, "/proprietarios").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/proprietarios").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/proprietarios/me").hasAuthority("PROPRIETARIO")
+                        .requestMatchers(HttpMethod.GET, "/proprietarios/*", "/proprietarios").hasAuthority("ADMIN")
                         .requestMatchers("/proprietarios/**").hasAuthority("PROPRIETARIO")
 
                         // POLTRONAS
@@ -113,8 +120,11 @@ public class SecurityConfig {
                         .requestMatchers("/produtos/**").hasAnyAuthority("PROPRIETARIO", "GERENTE")
 
                         // VENDAS
-                        .requestMatchers(HttpMethod.GET, "/vendas").hasAuthority("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/vendas/*").hasAnyAuthority("ADMIN", "CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/vendas/me").hasAuthority("CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/vendas/*/download")
+                        .hasAnyAuthority("ADMIN", "PROPRIETARIO", "GERENTE", "CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/vendas/*", "/vendas")
+                        .hasAnyAuthority("ADMIN", "PROPRIETARIO", "GERENTE")
                         .requestMatchers("/vendas", "/vendas/**").hasAuthority("CLIENTE")
 
                         .anyRequest().authenticated())

@@ -90,7 +90,7 @@ public class PrecoController {
     @Operation(summary = "Buscar preços por cinema", description = "Lista as configurações de preços vinculadas a um cinema específico de forma paginada")
     @GetMapping("/cinema/{cinemaId}")
     public ResponseEntity<Page<PrecoResponseDTO>> buscarPorCinema(@PathVariable Long cinemaId,
-            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
+            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<PrecoResponseDTO> precos = precoService.buscarPorCinema(cinemaId, pageable);
 

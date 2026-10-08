@@ -1,8 +1,10 @@
 package poltrona.enums.filme;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum GeneroFilme {
+
     ACAO("Ação"),
     AVENTURA("Aventura"),
     COMEDIA("Comédia"),
@@ -27,5 +29,18 @@ public enum GeneroFilme {
     @JsonValue
     public String getDescricao() {
         return descricao;
+    }
+
+    @JsonCreator
+    public static GeneroFilme fromDescricao(String descricao) {
+        for (GeneroFilme genero : values()) {
+            if (genero.descricao.equalsIgnoreCase(descricao)) {
+                return genero;
+            }
+        }
+
+        throw new IllegalArgumentException(
+                "Gênero de filme inválido: " + descricao
+        );
     }
 }

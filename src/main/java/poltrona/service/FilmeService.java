@@ -3,8 +3,11 @@ package poltrona.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -135,7 +138,8 @@ public class FilmeService {
         }
 
         @Transactional(readOnly = true)
-        public Page<FilmeResponseDTO> listarParaClientes(FilmeFiltroDTO filtro, Pageable pageable) {
+        public Page<FilmeResponseDTO> listarParaClientes(@ParameterObject FilmeFiltroDTO filtro,
+                        @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
 
                 return filmeRepository.buscarComFiltrosCliente(filtro, pageable).map(filmeMapper::toDTO);
 

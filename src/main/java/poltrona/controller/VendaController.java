@@ -54,8 +54,7 @@ public class VendaController {
     @GetMapping
     public ResponseEntity<Page<VendaResponseDTO>> listarTodas(
             @RequestParam(required = false) Long clienteId,
-            @ParameterObject 
-            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.DESC) Pageable pageable) {
+            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<VendaResponseDTO> vendas = vendaService.listarTodas(clienteId, pageable);
 
@@ -66,7 +65,7 @@ public class VendaController {
     @Operation(summary = "Minhas compras", description = "Retorna o histórico de compras paginado do cliente atualmente autenticado")
     @GetMapping("/me")
     public ResponseEntity<Page<VendaResponseDTO>> me(
-            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
+            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<VendaResponseDTO> compras = vendaService.me(pageable);
 

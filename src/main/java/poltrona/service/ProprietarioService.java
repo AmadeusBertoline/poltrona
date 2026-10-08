@@ -139,7 +139,7 @@ public class ProprietarioService {
     public ProprietarioResponseDTO buscarPorId(Long id) {
 
         Proprietario proprietario = proprietarioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Proprietario n~]ao encontrado de id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Proprietario não encontrado de id " + id));
 
         return proprietarioMapper.toDTO(proprietario);
 
