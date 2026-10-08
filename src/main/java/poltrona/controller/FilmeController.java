@@ -2,7 +2,6 @@ package poltrona.controller;
 
 import java.util.List;
 
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -18,18 +17,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import poltrona.controller.doc.FilmeControllerDoc;
 import poltrona.dto.filme.FilmeFiltroDTO;
 import poltrona.dto.filme.FilmeRequestDTO;
 import poltrona.dto.filme.FilmeResponseDTO;
 import poltrona.service.FilmeService;
 
-@Tag(name = "Filmes", description = "Gerenciamento de filmes")
 @RestController
 @RequestMapping("/filmes")
-public class FilmeController {
+public class FilmeController implements FilmeControllerDoc {
 
     private final FilmeService filmeService;
 
@@ -37,66 +34,54 @@ public class FilmeController {
         this.filmeService = filmeService;
     }
 
-    @Operation(summary = "Cadastrar filme", description = "Cadastra um novo filme no sistema")
+    @Override
     @PostMapping
     public ResponseEntity<FilmeResponseDTO> cadastrar(@RequestBody @Valid FilmeRequestDTO dto) {
-
         FilmeResponseDTO filme = filmeService.cadastrar(dto);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(filme);
-
     }
 
-    @Operation(summary = "Cadastrar filmes em lote", description = "Cadastra múltiplos filmes de uma só vez através de uma lista")
+    @Override
     @PostMapping("/lote")
     public ResponseEntity<List<FilmeResponseDTO>> cadastrarEmLote(@RequestBody List<@Valid FilmeRequestDTO> dtos) {
-
         List<FilmeResponseDTO> salvos = filmeService.cadastrarEmLote(dtos);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(salvos);
-
     }
 
-    @Operation(summary = "Listar filmes", description = "Lista todos os filmes de forma paginada com suporte a filtros de busca")
+    @Override
     @GetMapping
     public ResponseEntity<Page<FilmeResponseDTO>> listar(
-            @ParameterObject FilmeFiltroDTO filtro,
-            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "titulo", direction = Sort.Direction.ASC) Pageable pageable) {
-
+            FilmeFiltroDTO filtro,
+            @PageableDefault(page = 0, size = 10, sort = "titulo", direction = Sort.Direction.ASC) Pageable pageable) {
         Page<FilmeResponseDTO> lista = filmeService.listarParaClientes(filtro, pageable);
-
         return ResponseEntity.ok(lista);
-
     }
 
-    @Operation(summary = "Atualizar filme", description = "Atualiza os dados de um filme existente pelo seu ID")
-    @PatchMapping("/{id}")
-    public ResponseEntity<FilmeResponseDTO> atualizar(@PathVariable Long id, @Valid @RequestBody FilmeRequestDTO dto) {
-
-        FilmeResponseDTO filme = filmeService.atualizar(id, dto);
-
-        return ResponseEntity.status(HttpStatus.OK).body(filme);
-
-    }
-
-    @Operation(summary = "Deletar filme", description = "Remove um filme do sistema pelo seu ID")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-
-        filmeService.deletar(id);
-
-        return ResponseEntity.noContent().build();
-
-    }
-
-    @Operation(summary = "Buscar filme por ID", description = "Busca as informações detalhadas de um filme pelo seu identificador")
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<FilmeResponseDTO> buscarPorId(@PathVariable Long id) {
-
         FilmeResponseDTO filme = filmeService.buscarPorId(id);
-
         return ResponseEntity.status(HttpStatus.OK).body(filme);
-
     }
 
+    @Override
+    @PatchMapping("/{id}")
+    public ResponseEntity<FilmeResponseDTO> atualizar(@PathVariable Long id, @Valid @RequestBody FilmeRequestDTO dto) {
+        FilmeResponseDTO filme = filmeService.atualizar(id, dto);
+        return ResponseEntity.status(HttpStatus.OK).body(filme);
+    }
+
+    @Override
+    @PatchMapping("/{id}/inativar")
+    public ResponseEntity<Void> inativar(@PathVariable Long id) {
+        filmeService.inativar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        filmeService.deletar(id);
+        return ResponseEntity.noContent().build();
+    }
 }

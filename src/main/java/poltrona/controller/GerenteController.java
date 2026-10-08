@@ -1,6 +1,5 @@
 package poltrona.controller;
 
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -15,19 +14,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.validation.Valid;
+import poltrona.controller.doc.GerenteControllerDoc;
 import poltrona.dto.gerente.AtualizaGerenteRequestDTO;
 import poltrona.dto.gerente.GerenteRequestDTO;
 import poltrona.dto.gerente.GerenteResponseDTO;
 import poltrona.dto.usuario.AtualizaSenhaRequestDTO;
 import poltrona.service.GerenteService;
 
-@Tag(name = "Gerentes", description = "Gerenciamento de gerentes")
 @RestController
 @RequestMapping("/gerentes")
-public class GerenteController {
+public class GerenteController implements GerenteControllerDoc {
 
     private final GerenteService gerenteService;
 
@@ -35,75 +33,53 @@ public class GerenteController {
         this.gerenteService = gerenteService;
     }
 
-    @Operation(summary = "Cadastrar gerente", description = "Cadastra um novo gerente no sistema")
+    @Override
     @PostMapping
     public ResponseEntity<GerenteResponseDTO> cadastrar(@Valid @RequestBody GerenteRequestDTO dto) {
-
         GerenteResponseDTO gerente = gerenteService.cadastrar(dto);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(gerente);
-
     }
 
-    @Operation(summary = "Listar todos os gerentes", description = "Lista todos os gerentes cadastrados de forma paginada")
+    @Override
     @GetMapping
     public ResponseEntity<Page<GerenteResponseDTO>> listarTodos(
-            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
-
+            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
         Page<GerenteResponseDTO> gerentes = gerenteService.listarTodos(pageable);
-
-        return ResponseEntity.status(HttpStatus.OK).body(gerentes);
-
+        return ResponseEntity.ok(gerentes);
     }
 
-    @Operation(summary = "Meus dados de gerente", description = "Retorna os dados do gerente autenticado")
+    @Override
     @GetMapping("/me")
     public ResponseEntity<GerenteResponseDTO> me() {
-
         GerenteResponseDTO gerente = gerenteService.me();
-
-        return ResponseEntity.status(HttpStatus.OK).body(gerente);
-
+        return ResponseEntity.ok(gerente);
     }
 
-    @Operation(summary = "Atualizar gerente", description = "Atualiza os dados cadastrais do gerente autenticado")
+    @Override
     @PatchMapping
     public ResponseEntity<GerenteResponseDTO> atualizar(@Valid @RequestBody AtualizaGerenteRequestDTO dto) {
-
         GerenteResponseDTO gerente = gerenteService.atualizar(dto);
-
-        return ResponseEntity.status(HttpStatus.OK).body(gerente);
-
+        return ResponseEntity.ok(gerente);
     }
 
-    @Operation(summary = "Atualizar senha", description = "Atualiza a senha do gerente autenticado")
+    @Override
     @PatchMapping("/senha")
     public ResponseEntity<Void> atualizarSenha(@Valid @RequestBody AtualizaSenhaRequestDTO dto) {
-
         gerenteService.atualizarSenha(dto);
-
         return ResponseEntity.noContent().build();
-
     }
 
-    @Operation(summary = "Encerrar conta", description = "O gerente autenticado encerra sua própria conta no sistema")
+    @Override
     @DeleteMapping
     public ResponseEntity<Void> encerrar() {
-
         gerenteService.encerrar();
-
         return ResponseEntity.noContent().build();
-
     }
 
-    @Operation(summary = "Buscar gerente por ID", description = "Busca os dados de um gerente específico pelo identificador")
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<GerenteResponseDTO> buscarPorId(@PathVariable Long id) {
-
         GerenteResponseDTO gerente = gerenteService.buscarPorId(id);
-
-        return ResponseEntity.status(HttpStatus.OK).body(gerente);
-
+        return ResponseEntity.ok(gerente);
     }
-
 }

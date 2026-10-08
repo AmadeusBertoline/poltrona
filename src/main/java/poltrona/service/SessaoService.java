@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import poltrona.dto.page.RespostaPaginadaDTO;
 import poltrona.dto.poltrona.MapaPoltronasResponseDTO;
 import poltrona.dto.poltrona.PoltronaStatusDTO;
@@ -67,7 +68,6 @@ public class SessaoService {
         @CacheEvict(value = "sessoes", allEntries = true)
         @Transactional
         public SessaoResponseDTO cadastrar(SessaoRequestDTO dto) {
-
                 Sala sala = buscarSalaEValidarAcesso(dto.idSala());
 
                 Filme filme = filmeRepository.findById(dto.idFilme())
@@ -89,8 +89,7 @@ public class SessaoService {
                 }
 
                 Sessao sessao = sessaoMapper.toEntity(dto, filme, sala, preco);
-
-                int tempoLimpeza = sala.getCinema().getPoliticaOperacional().getIntervaloLimpezaMinutos();
+                int tempoLimpeza = obterTempoLimpeza(sala);
 
                 boolean conflito = sessaoRepository.existeConflitoDeHorario(
                                 sala.getId(),
@@ -104,7 +103,6 @@ public class SessaoService {
                 }
 
                 Sessao cadastrada = sessaoRepository.save(sessao);
-
                 return sessaoMapper.toDTO(cadastrada);
         }
 
@@ -121,33 +119,29 @@ public class SessaoService {
         @Cacheable(value = "sessaoPorId", key = "#id")
         @Transactional(readOnly = true)
         public SessaoResponseDTO buscarPorId(Long id) {
-
-                Sessao sessao = buscarSessaoEValidarAcesso(id);
+                Sessao sessao = sessaoRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada de id " + id));
 
                 return sessaoMapper.toDTO(sessao);
-
         }
 
         @CacheEvict(value = { "sessoes", "sessaoPorId" }, key = "#id", allEntries = true)
         @Transactional
         public void deletar(Long id) {
-
                 Sessao sessao = buscarSessaoEValidarAcesso(id);
-
                 long ingressosVendidos = ingressoRepository.countBySessaoId(sessao.getId());
 
                 sessao.permiteExclusao(ingressosVendidos);
-
                 sessaoRepository.delete(sessao);
-
         }
 
         @Transactional(readOnly = true)
         public MapaPoltronasResponseDTO obterMapaPoltronas(Long sessaoId) {
-                Sessao sessao = buscarSessaoEValidarAcesso(sessaoId);
+                Sessao sessao = sessaoRepository.findById(sessaoId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Sessão não encontrada de id " + sessaoId));
 
                 List<Poltrona> poltronasDaSala = poltronaRepository.findBySalaId(sessao.getSala().getId());
-
                 Set<Long> poltronasOcupadasIds = ingressoRepository.findPoltronaIdsBySessaoId(sessaoId);
 
                 List<PoltronaStatusDTO> poltronasStatus = poltronasDaSala.stream()
@@ -160,7 +154,7 @@ public class SessaoService {
                 return new MapaPoltronasResponseDTO(sessao.getId(), sessao.getSala().getId(), poltronasStatus);
         }
 
-        @CacheEvict(value = "sessoes")
+        @CacheEvict(value = "sessoes", allEntries = true)
         @Transactional
         public List<SessaoResponseDTO> cadastrarGrade(GradeSessaoRequestDTO dto) {
                 Filme filme = filmeRepository.findById(dto.filmeId())
@@ -169,33 +163,37 @@ public class SessaoService {
                 Sala sala = buscarSalaEValidarAcesso(dto.salaId());
 
                 Preco preco = precoRepository.findByCinemaIdAndFormato(sala.getCinema().getId(), dto.formato())
-                                .orElseThrow(
-                                                () -> new RegraNegocioException(
-                                                                "Cinema sem preço cadastrado para o formato "
-                                                                                + dto.formato()));
+                                .orElseThrow(() -> new RegraNegocioException(
+                                                "Cinema sem preço cadastrado para o formato " + dto.formato()));
 
                 List<Sessao> sessoesParaSalvar = new ArrayList<>();
-                int tempoLimpezaMinutos = sala.getCinema().getPoliticaOperacional().getIntervaloLimpezaMinutos();
+                int tempoLimpezaMinutos = obterTempoLimpeza(sala);
 
                 LocalDate dataAtual = dto.dataInicio();
                 while (!dataAtual.isAfter(dto.dataFim())) {
 
                         for (LocalTime horario : dto.horarios()) {
                                 LocalDateTime inicio = LocalDateTime.of(dataAtual, horario);
-                                LocalDateTime fim = inicio.plusMinutes(filme.getDuracaoMinutos() + tempoLimpezaMinutos);
+                                LocalDateTime fimComLimpeza = inicio
+                                                .plusMinutes(filme.getDuracaoMinutos() + tempoLimpezaMinutos);
 
                                 boolean conflitoNoBanco = sessaoRepository.existeConflitoDeHorario(sala.getId(), null,
-                                                inicio, fim);
+                                                inicio, fimComLimpeza);
 
                                 boolean conflitoNaGrade = sessoesParaSalvar.stream()
-                                                .anyMatch(s -> inicio.isBefore(s.getDataHoraFim())
-                                                                && fim.isAfter(s.getDataHoraInicio()));
+                                                .anyMatch(s -> {
+                                                        LocalDateTime inicioSessaoExistente = s.getDataHoraInicio();
+                                                        LocalDateTime fimSessaoExistenteComLimpeza = s.getDataHoraFim()
+                                                                        .plusMinutes(tempoLimpezaMinutos);
+                                                        return inicio.isBefore(fimSessaoExistenteComLimpeza)
+                                                                        && fimComLimpeza.isAfter(inicioSessaoExistente);
+                                                });
 
                                 if (conflitoNoBanco || conflitoNaGrade) {
                                         throw new RegraNegocioException(
                                                         String.format("Conflito de horário na sala %s em %s entre %s e %s",
                                                                         sala.getNumero(), dataAtual, horario,
-                                                                        fim.toLocalTime()));
+                                                                        fimComLimpeza.toLocalTime()));
                                 }
 
                                 Sessao sessao = new Sessao(inicio, filme, sala, dto.formato(), preco, null);
@@ -209,13 +207,12 @@ public class SessaoService {
                 return sessoesSalvas.stream().map(sessaoMapper::toDTO).toList();
         }
 
-        @CacheEvict(value = { "sessoes", "sessoesPorId" }, key = "#id", allEntries = true)
+        @CacheEvict(value = { "sessoes", "sessaoPorId" }, key = "#id", allEntries = true)
         @Transactional
         public SessaoResponseDTO atualizar(Long id, AtualizaSessaoRequestDTO dto) {
                 Sessao sessao = buscarSessaoEValidarAcesso(id);
 
                 long ingressosVendidos = ingressoRepository.countBySessaoId(sessao.getId());
-
                 sessao.validarPermiteAlteracao(ingressosVendidos);
 
                 if (dto.filmeId() != null) {
@@ -233,11 +230,15 @@ public class SessaoService {
                         sessao.alterarHorario(dto.dataHoraInicio());
                 }
 
-                sessao.alterarPreco(dto.preco());
-                sessao.alterarFormato(dto.formato());
+                if (dto.preco() != null) {
+                        sessao.alterarPreco(dto.preco());
+                }
 
-                int tempoLimpeza = sessao.getSala().getCinema().getPoliticaOperacional().getIntervaloLimpezaMinutos();
+                if (dto.formato() != null) {
+                        sessao.alterarFormato(dto.formato());
+                }
 
+                int tempoLimpeza = obterTempoLimpeza(sessao.getSala());
                 LocalDateTime inicioParaValidacao = dto.dataHoraInicio() != null ? dto.dataHoraInicio()
                                 : sessao.getDataHoraInicio();
 
@@ -253,6 +254,13 @@ public class SessaoService {
                 }
 
                 return sessaoMapper.toDTO(sessao);
+        }
+
+        private int obterTempoLimpeza(Sala sala) {
+                if (sala.getCinema().getPoliticaOperacional() != null) {
+                        return sala.getCinema().getPoliticaOperacional().getIntervaloLimpezaMinutos();
+                }
+                return 15; // Intervalo padrão de segurança em minutos
         }
 
         private Sala buscarSalaEValidarAcesso(Long salaId) {

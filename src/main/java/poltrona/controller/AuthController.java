@@ -6,8 +6,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import poltrona.controller.doc.AuthControllerDoc;
 import poltrona.dto.login.LoginRequestDTO;
 import poltrona.dto.login.LoginResponseDTO;
 import poltrona.service.AuthService;
@@ -15,7 +16,7 @@ import poltrona.service.AuthService;
 @Tag(name = "Auth", description = "Autenticação/login de usuários do sistema")
 @RestController
 @RequestMapping("/auth")
-public class AuthController {
+public class AuthController implements AuthControllerDoc {
 
     private final AuthService authService;
 
@@ -23,9 +24,9 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @Operation(summary = "Login", description = "Autentica um usuário")
+    @Override
     @PostMapping
-    public ResponseEntity<LoginResponseDTO> logar(@RequestBody LoginRequestDTO dto) {
+    public ResponseEntity<LoginResponseDTO> logar(@Valid @RequestBody LoginRequestDTO dto) {
 
         LoginResponseDTO login = authService.logar(dto);
 

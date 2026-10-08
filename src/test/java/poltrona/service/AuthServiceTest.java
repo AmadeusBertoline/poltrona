@@ -28,7 +28,6 @@ import poltrona.dto.login.LoginResponseDTO;
 import poltrona.entity.Admin;
 import poltrona.entity.Usuario;
 import poltrona.enums.usuario.StatusConta;
-import poltrona.exception.ResourceNotFoundException;
 import poltrona.repository.UsuarioRepository;
 import poltrona.security.JwtService;
 
@@ -102,7 +101,7 @@ public class AuthServiceTest {
         }
 
         @Test
-        @DisplayName("Deve lançar ResourceNotFoundException quando o usuário não for encontrado ou não estiver ativo")
+        @DisplayName("Deve lançar BadCredentialsException quando o usuário não for encontrado ou não estiver ativo")
         void deveLancarExcecaoQuandoUsuarioNaoEncontradoOuInativo() {
                 // ARRANGE
                 when(usuarioRepository.findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA))
@@ -110,7 +109,7 @@ public class AuthServiceTest {
 
                 // ACT & ASSERT
                 assertThatThrownBy(() -> authService.logar(loginRequestDTO))
-                                .isInstanceOf(ResourceNotFoundException.class)
+                                .isInstanceOf(BadCredentialsException.class)
                                 .hasMessage("Usuário ou senha inválidos");
 
                 verify(usuarioRepository, times(1)).findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(),

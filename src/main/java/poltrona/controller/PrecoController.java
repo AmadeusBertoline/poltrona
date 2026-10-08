@@ -16,18 +16,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import poltrona.controller.doc.PrecoControllerDoc;
 import poltrona.dto.preco.AtualizaPrecoRequestDTO;
 import poltrona.dto.preco.PrecoRequestDTO;
 import poltrona.dto.preco.PrecoResponseDTO;
 import poltrona.service.PrecoService;
 
-@Tag(name = "Preços", description = "Gerenciamento e consulta da tabela de preços de ingressos")
 @RestController
 @RequestMapping("/precos")
-public class PrecoController {
+public class PrecoController implements PrecoControllerDoc {
 
     private final PrecoService precoService;
 
@@ -35,67 +33,50 @@ public class PrecoController {
         this.precoService = precoService;
     }
 
-    @Operation(summary = "Cadastrar preço", description = "Cadastra uma nova configuração de preço no sistema")
+    @Override
     @PostMapping
     public ResponseEntity<PrecoResponseDTO> cadastrar(@Valid @RequestBody PrecoRequestDTO dto) {
-
         PrecoResponseDTO preco = precoService.cadastrar(dto);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(preco);
-
     }
 
-    @Operation(summary = "Listar todos os preços", description = "Lista todas as configurações de preços cadastradas de forma paginada")
+    @Override
     @GetMapping
     public ResponseEntity<Page<PrecoResponseDTO>> listarTodos(
             @ParameterObject @PageableDefault(page = 0, size = 10, sort = "valor", direction = Sort.Direction.ASC) Pageable pageable) {
-
         Page<PrecoResponseDTO> precos = precoService.listarTodos(pageable);
-
-        return ResponseEntity.status(HttpStatus.OK).body(precos);
-
+        return ResponseEntity.ok(precos);
     }
 
-    @Operation(summary = "Atualizar preço", description = "Atualiza os valores ou regras de um preço existente pelo ID")
+    @Override
     @PatchMapping("/{id}")
-    public ResponseEntity<PrecoResponseDTO> atualizar(@PathVariable Long id,
+    public ResponseEntity<PrecoResponseDTO> atualizar(
+            @PathVariable Long id,
             @Valid @RequestBody AtualizaPrecoRequestDTO dto) {
-
         PrecoResponseDTO preco = precoService.atualizar(id, dto);
-
-        return ResponseEntity.status(HttpStatus.OK).body(preco);
-
+        return ResponseEntity.ok(preco);
     }
 
-    @Operation(summary = "Desativar preço", description = "Desativa uma configuração de preço pelo seu ID (Soft Delete), preservando o histórico de ingressos e sessões antigas")
+    @Override
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
-
         precoService.desativar(id);
-
         return ResponseEntity.noContent().build();
-
     }
 
-    @Operation(summary = "Buscar preço por ID", description = "Busca os detalhes de uma configuração de preço específica pelo seu identificador")
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<PrecoResponseDTO> buscarPorId(@PathVariable Long id) {
-
         PrecoResponseDTO preco = precoService.buscarPorId(id);
-
-        return ResponseEntity.status(HttpStatus.OK).body(preco);
-
+        return ResponseEntity.ok(preco);
     }
 
-    @Operation(summary = "Buscar preços por cinema", description = "Lista as configurações de preços vinculadas a um cinema específico de forma paginada")
+    @Override
     @GetMapping("/cinema/{cinemaId}")
-    public ResponseEntity<Page<PrecoResponseDTO>> buscarPorCinema(@PathVariable Long cinemaId,
+    public ResponseEntity<Page<PrecoResponseDTO>> buscarPorCinema(
+            @PathVariable Long cinemaId,
             @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
-
         Page<PrecoResponseDTO> precos = precoService.buscarPorCinema(cinemaId, pageable);
-
-        return ResponseEntity.status(HttpStatus.OK).body(precos);
-
+        return ResponseEntity.ok(precos);
     }
-
 }

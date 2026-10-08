@@ -16,19 +16,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import poltrona.controller.doc.ProprietarioControllerDoc;
 import poltrona.dto.proprietario.AtualizaProprietarioRequestDTO;
 import poltrona.dto.proprietario.ProprietarioRequestDTO;
 import poltrona.dto.proprietario.ProprietarioResponseDTO;
 import poltrona.dto.usuario.AtualizaSenhaRequestDTO;
 import poltrona.service.ProprietarioService;
 
-@Tag(name = "Proprietários", description = "Gerenciamento e consulta de perfis de proprietários de cinemas")
 @RestController
 @RequestMapping("/proprietarios")
-public class ProprietarioController {
+public class ProprietarioController implements ProprietarioControllerDoc {
 
     private final ProprietarioService proprietarioService;
 
@@ -36,75 +34,53 @@ public class ProprietarioController {
         this.proprietarioService = proprietarioService;
     }
 
-    @Operation(summary = "Cadastrar proprietário", description = "Cadastra um novo proprietário de cinema no sistema")
+    @Override
     @PostMapping
     public ResponseEntity<ProprietarioResponseDTO> cadastrar(@Valid @RequestBody ProprietarioRequestDTO dto) {
-
         ProprietarioResponseDTO proprietario = proprietarioService.cadastrar(dto);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(proprietario);
-
     }
 
-    @Operation(summary = "Listar todos os proprietários", description = "Lista todos os proprietários cadastrados de forma paginada")
+    @Override
     @GetMapping
-    public ResponseEntity<Page<ProprietarioResponseDTO>> listarTodos(@ParameterObject 
-            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
-
+    public ResponseEntity<Page<ProprietarioResponseDTO>> listarTodos(
+            @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.ASC) Pageable pageable) {
         Page<ProprietarioResponseDTO> proprietarios = proprietarioService.listarTodos(pageable);
-
-        return ResponseEntity.status(HttpStatus.OK).body(proprietarios);
-
+        return ResponseEntity.ok(proprietarios);
     }
 
-    @Operation(summary = "Meus dados de proprietário", description = "Retorna os dados do proprietário autenticado")
+    @Override
     @GetMapping("/me")
     public ResponseEntity<ProprietarioResponseDTO> me() {
-
         ProprietarioResponseDTO proprietario = proprietarioService.me();
-
-        return ResponseEntity.status(HttpStatus.OK).body(proprietario);
-
+        return ResponseEntity.ok(proprietario);
     }
 
-    @Operation(summary = "Buscar proprietário por ID", description = "Busca os detalhes de um proprietário específico pelo seu identificador")
+    @Override
     @GetMapping("/{id}")
     public ResponseEntity<ProprietarioResponseDTO> buscarPorId(@PathVariable Long id) {
-
         ProprietarioResponseDTO proprietario = proprietarioService.buscarPorId(id);
-
-        return ResponseEntity.status(HttpStatus.OK).body(proprietario);
-
+        return ResponseEntity.ok(proprietario);
     }
 
-    @Operation(summary = "Atualizar proprietário", description = "Atualiza os dados cadastrais do proprietário autenticado")
+    @Override
     @PatchMapping
     public ResponseEntity<ProprietarioResponseDTO> atualizar(@Valid @RequestBody AtualizaProprietarioRequestDTO dto) {
-
         ProprietarioResponseDTO response = proprietarioService.atualizar(dto);
-
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-
+        return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Atualizar senha", description = "Atualiza a senha do proprietário autenticado")
+    @Override
     @PatchMapping("/senha")
     public ResponseEntity<Void> atualizarSenha(@Valid @RequestBody AtualizaSenhaRequestDTO dto) {
-
         proprietarioService.atualizarSenha(dto);
-
         return ResponseEntity.noContent().build();
-
     }
 
-    @Operation(summary = "Encerrar conta", description = "O proprietário autenticado encerra sua própria conta no sistema")
+    @Override
     @DeleteMapping
     public ResponseEntity<Void> encerrar() {
-
         proprietarioService.encerrar();
-
         return ResponseEntity.noContent().build();
-
     }
-
 }
