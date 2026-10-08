@@ -1,6 +1,8 @@
 package poltrona.controller.doc;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -18,5 +20,5 @@ public interface AuthControllerDoc {
             @ApiResponse(responseCode = "400", description = "Campos da requisição inválidos (ex: e-mail em formato incorreto ou senha em branco)"),
             @ApiResponse(responseCode = "401", description = "Usuário ou senha inválidos")
     })
-    ResponseEntity<LoginResponseDTO> logar(@Valid LoginRequestDTO dto);
+    ResponseEntity<LoginResponseDTO> logar(@Valid @RequestBody LoginRequestDTO dto);
 }
