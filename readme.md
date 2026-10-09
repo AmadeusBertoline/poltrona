@@ -30,9 +30,9 @@ O foco do projeto é a **consistência de dados sob concorrência**: dois client
 
 ## 📹 Apresentação do Projeto
 
-[![Assista à apresentação no YouTube](https://img.youtube.com/vi/SEU_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=SEU_VIDEO_ID "Clique para assistir")
+[![Assistir Apresentação no YouTube](https://img.shields.io/badge/YouTube-Assistir_Apresentação-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=SEU_VIDEO_ID)
 
-> 💡 *Clique na imagem acima para assistir ao vídeo de apresentação da aplicação no YouTube.*
+> 💡 *Clique no botão acima para assistir à demonstração em vídeo do projeto.*
 
 
 ## 📑 Sumário
