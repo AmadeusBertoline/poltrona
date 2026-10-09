@@ -4,8 +4,6 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-.env
-
 ### STS ###
 .apt_generated
 .classpath
@@ -34,4 +32,13 @@ build/
 ### VS Code ###
 .vscode/
 
-application-local.properties
+
+### Segredos / ambiente ###
+.env
+.env.*
+!.env.example
+
+### Sistema operacional / logs ###
+.DS_Store
+Thumbs.db
+*.log
