@@ -28,7 +28,7 @@ O foco do projeto é a **consistência de dados sob concorrência**: dois client
 
 ---
 
-## 📹 Apresentação do Projeto
+## 📹 Apresentação do Projeto (RESUMIDA AO FLUXO PRINCIPAL)
 
 [![Assistir Apresentação no YouTube](https://img.shields.io/badge/YouTube-Assistir_Apresentação-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=AZDOz4xqvSI)
 
