@@ -1,0 +1,1 @@
+ALTER TABLE precos ADD CONSTRAINT uk_cinema_formato UNIQUE (cinema_id, formato);

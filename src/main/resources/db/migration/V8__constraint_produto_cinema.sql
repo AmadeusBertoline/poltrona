@@ -1,0 +1,1 @@
+ALTER TABLE produtos ADD CONSTRAINT uk_produtos_cinema_nome UNIQUE (cinema_id, nome);

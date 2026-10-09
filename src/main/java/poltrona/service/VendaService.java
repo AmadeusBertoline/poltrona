@@ -3,11 +3,14 @@ package poltrona.service;
 import java.io.ByteArrayOutputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
@@ -20,6 +23,7 @@ import com.lowagie.text.Image;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.PdfWriter;
+
 import poltrona.dto.ingresso.IngressoRequestDTO;
 import poltrona.dto.produto.ProdutoRequestDTO;
 import poltrona.dto.venda.VendaRequestDTO;
@@ -179,7 +183,12 @@ public class VendaService {
         Venda venda = vendaMapper.toEntity(dto, cliente);
         List<ItemVenda> itens = new ArrayList<>();
 
-        for (IngressoRequestDTO ingressoDto : dto.ingressos()) {
+        // ordenar ingressos (o cadastro de ingressos bloqueia poltronas)
+        List<IngressoRequestDTO> ingressosOrdenados = dto.ingressos().stream()
+                .sorted(Comparator.comparing(IngressoRequestDTO::idPoltrona))
+                .toList();
+
+        for (IngressoRequestDTO ingressoDto : ingressosOrdenados) {
             Ingresso ingresso = ingressoService.cadastrar(ingressoDto);
 
             ItemVenda itemIngresso = itemVendaMapper.toEntityIngresso(
@@ -188,22 +197,29 @@ public class VendaService {
             itens.add(itemIngresso);
         }
 
+        // ordenar produtos antes de dar update no banco
         if (dto.produtos() != null && !dto.produtos().isEmpty()) {
 
-            for (ProdutoRequestDTO produtoDto : dto.produtos()) {
+            List<ProdutoRequestDTO> produtosOrdenados = dto.produtos().stream()
+                    .sorted(Comparator.comparing(ProdutoRequestDTO::id))
+                    .toList();
 
-                Produto produto = produtoRepository.findById(produtoDto.id())
-                        .orElseThrow(() -> new ResourceNotFoundException(
-                                "Produto não encontrado ID: " + produtoDto.id()));
+            for (ProdutoRequestDTO produtoDto : produtosOrdenados) {
 
                 int linhasAfetadas = produtoRepository.reduzirEstoque(
                         produtoDto.id(),
                         produtoDto.quantidade());
 
                 if (linhasAfetadas == 0) {
+                    Produto produto = produtoRepository.findById(produtoDto.id())
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                    "Produto não encontrado ID: " + produtoDto.id()));
+
                     throw new RegraNegocioException(
                             "Estoque do produto " + produto.getNome() + " insuficiente");
                 }
+
+                Produto produto = produtoRepository.getReferenceById(produtoDto.id());
 
                 ItemVenda itemProduto = itemVendaMapper.toEntityProduto(
                         produto,

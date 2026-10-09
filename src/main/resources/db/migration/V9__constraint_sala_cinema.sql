@@ -1,0 +1,1 @@
+ALTER TABLE salas ADD CONSTRAINT uk_sala_numero_cinema UNIQUE (numero, cinema_id);

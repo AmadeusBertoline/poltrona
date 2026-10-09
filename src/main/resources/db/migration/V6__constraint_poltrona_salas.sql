@@ -1,0 +1,1 @@
+ALTER TABLE poltronas ADD CONSTRAINT uk_poltronas_salas UNIQUE (sala_id, fileira, coluna);

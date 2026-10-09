@@ -27,7 +27,8 @@ public interface FilmeControllerDoc {
                         @ApiResponse(responseCode = "403", description = "Acesso proibido"),
                         @ApiResponse(responseCode = "409", description = "Conflito: filme já cadastrado no catálogo com este título e ano de lançamento")
         })
-        ResponseEntity<FilmeResponseDTO> cadastrar(FilmeRequestDTO dto);
+        ResponseEntity<FilmeResponseDTO> cadastrar(
+                        @Valid FilmeRequestDTO dto);
 
         @Operation(summary = "Cadastrar filmes em lote", description = "Cadastra múltiplos filmes de uma só vez através de uma lista")
         @ApiResponses({
@@ -63,7 +64,9 @@ public interface FilmeControllerDoc {
                         @ApiResponse(responseCode = "404", description = "Filme não encontrado para o ID informado"),
                         @ApiResponse(responseCode = "409", description = "Conflito: já existe outro filme cadastrado com este título e data de lançamento")
         })
-        ResponseEntity<FilmeResponseDTO> atualizar(Long id, FilmeRequestDTO dto);
+        ResponseEntity<FilmeResponseDTO> atualizar(
+                        Long id,
+                        @Valid FilmeRequestDTO dto);
 
         @Operation(summary = "Inativar filme", description = "Inativa um filme no catálogo do sistema. Não é permitido se o filme já estiver inativo ou possuir sessões futuras agendadas.")
         @ApiResponses({

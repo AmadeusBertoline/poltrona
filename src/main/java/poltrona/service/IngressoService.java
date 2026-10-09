@@ -3,6 +3,7 @@ package poltrona.service;
 import org.springframework.security.access.AccessDeniedException;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -70,11 +71,13 @@ public class IngressoService {
         Usuario usuario = usuarioService.usuarioLogado();
 
         Ingresso ingresso = ingressoRepository.findById(id)
-                .orElseThrow((() -> new ResourceNotFoundException("Ingresso não encontrado de id " + id)));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Ingresso não encontrado de id " + id));
 
         if (usuario instanceof Cliente) {
             if (!ingresso.getUsuario().getId().equals(usuario.getId())) {
-                throw new RegraNegocioException("Você não pode baixar um ingresso que não te pertence");
+                throw new RegraNegocioException(
+                        "Você não pode baixar um ingresso que não te pertence");
             }
         }
 
@@ -91,29 +94,60 @@ public class IngressoService {
             Font fonteSubtitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
             Font fonteTexto = FontFactory.getFont(FontFactory.HELVETICA, 10);
 
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+            String inicioSessaoFormatado = dto.inicioSessao().format(formatter);
+
             Paragraph titulo = new Paragraph("CINE POLTRONA", fonteTitulo);
             titulo.setAlignment(Element.ALIGN_CENTER);
             document.add(titulo);
 
-            Paragraph divisor = new Paragraph("--------------------------------------------------", fonteTexto);
+            Paragraph divisor = new Paragraph(
+                    "--------------------------------------------------",
+                    fonteTexto);
             divisor.setAlignment(Element.ALIGN_CENTER);
             document.add(divisor);
 
-            document.add(new Paragraph("Cinema: " + dto.cinema(), fonteSubtitulo));
-            document.add(new Paragraph("Filme: " + dto.tituloFilme(), fonteSubtitulo));
-            document.add(new Paragraph("Sala: " + dto.sala(), fonteTexto));
-            document.add(new Paragraph("Sessão: " + dto.inicioSessao(), fonteTexto));
-            document.add(new Paragraph("Tipo da sessão: " + dto.tipo(), fonteTexto));
-            document.add(new Paragraph("Poltrona: " + dto.fileira() + dto.coluna(), fonteSubtitulo));
-            document.add(new Paragraph("Tipo Poltrona: " + dto.tipoPoltrona(), fonteSubtitulo));
-            document.add(new Paragraph("Preço: R$ " + dto.preco(), fonteTexto));
-            document.add(new Paragraph("Cliente: " + dto.cliente(), fonteTexto));
-            document.add(new Paragraph("Código do Ingresso: " + dto.id(), fonteTexto));
-            document.add(new Paragraph("Endereço: " + dto.endereco(), fonteTexto));
+            document.add(new Paragraph(
+                    "Cinema: " + dto.cinema(), fonteSubtitulo));
 
-            String conteudoQrCode = "POLTRONA-INGRESSO-ID:" + dto.id() + "-CLIENTE:" + dto.cliente();
+            document.add(new Paragraph(
+                    "Filme: " + dto.tituloFilme(), fonteSubtitulo));
+
+            document.add(new Paragraph(
+                    "Sala: " + dto.sala(), fonteTexto));
+
+            document.add(new Paragraph(
+                    "Sessão: " + inicioSessaoFormatado, fonteTexto));
+
+            document.add(new Paragraph(
+                    "Tipo da sessão: " + dto.tipo(), fonteTexto));
+
+            document.add(new Paragraph(
+                    "Poltrona: " + dto.fileira() + dto.coluna(),
+                    fonteSubtitulo));
+
+            document.add(new Paragraph(
+                    "Tipo Poltrona: " + dto.tipoPoltrona(),
+                    fonteSubtitulo));
+
+            document.add(new Paragraph(
+                    "Preço: R$ " + dto.preco(), fonteTexto));
+
+            document.add(new Paragraph(
+                    "Cliente: " + dto.cliente(), fonteTexto));
+
+            document.add(new Paragraph(
+                    "Código do Ingresso: " + dto.id(), fonteTexto));
+
+            document.add(new Paragraph(
+                    "Endereço: " + dto.endereco(), fonteTexto));
+
+            String conteudoQrCode = "POLTRONA-INGRESSO-ID:" + dto.id()
+                    + "-CLIENTE:" + dto.cliente();
 
             byte[] qrCodeBytes = gerarQrCodeImage(conteudoQrCode, 120, 120);
+
             Image qrCodeImage = Image.getInstance(qrCodeBytes);
             qrCodeImage.setAlignment(Element.ALIGN_CENTER);
 
@@ -121,8 +155,10 @@ public class IngressoService {
             document.add(qrCodeImage);
 
             document.close();
+
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar PDF do ingresso", e);
+            throw new RuntimeException(
+                    "Erro ao gerar PDF do ingresso", e);
         }
 
         return out.toByteArray();

@@ -36,9 +36,14 @@ public class FilmeController implements FilmeControllerDoc {
 
     @Override
     @PostMapping
-    public ResponseEntity<FilmeResponseDTO> cadastrar(@RequestBody @Valid FilmeRequestDTO dto) {
+    public ResponseEntity<FilmeResponseDTO> cadastrar(
+            @RequestBody @Valid FilmeRequestDTO dto) {
+
         FilmeResponseDTO filme = filmeService.cadastrar(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(filme);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(filme);
     }
 
     @Override
@@ -58,35 +63,50 @@ public class FilmeController implements FilmeControllerDoc {
     public ResponseEntity<Page<FilmeResponseDTO>> listar(
             FilmeFiltroDTO filtro,
             @PageableDefault(page = 0, size = 10, sort = "titulo", direction = Sort.Direction.ASC) Pageable pageable) {
+
         Page<FilmeResponseDTO> lista = filmeService.listarParaClientes(filtro, pageable);
+
         return ResponseEntity.ok(lista);
     }
 
     @Override
     @GetMapping("/{id}")
-    public ResponseEntity<FilmeResponseDTO> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<FilmeResponseDTO> buscarPorId(
+            @PathVariable Long id) {
+
         FilmeResponseDTO filme = filmeService.buscarPorId(id);
-        return ResponseEntity.status(HttpStatus.OK).body(filme);
+
+        return ResponseEntity.ok(filme);
     }
 
     @Override
     @PatchMapping("/{id}")
-    public ResponseEntity<FilmeResponseDTO> atualizar(@PathVariable Long id, @Valid @RequestBody FilmeRequestDTO dto) {
+    public ResponseEntity<FilmeResponseDTO> atualizar(
+            @PathVariable Long id,
+            @RequestBody @Valid FilmeRequestDTO dto) {
+
         FilmeResponseDTO filme = filmeService.atualizar(id, dto);
-        return ResponseEntity.status(HttpStatus.OK).body(filme);
+
+        return ResponseEntity.ok(filme);
     }
 
     @Override
     @PatchMapping("/{id}/inativar")
-    public ResponseEntity<Void> inativar(@PathVariable Long id) {
+    public ResponseEntity<Void> inativar(
+            @PathVariable Long id) {
+
         filmeService.inativar(id);
+
         return ResponseEntity.noContent().build();
     }
 
     @Override
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+    public ResponseEntity<Void> deletar(
+            @PathVariable Long id) {
+
         filmeService.deletar(id);
+
         return ResponseEntity.noContent().build();
     }
 }

@@ -260,7 +260,7 @@ public class SessaoService {
                 if (sala.getCinema().getPoliticaOperacional() != null) {
                         return sala.getCinema().getPoliticaOperacional().getIntervaloLimpezaMinutos();
                 }
-                return 15; // Intervalo padrão de segurança em minutos
+                return 15; 
         }
 
         private Sala buscarSalaEValidarAcesso(Long salaId) {

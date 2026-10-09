@@ -17,9 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import poltrona.controller.doc.SessaoControllerDoc;
 import poltrona.dto.page.RespostaPaginadaDTO;
 import poltrona.dto.poltrona.MapaPoltronasResponseDTO;
 import poltrona.dto.sessao.AtualizaSessaoRequestDTO;
@@ -29,10 +28,9 @@ import poltrona.dto.sessao.SessaoRequestDTO;
 import poltrona.dto.sessao.SessaoResponseDTO;
 import poltrona.service.SessaoService;
 
-@Tag(name = "Sessões", description = "Gerenciamento e consulta de sessões de exibição nos cinemas")
 @RestController
 @RequestMapping("/sessoes")
-public class SessaoController {
+public class SessaoController implements SessaoControllerDoc {
 
     private final SessaoService sessaoService;
 
@@ -40,55 +38,79 @@ public class SessaoController {
         this.sessaoService = sessaoService;
     }
 
-    @Operation(summary = "Cadastrar sessão", description = "Cadastra uma nova sessão individual para exibição de um filme em uma sala específica")
+    @Override
     @PostMapping
-    public ResponseEntity<SessaoResponseDTO> cadastrar(@Valid @RequestBody SessaoRequestDTO dto) {
+    public ResponseEntity<SessaoResponseDTO> cadastrar(
+            @Valid @RequestBody SessaoRequestDTO dto) {
+
         SessaoResponseDTO sessao = sessaoService.cadastrar(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(sessao);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(sessao);
     }
 
-    @Operation(summary = "Cadastrar grade de sessões", description = "Gera e cadastra múltiplas sessões em lote para um intervalo de dias e horários")
+    @Override
     @PostMapping("/grade")
-    public ResponseEntity<List<SessaoResponseDTO>> cadastrarGrade(@Valid @RequestBody GradeSessaoRequestDTO dto) {
+    public ResponseEntity<List<SessaoResponseDTO>> cadastrarGrade(
+            @Valid @RequestBody GradeSessaoRequestDTO dto) {
+
         List<SessaoResponseDTO> sessoes = sessaoService.cadastrarGrade(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(sessoes);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(sessoes);
     }
 
-    @Operation(summary = "Listar sessões", description = "Lista as sessões cadastradas de forma paginada com suporte a filtros dinâmicos")
+    @Override
     @GetMapping
     public ResponseEntity<RespostaPaginadaDTO<SessaoResponseDTO>> listar(
             @ParameterObject SessaoFiltroDTO filtro,
             @ParameterObject @PageableDefault(page = 0, size = 10, sort = "dataHoraInicio", direction = Sort.Direction.ASC) Pageable pageable) {
+
         RespostaPaginadaDTO<SessaoResponseDTO> pagina = sessaoService.listar(filtro, pageable);
+
         return ResponseEntity.ok(pagina);
     }
 
-    @Operation(summary = "Buscar sessão por ID", description = "Busca as informações detalhadas de uma sessão específica pelo seu identificador")
+    @Override
     @GetMapping("/{id}")
-    public ResponseEntity<SessaoResponseDTO> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<SessaoResponseDTO> buscarPorId(
+            @PathVariable Long id) {
+
         SessaoResponseDTO sessao = sessaoService.buscarPorId(id);
+
         return ResponseEntity.ok(sessao);
     }
 
-    @Operation(summary = "Obter mapa de poltronas", description = "Retorna o mapa de ocupação das poltronas da sala para uma sessão")
+    @Override
     @GetMapping("/{id}/mapa-poltronas")
-    public ResponseEntity<MapaPoltronasResponseDTO> obterMapaPoltronas(@PathVariable Long id) {
+    public ResponseEntity<MapaPoltronasResponseDTO> obterMapaPoltronas(
+            @PathVariable Long id) {
+
         MapaPoltronasResponseDTO mapa = sessaoService.obterMapaPoltronas(id);
+
         return ResponseEntity.ok(mapa);
     }
 
-    @Operation(summary = "Atualizar sessão", description = "Atualiza os dados de uma sessão existente")
+    @Override
     @PutMapping("/{id}")
-    public ResponseEntity<SessaoResponseDTO> atualizar(@PathVariable Long id,
+    public ResponseEntity<SessaoResponseDTO> atualizar(
+            @PathVariable Long id,
             @Valid @RequestBody AtualizaSessaoRequestDTO dto) {
+
         SessaoResponseDTO sessao = sessaoService.atualizar(id, dto);
+
         return ResponseEntity.ok(sessao);
     }
 
-    @Operation(summary = "Deletar sessão", description = "Remove uma sessão do sistema pelo seu ID")
+    @Override
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+    public ResponseEntity<Void> deletar(
+            @PathVariable Long id) {
+
         sessaoService.deletar(id);
+
         return ResponseEntity.noContent().build();
     }
 }
