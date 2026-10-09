@@ -289,7 +289,7 @@ public class SessaoService {
         private Sessao buscarSessaoEValidarAcesso(Long id) {
                 Usuario usuario = usuarioService.usuarioLogado();
 
-                Sessao sessao = sessaoRepository.findById(id)
+                Sessao sessao = sessaoRepository.findByIdWithLock(id)
                                 .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada de id " + id));
 
                 if (usuario instanceof Proprietario proprietario) {

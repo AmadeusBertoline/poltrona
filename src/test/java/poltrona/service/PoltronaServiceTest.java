@@ -289,7 +289,7 @@ class PoltronaServiceTest {
         void deveAtualizarTipoPoltronaComSucesso() {
 
                 // Arrange
-                when(poltronaRepository.findById(1000L))
+                when(poltronaRepository.findByIdWithLock(1000L))
                                 .thenReturn(Optional.of(poltronaAtiva));
 
                 when(usuarioService.usuarioLogado())
@@ -327,7 +327,7 @@ class PoltronaServiceTest {
         void deveLancarExcecaoQuandoTipoForIgual() {
 
                 // Arrange
-                when(poltronaRepository.findById(1000L))
+                when(poltronaRepository.findByIdWithLock(1000L))
                                 .thenReturn(Optional.of(poltronaAtiva));
 
                 when(usuarioService.usuarioLogado())
@@ -349,7 +349,7 @@ class PoltronaServiceTest {
         void deveLancarExcecaoAoAtualizarTipoComIngressosFuturos() {
 
                 // Arrange
-                when(poltronaRepository.findById(1000L))
+                when(poltronaRepository.findByIdWithLock(1000L))
                                 .thenReturn(Optional.of(poltronaAtiva));
 
                 when(usuarioService.usuarioLogado())
@@ -381,7 +381,7 @@ class PoltronaServiceTest {
         void deveDesativarPoltronaComSucesso() {
 
                 // Arrange
-                when(poltronaRepository.findById(1000L))
+                when(poltronaRepository.findByIdWithLock(1000L))
                                 .thenReturn(Optional.of(poltronaAtiva));
 
                 when(usuarioService.usuarioLogado())
@@ -408,7 +408,7 @@ class PoltronaServiceTest {
         void deveLancarExcecaoAoDesativarPoltronaJaInativa() {
 
                 // Arrange
-                when(poltronaRepository.findById(1001L))
+                when(poltronaRepository.findByIdWithLock(1001L))
                                 .thenReturn(Optional.of(poltronaInativa));
 
                 when(usuarioService.usuarioLogado())
@@ -429,7 +429,7 @@ class PoltronaServiceTest {
         void deveLancarExcecaoAoDesativarPoltronaComIngressosFuturos() {
 
                 // Arrange
-                when(poltronaRepository.findById(1000L))
+                when(poltronaRepository.findByIdWithLock(1000L))
                                 .thenReturn(Optional.of(poltronaAtiva));
 
                 when(usuarioService.usuarioLogado())
@@ -455,7 +455,7 @@ class PoltronaServiceTest {
         void deveAlterarStatusParaInativoComSucesso() {
 
                 // Arrange
-                when(poltronaRepository.findById(1000L))
+                when(poltronaRepository.findByIdWithLock(1000L))
                                 .thenReturn(Optional.of(poltronaAtiva));
 
                 when(usuarioService.usuarioLogado())
@@ -491,7 +491,7 @@ class PoltronaServiceTest {
         void deveAtivarPoltronaComSucesso() {
 
                 // Arrange
-                when(poltronaRepository.findById(1001L))
+                when(poltronaRepository.findByIdWithLock(1001L))
                                 .thenReturn(Optional.of(poltronaInativa));
 
                 when(usuarioService.usuarioLogado())
@@ -684,7 +684,7 @@ class PoltronaServiceTest {
         void deveLancarExcecaoParaProprietarioDeOutroCinema() {
 
                 // Arrange
-                when(poltronaRepository.findById(1000L))
+                when(poltronaRepository.findByIdWithLock(1000L))
                                 .thenReturn(Optional.of(poltronaAtiva));
 
                 when(usuarioService.usuarioLogado())
@@ -702,7 +702,7 @@ class PoltronaServiceTest {
         void deveLancarExcecaoParaGerenteDeOutroCinema() {
 
                 // Arrange
-                when(poltronaRepository.findById(1000L))
+                when(poltronaRepository.findByIdWithLock(1000L))
                                 .thenReturn(Optional.of(poltronaAtiva));
 
                 when(usuarioService.usuarioLogado())
@@ -720,7 +720,7 @@ class PoltronaServiceTest {
         void deveLancarExcecaoParaUsuarioNaoAutorizado() {
 
                 // Arrange
-                when(poltronaRepository.findById(1000L))
+                when(poltronaRepository.findByIdWithLock(1000L))
                                 .thenReturn(Optional.of(poltronaAtiva));
 
                 when(usuarioService.usuarioLogado())

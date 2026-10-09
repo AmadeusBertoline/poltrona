@@ -521,7 +521,7 @@ class SalaServiceTest {
         when(usuarioService.usuarioLogado())
                 .thenReturn(proprietario);
 
-        when(salaRepository.findByIdAndCinemaProprietarioId(
+        when(salaRepository.findByIdAndCinemaProprietarioIdWithLock(
                 100L,
                 1L)).thenReturn(Optional.of(sala));
 
@@ -534,7 +534,7 @@ class SalaServiceTest {
                 .isNotNull();
 
         verify(salaRepository)
-                .findByIdAndCinemaProprietarioId(
+                .findByIdAndCinemaProprietarioIdWithLock(
                         100L,
                         1L);
     }
@@ -546,7 +546,7 @@ class SalaServiceTest {
         when(usuarioService.usuarioLogado())
                 .thenReturn(gerente);
 
-        when(salaRepository.findById(100L))
+        when(salaRepository.findByIdWithLock(100L))
                 .thenReturn(Optional.of(sala));
 
         when(salaMapper.toDTO(sala))
@@ -558,7 +558,7 @@ class SalaServiceTest {
                 .isNotNull();
 
         verify(salaRepository)
-                .findById(100L);
+                .findByIdWithLock(100L);
     }
 
     @Test
@@ -568,7 +568,7 @@ class SalaServiceTest {
         when(usuarioService.usuarioLogado())
                 .thenReturn(gerente);
 
-        when(salaRepository.findById(200L))
+        when(salaRepository.findByIdWithLock(200L))
                 .thenReturn(Optional.of(salaOutroCinema));
 
         assertThatThrownBy(() -> salaService.buscarPorId(200L))
@@ -588,7 +588,7 @@ class SalaServiceTest {
         when(usuarioService.usuarioLogado())
                 .thenReturn(proprietario);
 
-        when(salaRepository.findByIdAndCinemaProprietarioId(
+        when(salaRepository.findByIdAndCinemaProprietarioIdWithLock(
                 100L,
                 1L)).thenReturn(Optional.of(sala));
 
@@ -623,7 +623,7 @@ class SalaServiceTest {
         when(usuarioService.usuarioLogado())
                 .thenReturn(proprietario);
 
-        when(salaRepository.findByIdAndCinemaProprietarioId(
+        when(salaRepository.findByIdAndCinemaProprietarioIdWithLock(
                 100L,
                 1L)).thenReturn(Optional.of(sala));
 
@@ -652,7 +652,7 @@ class SalaServiceTest {
         when(usuarioService.usuarioLogado())
                 .thenReturn(proprietario);
 
-        when(salaRepository.findByIdAndCinemaProprietarioId(
+        when(salaRepository.findByIdAndCinemaProprietarioIdWithLock(
                 100L,
                 1L)).thenReturn(Optional.of(sala));
 
@@ -703,7 +703,7 @@ class SalaServiceTest {
         when(usuarioService.usuarioLogado())
                 .thenReturn(proprietario);
 
-        when(salaRepository.findByIdAndCinemaProprietarioId(
+        when(salaRepository.findByIdAndCinemaProprietarioIdWithLock(
                 100L,
                 1L)).thenReturn(Optional.of(sala));
 
@@ -739,7 +739,7 @@ class SalaServiceTest {
         when(usuarioService.usuarioLogado())
                 .thenReturn(proprietario);
 
-        when(salaRepository.findByIdAndCinemaProprietarioId(
+        when(salaRepository.findByIdAndCinemaProprietarioIdWithLock(
                 100L,
                 1L)).thenReturn(Optional.of(sala));
 
@@ -763,7 +763,7 @@ class SalaServiceTest {
         when(usuarioService.usuarioLogado())
                 .thenReturn(proprietario);
 
-        when(salaRepository.findByIdAndCinemaProprietarioId(
+        when(salaRepository.findByIdAndCinemaProprietarioIdWithLock(
                 100L,
                 1L)).thenReturn(Optional.of(sala));
 
@@ -794,7 +794,7 @@ class SalaServiceTest {
         when(usuarioService.usuarioLogado())
                 .thenReturn(proprietario);
 
-        when(salaRepository.findByIdAndCinemaProprietarioId(
+        when(salaRepository.findByIdAndCinemaProprietarioIdWithLock(
                 100L,
                 1L)).thenReturn(Optional.of(sala));
 
@@ -814,7 +814,7 @@ class SalaServiceTest {
         when(usuarioService.usuarioLogado())
                 .thenReturn(proprietario);
 
-        when(salaRepository.findByIdAndCinemaProprietarioId(
+        when(salaRepository.findByIdAndCinemaProprietarioIdWithLock(
                 100L,
                 1L)).thenReturn(Optional.of(sala));
 

@@ -215,12 +215,12 @@ public class SalaService {
 
         if (usuario instanceof Proprietario proprietario) {
 
-            return salaRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
+            return salaRepository.findByIdAndCinemaProprietarioIdWithLock(id, proprietario.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada de id: " + id));
 
         } else if (usuario instanceof Gerente gerente) {
 
-            Sala sala = salaRepository.findById(id)
+            Sala sala = salaRepository.findByIdWithLock(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada de id: " + id));
 
             if (!sala.getCinema().getId().equals(gerente.getCinema().getId())) {

@@ -22,7 +22,16 @@ public interface SalaRepository extends JpaRepository<Sala, Long> {
 
         boolean existsByCinemaIdAndCinemaProprietarioId(Long cinemaId, Long proprietarioId);
 
-        Optional<Sala> findByIdAndCinemaProprietarioId(Long salaId, Long proprietarioId);
+        @Lock(LockModeType.PESSIMISTIC_WRITE)
+        @Query("""
+                        SELECT s
+                        FROM Sala s
+                        WHERE s.id = :id
+                        AND s.cinema.proprietario.id = :proprietarioId
+                        """)
+        Optional<Sala> findByIdAndCinemaProprietarioIdWithLock(
+                        @Param("id") Long id,
+                        @Param("proprietarioId") Long proprietarioId);
 
         @Query("""
                             SELECT s FROM Sala s

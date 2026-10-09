@@ -231,7 +231,7 @@ public class PoltronaService {
 
     private Poltrona buscarPoltronaEValidarAcesso(Long id) {
 
-        Poltrona poltrona = poltronaRepository.findById(id)
+        Poltrona poltrona = poltronaRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada de id " + id));
 
         Usuario usuario = usuarioService.usuarioLogado();

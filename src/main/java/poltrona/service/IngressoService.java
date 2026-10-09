@@ -41,223 +41,224 @@ import poltrona.repository.SessaoRepository;
 @Service
 public class IngressoService {
 
-    private final IngressoRepository ingressoRepository;
-    private final SessaoRepository sessaoRepository;
-    private final PoltronaRepository poltronaRepository;
-    private final IngressoMapper ingressoMapper;
-    private final UsuarioService usuarioService;
+        private final IngressoRepository ingressoRepository;
+        private final SessaoRepository sessaoRepository;
+        private final PoltronaRepository poltronaRepository;
+        private final IngressoMapper ingressoMapper;
+        private final UsuarioService usuarioService;
 
-    public IngressoService(IngressoRepository ingressoRepository, SessaoRepository sessaoRepository,
-            PoltronaRepository poltronaRepository, IngressoMapper ingressoMapper, UsuarioService usuarioService) {
-        this.ingressoRepository = ingressoRepository;
-        this.sessaoRepository = sessaoRepository;
-        this.poltronaRepository = poltronaRepository;
-        this.ingressoMapper = ingressoMapper;
-        this.usuarioService = usuarioService;
-    }
-
-    private byte[] gerarQrCodeImage(String texto, int largura, int altura) throws Exception {
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
-        BitMatrix bitMatrix = qrCodeWriter.encode(texto, BarcodeFormat.QR_CODE, largura, altura);
-
-        ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
-        MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
-        return pngOutputStream.toByteArray();
-    }
-
-    @Transactional(readOnly = true)
-    public byte[] gerarPdfIngresso(Long id) {
-
-        Usuario usuario = usuarioService.usuarioLogado();
-
-        Ingresso ingresso = ingressoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Ingresso não encontrado de id " + id));
-
-        if (usuario instanceof Cliente) {
-            if (!ingresso.getUsuario().getId().equals(usuario.getId())) {
-                throw new RegraNegocioException(
-                        "Você não pode baixar um ingresso que não te pertence");
-            }
+        public IngressoService(IngressoRepository ingressoRepository, SessaoRepository sessaoRepository,
+                        PoltronaRepository poltronaRepository, IngressoMapper ingressoMapper,
+                        UsuarioService usuarioService) {
+                this.ingressoRepository = ingressoRepository;
+                this.sessaoRepository = sessaoRepository;
+                this.poltronaRepository = poltronaRepository;
+                this.ingressoMapper = ingressoMapper;
+                this.usuarioService = usuarioService;
         }
 
-        IngressoResponseDTO dto = ingressoMapper.toDTO(ingresso);
+        private byte[] gerarQrCodeImage(String texto, int largura, int altura) throws Exception {
+                QRCodeWriter qrCodeWriter = new QRCodeWriter();
+                BitMatrix bitMatrix = qrCodeWriter.encode(texto, BarcodeFormat.QR_CODE, largura, altura);
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Document document = new Document(PageSize.A6, 20, 20, 20, 20);
-
-        try {
-            PdfWriter.getInstance(document, out);
-            document.open();
-
-            Font fonteTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
-            Font fonteSubtitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
-            Font fonteTexto = FontFactory.getFont(FontFactory.HELVETICA, 10);
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
-            String inicioSessaoFormatado = dto.inicioSessao().format(formatter);
-
-            Paragraph titulo = new Paragraph("CINE POLTRONA", fonteTitulo);
-            titulo.setAlignment(Element.ALIGN_CENTER);
-            document.add(titulo);
-
-            Paragraph divisor = new Paragraph(
-                    "--------------------------------------------------",
-                    fonteTexto);
-            divisor.setAlignment(Element.ALIGN_CENTER);
-            document.add(divisor);
-
-            document.add(new Paragraph(
-                    "Cinema: " + dto.cinema(), fonteSubtitulo));
-
-            document.add(new Paragraph(
-                    "Filme: " + dto.tituloFilme(), fonteSubtitulo));
-
-            document.add(new Paragraph(
-                    "Sala: " + dto.sala(), fonteTexto));
-
-            document.add(new Paragraph(
-                    "Sessão: " + inicioSessaoFormatado, fonteTexto));
-
-            document.add(new Paragraph(
-                    "Tipo da sessão: " + dto.tipo(), fonteTexto));
-
-            document.add(new Paragraph(
-                    "Poltrona: " + dto.fileira() + dto.coluna(),
-                    fonteSubtitulo));
-
-            document.add(new Paragraph(
-                    "Tipo Poltrona: " + dto.tipoPoltrona(),
-                    fonteSubtitulo));
-
-            document.add(new Paragraph(
-                    "Preço: R$ " + dto.preco(), fonteTexto));
-
-            document.add(new Paragraph(
-                    "Cliente: " + dto.cliente(), fonteTexto));
-
-            document.add(new Paragraph(
-                    "Código do Ingresso: " + dto.id(), fonteTexto));
-
-            document.add(new Paragraph(
-                    "Endereço: " + dto.endereco(), fonteTexto));
-
-            String conteudoQrCode = "POLTRONA-INGRESSO-ID:" + dto.id()
-                    + "-CLIENTE:" + dto.cliente();
-
-            byte[] qrCodeBytes = gerarQrCodeImage(conteudoQrCode, 120, 120);
-
-            Image qrCodeImage = Image.getInstance(qrCodeBytes);
-            qrCodeImage.setAlignment(Element.ALIGN_CENTER);
-
-            document.add(new Paragraph(" ", fonteTexto));
-            document.add(qrCodeImage);
-
-            document.close();
-
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "Erro ao gerar PDF do ingresso", e);
+                ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+                MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+                return pngOutputStream.toByteArray();
         }
 
-        return out.toByteArray();
-    }
+        @Transactional(readOnly = true)
+        public byte[] gerarPdfIngresso(Long id) {
 
-    @Transactional
-    public Ingresso cadastrar(IngressoRequestDTO dto) {
+                Usuario usuario = usuarioService.usuarioLogado();
 
-        Usuario usuario = usuarioService.usuarioLogado();
+                Ingresso ingresso = ingressoRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Ingresso não encontrado de id " + id));
 
-        if (usuario.getStatus() != StatusConta.ATIVA) {
-            throw new RegraNegocioException("Usuário inativo não pode realizar compras.");
+                if (usuario instanceof Cliente) {
+                        if (!ingresso.getUsuario().getId().equals(usuario.getId())) {
+                                throw new RegraNegocioException(
+                                                "Você não pode baixar um ingresso que não te pertence");
+                        }
+                }
+
+                IngressoResponseDTO dto = ingressoMapper.toDTO(ingresso);
+
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                Document document = new Document(PageSize.A6, 20, 20, 20, 20);
+
+                try {
+                        PdfWriter.getInstance(document, out);
+                        document.open();
+
+                        Font fonteTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
+                        Font fonteSubtitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
+                        Font fonteTexto = FontFactory.getFont(FontFactory.HELVETICA, 10);
+
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+                        String inicioSessaoFormatado = dto.inicioSessao().format(formatter);
+
+                        Paragraph titulo = new Paragraph("CINE POLTRONA", fonteTitulo);
+                        titulo.setAlignment(Element.ALIGN_CENTER);
+                        document.add(titulo);
+
+                        Paragraph divisor = new Paragraph(
+                                        "--------------------------------------------------",
+                                        fonteTexto);
+                        divisor.setAlignment(Element.ALIGN_CENTER);
+                        document.add(divisor);
+
+                        document.add(new Paragraph(
+                                        "Cinema: " + dto.cinema(), fonteSubtitulo));
+
+                        document.add(new Paragraph(
+                                        "Filme: " + dto.tituloFilme(), fonteSubtitulo));
+
+                        document.add(new Paragraph(
+                                        "Sala: " + dto.sala(), fonteTexto));
+
+                        document.add(new Paragraph(
+                                        "Sessão: " + inicioSessaoFormatado, fonteTexto));
+
+                        document.add(new Paragraph(
+                                        "Tipo da sessão: " + dto.tipo(), fonteTexto));
+
+                        document.add(new Paragraph(
+                                        "Poltrona: " + dto.fileira() + dto.coluna(),
+                                        fonteSubtitulo));
+
+                        document.add(new Paragraph(
+                                        "Tipo Poltrona: " + dto.tipoPoltrona(),
+                                        fonteSubtitulo));
+
+                        document.add(new Paragraph(
+                                        "Preço: R$ " + dto.preco(), fonteTexto));
+
+                        document.add(new Paragraph(
+                                        "Cliente: " + dto.cliente(), fonteTexto));
+
+                        document.add(new Paragraph(
+                                        "Código do Ingresso: " + dto.id(), fonteTexto));
+
+                        document.add(new Paragraph(
+                                        "Endereço: " + dto.endereco(), fonteTexto));
+
+                        String conteudoQrCode = "POLTRONA-INGRESSO-ID:" + dto.id()
+                                        + "-CLIENTE:" + dto.cliente();
+
+                        byte[] qrCodeBytes = gerarQrCodeImage(conteudoQrCode, 120, 120);
+
+                        Image qrCodeImage = Image.getInstance(qrCodeBytes);
+                        qrCodeImage.setAlignment(Element.ALIGN_CENTER);
+
+                        document.add(new Paragraph(" ", fonteTexto));
+                        document.add(qrCodeImage);
+
+                        document.close();
+
+                } catch (Exception e) {
+                        throw new RuntimeException(
+                                        "Erro ao gerar PDF do ingresso", e);
+                }
+
+                return out.toByteArray();
         }
 
-        Sessao sessao = sessaoRepository.findById(dto.idSessao())
-                .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada"));
+        @Transactional
+        public Ingresso cadastrar(IngressoRequestDTO dto) {
 
-        Poltrona poltrona = poltronaRepository.findById(dto.idPoltrona())
-                .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada"));
+                Usuario usuario = usuarioService.usuarioLogado();
 
-        boolean permiteVenda = sessao.getSala().getCinema().getPoliticaOperacional()
-                .isVendaPermitida(sessao.getDataHoraInicio());
+                if (usuario.getStatus() != StatusConta.ATIVA) {
+                        throw new RegraNegocioException("Usuário inativo não pode realizar compras.");
+                }
 
-        if (!permiteVenda) {
-            throw new RegraNegocioException(
-                    "Você não pode comprar ingressos para essa sessão pois já passou do horário permitido");
+                Sessao sessao = sessaoRepository.findByIdWithLockRead(dto.idSessao())
+                                .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada"));
+
+                Poltrona poltrona = poltronaRepository.findByIdWithLock(dto.idPoltrona())
+                                .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada"));
+
+                boolean permiteVenda = sessao.getSala().getCinema().getPoliticaOperacional()
+                                .isVendaPermitida(sessao.getDataHoraInicio());
+
+                if (!permiteVenda) {
+                        throw new RegraNegocioException(
+                                        "Você não pode comprar ingressos para essa sessão pois já passou do horário permitido");
+                }
+
+                if (!poltrona.getAtiva()) {
+                        throw new RegraNegocioException("A poltrona selecionada está inativa: " + poltrona.getNumero());
+                }
+
+                if (!Objects.equals(poltrona.getSala().getId(), sessao.getSala().getId())) {
+                        throw new RegraNegocioException(
+                                        "A poltrona deve estar na mesma sala em que a sessão irá ocorrer.");
+                }
+
+                if (ingressoRepository.existsBySessaoIdAndPoltronaIdAndStatus(
+                                dto.idSessao(), dto.idPoltrona(), StatusIngresso.ATIVO)) {
+                        throw new RegraNegocioException("Esta poltrona já está ocupada nesta sessão.");
+                }
+
+                sessao.validarPermiteVenda(LocalDateTime.now());
+
+                Ingresso ingresso = ingressoMapper.toEntity(dto, sessao, poltrona, usuario);
+                return ingressoRepository.save(ingresso);
         }
 
-        if (!poltrona.getAtiva()) {
-            throw new RegraNegocioException("A poltrona selecionada está inativa: " + poltrona.getNumero());
+        @Transactional(readOnly = true)
+        public Page<IngressoResponseDTO> listarTodos(Pageable pageable) {
+                return ingressoRepository.findAll(pageable).map(ingressoMapper::toDTO);
         }
 
-        if (!Objects.equals(poltrona.getSala().getId(), sessao.getSala().getId())) {
-            throw new RegraNegocioException("A poltrona deve estar na mesma sala em que a sessão irá ocorrer.");
+        @Transactional(readOnly = true)
+        public Page<IngressoResponseDTO> meusIngressos(Pageable pageable) {
+                Usuario usuario = usuarioService.usuarioLogado();
+                return ingressoRepository.findAllByUsuarioIdOrderByDataCriacaoDesc(usuario.getId(), pageable)
+                                .map(ingressoMapper::toDTO);
         }
 
-        if (ingressoRepository.existsBySessaoIdAndPoltronaIdAndStatus(
-                dto.idSessao(), dto.idPoltrona(), StatusIngresso.ATIVO)) {
-            throw new RegraNegocioException("Esta poltrona já está ocupada nesta sessão.");
+        @Transactional
+        public void cancelar(Long id) {
+
+                Usuario usuario = usuarioService.usuarioLogado();
+
+                Ingresso ingresso = ingressoRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException("Ingresso não encontrado"));
+
+                if (!ingresso.getUsuario().getId().equals(usuario.getId())) {
+                        throw new AccessDeniedException("Você só pode cancelar seus próprios ingressos.");
+                }
+
+                if (ingresso.getStatus() == StatusIngresso.CANCELADO) {
+                        throw new RegraNegocioException("Este ingresso já se encontra cancelado.");
+                }
+
+                Sessao sessao = ingresso.getSessao();
+                PoliticaOperacional politicaOperacional = sessao.getSala().getCinema().getPoliticaOperacional();
+
+                if (!politicaOperacional.isCancelamentoPermitido(sessao.getDataHoraInicio())) {
+                        throw new RegraNegocioException(
+                                        "O cancelamento só é permitido com até "
+                                                        + politicaOperacional.getAntecedenciaMinutosCancelamento()
+                                                        + " minutos de antecedência do início da sessão.");
+                }
+
+                ingresso.cancelar();
+
+                ingressoRepository.save(ingresso);
         }
 
-        sessao.validarPermiteVenda(LocalDateTime.now());
+        @Transactional
+        public IngressoResponseDTO buscarPorId(Long id) {
 
-        Ingresso ingresso = ingressoMapper.toEntity(dto, sessao, poltrona, usuario);
-        Ingresso salvo = ingressoRepository.save(ingresso);
+                Ingresso ingresso = ingressoRepository.findById(id)
+                                .orElseThrow((() -> new ResourceNotFoundException(
+                                                "Ingresso não encontrado de id " + id)));
 
-        return salvo;
-    }
+                return ingressoMapper.toDTO(ingresso);
 
-    @Transactional(readOnly = true)
-    public Page<IngressoResponseDTO> listarTodos(Pageable pageable) {
-        return ingressoRepository.findAll(pageable).map(ingressoMapper::toDTO);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<IngressoResponseDTO> meusIngressos(Pageable pageable) {
-        Usuario usuario = usuarioService.usuarioLogado();
-        return ingressoRepository.findAllByUsuarioIdOrderByDataCriacaoDesc(usuario.getId(), pageable)
-                .map(ingressoMapper::toDTO);
-    }
-
-    @Transactional
-    public void cancelar(Long id) {
-
-        Usuario usuario = usuarioService.usuarioLogado();
-
-        Ingresso ingresso = ingressoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Ingresso não encontrado"));
-
-        if (!ingresso.getUsuario().getId().equals(usuario.getId())) {
-            throw new AccessDeniedException("Você só pode cancelar seus próprios ingressos.");
         }
-
-        if (ingresso.getStatus() == StatusIngresso.CANCELADO) {
-            throw new RegraNegocioException("Este ingresso já se encontra cancelado.");
-        }
-
-        Sessao sessao = ingresso.getSessao();
-        PoliticaOperacional politicaOperacional = sessao.getSala().getCinema().getPoliticaOperacional();
-
-        if (!politicaOperacional.isCancelamentoPermitido(sessao.getDataHoraInicio())) {
-            throw new RegraNegocioException(
-                    "O cancelamento só é permitido com até "
-                            + politicaOperacional.getAntecedenciaMinutosCancelamento()
-                            + " minutos de antecedência do início da sessão.");
-        }
-
-        ingresso.cancelar();
-
-        ingressoRepository.save(ingresso);
-    }
-
-    @Transactional
-    public IngressoResponseDTO buscarPorId(Long id) {
-
-        Ingresso ingresso = ingressoRepository.findById(id)
-                .orElseThrow((() -> new ResourceNotFoundException("Ingresso não encontrado de id " + id)));
-
-        return ingressoMapper.toDTO(ingresso);
-
-    }
 }
