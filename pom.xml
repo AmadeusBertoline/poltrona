@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>com.google.zxing</groupId>
 			<artifactId>javase</artifactId>
-			<version>3.5.3</version>
+			<version>3.5.4</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.librepdf</groupId>
@@ -127,7 +127,7 @@
 		<dependency>
 			<groupId>com.google.zxing</groupId>
 			<artifactId>javase</artifactId>
-			<version>3.5.3</version>
+			<version>3.5.4</version>
 		</dependency>
 
 		<!-- Utilitários de Desenvolvimento -->
