@@ -26,6 +26,15 @@ O foco do projeto é a **consistência de dados sob concorrência**: dois client
 
 > Hospedado em plano gratuito: a primeira requisição após um período ocioso pode levar alguns segundos (*cold start*).
 
+---
+
+## 📹 Apresentação do Projeto
+
+[![Assista à apresentação no YouTube](https://img.youtube.com/vi/SEU_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=SEU_VIDEO_ID "Clique para assistir")
+
+> 💡 *Clique na imagem acima para assistir ao vídeo de apresentação da aplicação no YouTube.*
+
+
 ## 📑 Sumário
 
 - [Destaques técnicos](#-destaques-técnicos)
