@@ -61,9 +61,9 @@ O foco do projeto é a **consistência de dados sob concorrência**: dois client
 | Estoque da bomboniere ficando negativo | **`UPDATE` condicional atômico** (`… WHERE quantidade_estoque >= :qtd`) verificando as linhas afetadas |
 | Venda parcial (ingresso salvo, produto sem estoque) | **Transação única** em `VendaService.cadastrar`: qualquer falha dá *rollback* de tudo |
 | Atualizações concorrentes de sessão e produto | **Lock otimista** com `@Version` |
-| Compra simultânea com edição de sessão, poltrona ou sala | **Lock pessimista compartilhado** (`PESSIMISTIC_READ`) na compra e **exclusivo** (`PESSIMISTIC_WRITE`) nas edições: compras não se bloqueiam entre si |
-| Deadlock em compras com vários itens | **Ordem determinística de locks**: ingressos ordenados por (sessão, poltrona) e produtos por `id` |
-| Conflitos de concorrência chegando como erro 500 | Mapeados para **HTTP 409** (índice único, `@Version`, lock e deadlock) |
+| Compra simultânea com edição de sessão, poltrona ou sala | Na compra, **lock pessimista compartilhado** (`PESSIMISTIC_READ`) na sessão e **exclusivo** (`PESSIMISTIC_WRITE`) na poltrona; as edições usam `PESSIMISTIC_WRITE`: compras de poltronas diferentes não se bloqueiam entre si |
+| Deadlock em compras com vários itens | **Ordem determinística de locks**: ingressos ordenados por `id` da poltrona e produtos por `id` |
+| Conflitos de concorrência chegando como erro 500 | **Ainda não resolvido**: só `ResourceAlreadyExistsException` retorna 409; conflitos de índice único, `@Version` e lock/deadlock ainda chegam como 500 (veja a seção 7 e o roadmap) |
 | Cadastro de programação extensa | **Grade de sessões em lote** com validação de conflitos em memória + banco e `saveAll` |
 | Leituras repetidas de catálogo | **Cache Redis** com TTL de 10 min e invalidação nas escritas |
 | Layout de sala flexível | **Mapa de poltronas dinâmico** (fileira → quantidade) com reativação/inativação segura |
@@ -163,8 +163,7 @@ Em vez de ler o estoque, subtrair em Java e salvar (padrão que perde atualizaç
 @Modifying
 @Query("""
     UPDATE Produto p
-    SET p.quantidadeEstoque = p.quantidadeEstoque - :quantidade,
-        p.version = p.version + 1
+    SET p.quantidadeEstoque = p.quantidadeEstoque - :quantidade
     WHERE p.id = :id AND p.quantidadeEstoque >= :quantidade
 """)
 int reduzirEstoque(Long id, Integer quantidade);
@@ -172,7 +171,7 @@ int reduzirEstoque(Long id, Integer quantidade);
 
 Se `0` linhas forem afetadas, o estoque era insuficiente e uma `RegraNegocioException` aborta a venda inteira. O InnoDB mantém o *row lock* até o commit, então duas vendas simultâneas do último item nunca resultam em estoque negativo.
 
-A query também incrementa `version`: sem isso, o `@Version` do produto não perceberia a venda, e uma edição de estoque feita por um gerente com a tela desatualizada sobrescreveria a baixa. Com o incremento, essa edição falha com conflito (409) em vez de apagar a venda.
+**Limitação conhecida:** essa query não incrementa `version`, então o `@Version` do produto não percebe a venda. Uma edição de estoque feita por um gerente com a tela desatualizada ainda pode sobrescrever a baixa (previsto no roadmap).
 
 ### 4. Atomicidade da venda
 
@@ -184,21 +183,21 @@ O cancelamento de venda também é transacional: marca a venda como `CANCELADA` 
 
 `Sessao` e `Produto` possuem coluna `version`. Se duas requisições editarem a mesma sessão simultaneamente, a segunda a gravar detecta a versão desatualizada e falha, em vez de sobrescrever silenciosamente a alteração da primeira.
 
-### 6. Compra × edição de sessão, poltrona e sala (`PESSIMISTIC_READ`)
+### 6. Compra × edição de sessão, poltrona e sala (`PESSIMISTIC_READ` / `PESSIMISTIC_WRITE`)
 
 **O problema.** Um gerente altera o horário de uma sessão, ou desativa uma poltrona, no mesmo instante em que um cliente compra. Os dois passam nas verificações (`countBySessaoId`, `existsByPoltronaId...`), e o resultado é um ingresso vendido para uma sessão alterada ou uma poltrona inativa. O `@Version` não detecta isso, porque a compra não escreve na `Sessao`.
 
-**A solução.** A compra carrega sessão e poltrona com `PESSIMISTIC_READ` (`SELECT … FOR SHARE`), um lock compartilhado: duas compras **não** se bloqueiam entre si. As edições usam `PESSIMISTIC_WRITE` e, por isso, esperam as compras em andamento (e vice-versa).
+**A solução.** A compra carrega a **sessão** com `PESSIMISTIC_READ` (`SELECT … FOR SHARE`), um lock compartilhado, e a **poltrona** com `PESSIMISTIC_WRITE` (`SELECT … FOR UPDATE`). Compras de poltronas diferentes não se bloqueiam entre si; compras da mesma poltrona são serializadas. As edições de sessão, poltrona e sala usam `PESSIMISTIC_WRITE` e, por isso, esperam as compras em andamento (e vice-versa).
 
-**Ordem dos locks** (evita deadlock): sala → sessão → poltrona → produto, sempre em `id` crescente. Na venda, os ingressos são ordenados por (sessão, poltrona) e os produtos por `id` antes de qualquer gravação, de modo que duas compras com os mesmos itens em ordens diferentes não formam um ciclo de espera.
+**Ordem dos locks** (evita deadlock): sala → sessão → poltrona. Na venda, os ingressos são ordenados por `id` da poltrona e os produtos por `id` antes de qualquer gravação, de modo que duas compras com os mesmos itens em ordens diferentes não formam um ciclo de espera. Os produtos não usam lock explícito: o `UPDATE` condicional já trava a linha até o commit.
 
-### 7. Conflitos viram 409
+### 7. Conflitos de concorrência na resposta HTTP
 
-O `GlobalExceptionHandler` traduz `DataIntegrityViolationException` (índice único), `ObjectOptimisticLockingFailureException` (`@Version`) e `PessimisticLockingFailureException` (deadlock ou timeout de lock) para **HTTP 409 Conflict**, com mensagem pedindo para tentar novamente. Não há retry automático.
+Hoje o `GlobalExceptionHandler` só devolve **409 Conflict** para `ResourceAlreadyExistsException`. `DataIntegrityViolationException` (índice único), `ObjectOptimisticLockingFailureException` (`@Version`) e `PessimisticLockingFailureException` (deadlock ou timeout de lock) **ainda não têm handler** e chegam ao cliente como **500**. A integridade dos dados não é afetada (a transação perdedora sofre *rollback* completo e nada é gravado), mas a resposta correta seria 409. O mapeamento está previsto no roadmap. Não há retry automático.
 
 ### 8. Outras decisões transacionais
 
-- `@Transactional(readOnly = true)` em todas as leituras (evita *flush* desnecessário e permite otimizações do driver/Hibernate).
+- `@Transactional(readOnly = true)` na grande maioria das leituras (evita *flush* desnecessário e permite otimizações do driver/Hibernate).
 - Cadastro de **grade de sessões** em uma só transação: se qualquer horário conflitar (com o banco ou com outro horário da própria grade), nenhuma sessão é criada.
 - Alterar/desativar poltrona ou sala é bloqueado quando há ingressos `ATIVO` em sessões futuras, mantendo a integridade entre layout e vendas.
 
@@ -229,7 +228,7 @@ erDiagram
 - **Herança de usuários** por tabelas separadas (`usuarios` + `clientes`/`gerentes`/`proprietarios`/`admins`, mesma PK).
 - `itens_venda` referencia ingresso **ou** produto (`tipo_item`), mantendo uma venda mista em um único agregado.
 - O preço do ingresso é calculado na criação (`INTEIRA` ×1,00 / `MEIA` ×0,50 sobre o preço da sessão) e **congelado** no registro, então alterar a tabela de preços depois não afeta vendas passadas.
-- **Constraints de unicidade no banco** (migração `V5`): CPF e e-mail de usuário, número de sala por cinema, nome de produto por cinema, formato de preço por cinema e posição da poltrona na sala. As verificações `existsBy...` na aplicação servem só para a mensagem amigável; quem garante é o banco.
+- **Constraints de unicidade no banco** (migrações `V5` a `V9`): produto repetido na mesma venda, posição da poltrona na sala, formato de preço por cinema, nome de produto por cinema e número de sala por cinema. Nesses casos as verificações `existsBy...` na aplicação servem só para a mensagem amigável; quem garante é o banco. **CPF e e-mail de usuário ainda não têm constraint no banco**: hoje a unicidade é verificada apenas na aplicação (veja o roadmap).
 
 ## 🔐 Segurança
 
@@ -241,7 +240,7 @@ erDiagram
 ## ⚡ Cache com Redis
 
 - `@EnableCaching` com Redis como provedor, TTL de **10 minutos**, valores em JSON e sem cache de `null`.
-- Cacheados: listagem/consulta de **sessões** e **produtos**; invalidados (`@CacheEvict`) nas operações de escrita.
+- Cacheados: listagem/consulta de **sessões** e **produtos**; invalidados (`@CacheEvict`) nas operações de escrita de sessões e produtos. A **venda não invalida** o cache de produtos, então o estoque exibido no catálogo pode ficar defasado por até 10 minutos (veja o roadmap).
 - O **mapa de poltronas** não é cacheado de propósito: muda a cada venda e precisa refletir o estado real.
 
 ## 🛠️ Tecnologias
@@ -278,7 +277,7 @@ Há um modelo pronto em [`.env.example`](.env.example).
 | `DB_USERNAME` / `DB_PASSWORD` | Credenciais do banco |
 | `JWT_SECRET` | Chave de assinatura do JWT (gere com `openssl rand -hex 32`) |
 | `JWT_EXPIRATION` | Validade do token, em milissegundos |
-| `REDIS_HOST` / `REDIS_PORT` | Host e porta do Redis (porta padrão `6379`) |
+| `REDIS_PORT` | Porta do Redis em produção (padrão `6379`). Em execução local o host é `localhost`; no Docker Compose, `SPRING_DATA_REDIS_HOST` já está configurado |
 | `REDIS_URL` | URL do Redis em produção (ex.: `redis://usuario:senha@host:6379`) |
 
 ### Opção 1 — Docker Compose (recomendado)
@@ -326,7 +325,10 @@ O GitHub Actions executa build e testes a cada push, com MySQL e Redis reais. Os
 
 ## 🗺️ Roadmap
 
-- [x] Mapear conflitos de concorrência (índice único, `@Version`, lock e deadlock) para **HTTP 409 Conflict**
+- [ ] Mapear conflitos de concorrência (índice único, `@Version`, lock e deadlock) para **HTTP 409 Conflict** no `GlobalExceptionHandler`
+- [ ] Incrementar `version` do produto em `reduzirEstoque` para o `@Version` detectar edições concorrentes de estoque
+- [ ] Constraint `UNIQUE` para CPF e e-mail de usuário (nova migração Flyway)
+- [ ] Invalidar o cache de produtos quando uma venda baixar o estoque
 - [ ] Testes de integração de concorrência com **Testcontainers** (MySQL real), disparando N compras simultâneas da mesma poltrona
 - [ ] Retry automático da transação em caso de deadlock
 - [ ] Reserva temporária de assento com expiração (hold) usando Redis
