@@ -228,7 +228,7 @@ erDiagram
 - **Herança de usuários** por tabelas separadas (`usuarios` + `clientes`/`gerentes`/`proprietarios`/`admins`, mesma PK).
 - `itens_venda` referencia ingresso **ou** produto (`tipo_item`), mantendo uma venda mista em um único agregado.
 - O preço do ingresso é calculado na criação (`INTEIRA` ×1,00 / `MEIA` ×0,50 sobre o preço da sessão) e **congelado** no registro, então alterar a tabela de preços depois não afeta vendas passadas.
-- **Constraints de unicidade no banco** (migrações `V5` a `V9`): produto repetido na mesma venda, posição da poltrona na sala, formato de preço por cinema, nome de produto por cinema e número de sala por cinema. Nesses casos as verificações `existsBy...` na aplicação servem só para a mensagem amigável; quem garante é o banco. **CPF e e-mail de usuário ainda não têm constraint no banco**: hoje a unicidade é verificada apenas na aplicação (veja o roadmap).
+- **Constraints de unicidade no banco** (migrações `V5` a `V9`): produto repetido na mesma venda, posição da poltrona na sala, formato de preço por cinema, nome de produto por cinema e número de sala por cinema. Nesses casos as verificações `existsBy...` na aplicação servem só para a mensagem amigável; quem garante é o banco. **CPF e e-mail de usuário não têm constraint `UNIQUE` de propósito**: a mesma pessoa pode ter mais de um papel (por exemplo, gerente e cliente) e contas encerradas liberam o e-mail para novo cadastro, então a unicidade considera só contas ativas e é verificada na aplicação.
 
 ## 🔐 Segurança
 
@@ -327,7 +327,6 @@ O GitHub Actions executa build e testes a cada push, com MySQL e Redis reais. Os
 
 - [ ] Mapear conflitos de concorrência (índice único, `@Version`, lock e deadlock) para **HTTP 409 Conflict** no `GlobalExceptionHandler`
 - [ ] Incrementar `version` do produto em `reduzirEstoque` para o `@Version` detectar edições concorrentes de estoque
-- [ ] Constraint `UNIQUE` para CPF e e-mail de usuário (nova migração Flyway)
 - [ ] Invalidar o cache de produtos quando uma venda baixar o estoque
 - [ ] Testes de integração de concorrência com **Testcontainers** (MySQL real), disparando N compras simultâneas da mesma poltrona
 - [ ] Retry automático da transação em caso de deadlock
