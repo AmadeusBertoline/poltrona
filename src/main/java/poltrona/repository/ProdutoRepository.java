@@ -31,7 +31,8 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
         @Modifying
         @Query("""
                         UPDATE Produto p
-                        SET p.quantidadeEstoque = p.quantidadeEstoque - :quantidade
+                        SET p.quantidadeEstoque = p.quantidadeEstoque - :quantidade,
+                        p.version = version + 1
                         WHERE p.id = :id
                         AND p.quantidadeEstoque >= :quantidade
                                 """)

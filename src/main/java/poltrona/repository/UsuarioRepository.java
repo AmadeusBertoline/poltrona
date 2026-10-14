@@ -19,6 +19,16 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
                         @Param("login") String login,
                         @Param("status") StatusConta status);
 
+        @Query("""
+                            SELECT u
+                            FROM Usuario u
+                            WHERE u.email = :login
+                            AND u.status = :status
+                        """)
+        Optional<Usuario> findByEmailAndStatus(
+                        @Param("login") String login,
+                        @Param("status") StatusConta status);
+
         boolean existsByEmail(String email);
 
         boolean existsByCpf(String cpf);
