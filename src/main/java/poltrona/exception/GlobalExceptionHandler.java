@@ -5,8 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -154,7 +157,7 @@ public class GlobalExceptionHandler {
 
         Map<String, Object> corpo = new HashMap<>();
         corpo.put("timestamp", LocalDateTime.now());
-        corpo.put("status", HttpStatus.UNAUTHORIZED);
+        corpo.put("status", HttpStatus.UNAUTHORIZED.value());
         corpo.put("erro", "Essa conta já foi encerrada. Cadastre-se novamente");
         corpo.put("mensagem", ex.getMessage());
 
@@ -162,4 +165,45 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
+
+        Map<String, Object> corpo = new HashMap<>();
+        corpo.put("timestamp", LocalDateTime.now());
+        corpo.put("status", HttpStatus.CONFLICT.value());
+        corpo.put("erro",
+                "Operação não permitida. Os dados informados entram em conflito com registros já existentes ou violam regras de integridade do sistema.");
+        corpo.put("mensagem", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(corpo);
+
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrity(ObjectOptimisticLockingFailureException ex) {
+
+        Map<String, Object> corpo = new HashMap<>();
+        corpo.put("timestamp", LocalDateTime.now());
+        corpo.put("status", HttpStatus.CONFLICT.value());
+        corpo.put("erro",
+                "Este registro foi alterado por outro usuário enquanto você o editava. Por favor, atualize os dados e tente novamente.");
+        corpo.put("mensagem", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(corpo);
+
+    }
+
+    @ExceptionHandler(PessimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrity(PessimisticLockingFailureException ex) {
+
+        Map<String, Object> corpo = new HashMap<>();
+        corpo.put("timestamp", LocalDateTime.now());
+        corpo.put("status", HttpStatus.CONFLICT.value());
+        corpo.put("erro",
+                "O recurso solicitado está temporariamente ocupado ou bloqueado por outra operação. Tente novamente em instantes.");
+        corpo.put("mensagem", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(corpo);
+
+    }
 }
