@@ -73,7 +73,7 @@ public class AuthServiceTest {
                 String tokenGerado = "token_jwt_valido";
                 String tipoUsuario = "ADMIN";
 
-                when(usuarioRepository.findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA))
+                when(usuarioRepository.findByEmailAndStatus(loginRequestDTO.email(), StatusConta.ATIVA))
                                 .thenReturn(Optional.of(usuario));
                 when(passwordEncoder.matches(loginRequestDTO.senha(), usuario.getSenha()))
                                 .thenReturn(true);
@@ -93,7 +93,7 @@ public class AuthServiceTest {
                 assertThat(resposta.email()).isEqualTo("admin@poltrona.com");
                 assertThat(resposta.role()).isEqualTo(tipoUsuario);
 
-                verify(usuarioRepository, times(1)).findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(),
+                verify(usuarioRepository, times(1)).findByEmailAndStatus(loginRequestDTO.email(),
                                 StatusConta.ATIVA);
                 verify(passwordEncoder, times(1)).matches(loginRequestDTO.senha(), usuario.getSenha());
                 verify(jwtService, times(1)).gerarToken(usuario);
@@ -104,7 +104,7 @@ public class AuthServiceTest {
         @DisplayName("Deve lançar BadCredentialsException quando o usuário não for encontrado ou não estiver ativo")
         void deveLancarExcecaoQuandoUsuarioNaoEncontradoOuInativo() {
                 // ARRANGE
-                when(usuarioRepository.findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA))
+                when(usuarioRepository.findByEmailAndStatus(loginRequestDTO.email(), StatusConta.ATIVA))
                                 .thenReturn(Optional.empty());
 
                 // ACT & ASSERT
@@ -112,7 +112,7 @@ public class AuthServiceTest {
                                 .isInstanceOf(BadCredentialsException.class)
                                 .hasMessage("Usuário ou senha inválidos");
 
-                verify(usuarioRepository, times(1)).findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(),
+                verify(usuarioRepository, times(1)).findByEmailAndStatus(loginRequestDTO.email(),
                                 StatusConta.ATIVA);
                 verifyNoInteractions(passwordEncoder, jwtService);
         }
@@ -121,7 +121,7 @@ public class AuthServiceTest {
         @DisplayName("Deve lançar BadCredentialsException quando a senha estiver incorreta")
         void deveLancarExcecaoQuandoSenhaForIncorreta() {
                 // ARRANGE
-                when(usuarioRepository.findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(), StatusConta.ATIVA))
+                when(usuarioRepository.findByEmailAndStatus(loginRequestDTO.email(), StatusConta.ATIVA))
                                 .thenReturn(Optional.of(usuario));
                 when(passwordEncoder.matches(loginRequestDTO.senha(), usuario.getSenha()))
                                 .thenReturn(false);
@@ -131,7 +131,7 @@ public class AuthServiceTest {
                                 .isInstanceOf(BadCredentialsException.class)
                                 .hasMessage("Usuário ou senha inválidos");
 
-                verify(usuarioRepository, times(1)).findByEmailOrCpfAndStatus(loginRequestDTO.emailOrCpf(),
+                verify(usuarioRepository, times(1)).findByEmailAndStatus(loginRequestDTO.email(),
                                 StatusConta.ATIVA);
                 verify(passwordEncoder, times(1)).matches(loginRequestDTO.senha(), usuario.getSenha());
                 verifyNoInteractions(jwtService);

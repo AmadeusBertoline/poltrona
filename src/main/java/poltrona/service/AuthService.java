@@ -25,7 +25,7 @@ public class AuthService {
 
     public LoginResponseDTO logar(LoginRequestDTO dto) {
 
-        Usuario usuario = usuarioRepository.findByEmailOrCpfAndStatus(dto.emailOrCpf(), StatusConta.ATIVA)
+        Usuario usuario = usuarioRepository.findByEmailAndStatus(dto.email(), StatusConta.ATIVA)
                 .orElseThrow(() -> new BadCredentialsException("Usuário ou senha inválidos"));
 
         if (!passwordEncoder.matches(dto.senha(), usuario.getSenha())) {
