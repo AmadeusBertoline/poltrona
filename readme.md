@@ -321,7 +321,7 @@ O Flyway cria o schema automaticamente na primeira execução.
 
 Suíte de **testes unitários** (JUnit 5 + Mockito) cobrindo as 15 classes de serviço, com mais de 220 testes — regras de negócio, validações de acesso por papel, cenários de erro e fluxos de venda/cancelamento.
 
-O GitHub Actions executa build e testes a cada push, com MySQL e Redis reais. Os testes cobrem as regras de negócio; a concorrência em si ainda não tem teste automatizado (veja o roadmap).
+O GitHub Actions executa build e testes a cada push, com MySQL e Redis reais. Os testes cobrem as regras de negócio; a concorrência em si ainda não tem teste automatizado (veja o roadmap). Usando CI.
 
 ## 🗺️ Roadmap
 
