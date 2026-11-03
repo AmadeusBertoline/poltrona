@@ -16,6 +16,8 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
         Optional<Produto> findByIdAndCinemaProprietarioId(Long id, Long proprietarioId);
 
+        Optional<Produto> findByIdAndCinemaId(Long id, Long cinemaId);
+
         @Query("""
                         SELECT p FROM Produto p
                         WHERE (:ativo IS NULL OR p.ativo = :ativo)
@@ -32,10 +34,21 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
         @Query("""
                         UPDATE Produto p
                         SET p.quantidadeEstoque = p.quantidadeEstoque - :quantidade,
-                        p.version = version + 1
+                        p.version = p.version + 1
                         WHERE p.id = :id
+                        AND p.cinema.id = :cinemaId
+                        AND p.ativo = true
                         AND p.quantidadeEstoque >= :quantidade
                                 """)
-        int reduzirEstoque(Long id, Integer quantidade);
+        int reduzirEstoque(Long id, Long cinemaId, Integer quantidade);
+
+        @Modifying
+        @Query("""
+                        UPDATE Produto p
+                        SET p.quantidadeEstoque = p.quantidadeEstoque + :quantidade,
+                        p.version = p.version + 1
+                        WHERE p.id = :id
+                                """)
+        int incrementarEstoque(Long id, Integer quantidade);
 
 }

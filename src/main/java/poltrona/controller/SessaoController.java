@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,9 +45,7 @@ public class SessaoController implements SessaoControllerDoc {
 
         SessaoResponseDTO sessao = sessaoService.cadastrar(dto);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(sessao);
+        return ResponseEntity.created(ResponseLocation.forId(sessao.id())).body(sessao);
     }
 
     @Override
@@ -94,7 +92,7 @@ public class SessaoController implements SessaoControllerDoc {
     }
 
     @Override
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<SessaoResponseDTO> atualizar(
             @PathVariable Long id,
             @Valid @RequestBody AtualizaSessaoRequestDTO dto) {

@@ -36,7 +36,7 @@ public class AdminController implements AdminControllerDoc {
     @PostMapping
     public ResponseEntity<AdminResponseDTO> cadastrar(@Valid @RequestBody AdminRequestDTO dto) {
         AdminResponseDTO admin = adminService.cadastrar(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(admin);
+        return ResponseEntity.created(ResponseLocation.forId(admin.usuario().id())).body(admin);
     }
 
     @Override

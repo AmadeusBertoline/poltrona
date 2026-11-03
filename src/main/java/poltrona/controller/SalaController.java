@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,7 +37,7 @@ public class SalaController implements SalaControllerDoc {
     @PostMapping
     public ResponseEntity<SalaResponseDTO> cadastrar(@Valid @RequestBody SalaRequestDTO dto) {
         SalaResponseDTO sala = salaService.cadastrar(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(sala);
+        return ResponseEntity.created(ResponseLocation.forId(sala.id())).body(sala);
     }
 
     @Override
@@ -68,7 +67,7 @@ public class SalaController implements SalaControllerDoc {
     }
 
     @Override
-    @DeleteMapping("/{id}/desativar")
+    @PatchMapping("/{id}/desativar")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
         salaService.desativar(id);
         return ResponseEntity.noContent().build();

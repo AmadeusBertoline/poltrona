@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -38,6 +39,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import poltrona.dto.ingresso.IngressoRequestDTO;
 import poltrona.dto.ingresso.IngressoResponseDTO;
 import poltrona.entity.Cinema;
+import poltrona.entity.Admin;
 import poltrona.entity.Cliente;
 import poltrona.entity.Endereco;
 import poltrona.entity.Filme;
@@ -79,6 +81,12 @@ class IngressoServiceTest {
 
         @Mock
         private UsuarioService usuarioService;
+
+        @Spy
+        private AcessoCinemaService acessoCinemaService = new AcessoCinemaService();
+
+        @Spy
+        private PdfService pdfService = new PdfService(new QrCodeGenerator());
 
         @InjectMocks
         private IngressoService ingressoService;
@@ -360,8 +368,8 @@ class IngressoServiceTest {
 
                 // ACT & ASSERT
                 assertThatThrownBy(() -> ingressoService.gerarPdfIngresso(500L))
-                                .isInstanceOf(RegraNegocioException.class)
-                                .hasMessage("Você não pode baixar um ingresso que não te pertence");
+                                .isInstanceOf(AccessDeniedException.class)
+                                .hasMessage("Você não tem permissão para acessar este ingresso.");
         }
 
         // =========================================================================
@@ -426,6 +434,7 @@ class IngressoServiceTest {
                 Pageable pageable = PageRequest.of(0, 10);
                 Page<Ingresso> pageIngresso = new PageImpl<>(List.of(ingresso), pageable, 1);
 
+                when(usuarioService.usuarioLogado()).thenReturn(mock(Admin.class));
                 when(ingressoRepository.findAll(pageable)).thenReturn(pageIngresso);
                 when(ingressoMapper.toDTO(ingresso)).thenReturn(ingressoResponseDTO);
 
@@ -470,6 +479,7 @@ class IngressoServiceTest {
         @DisplayName("Deve buscar ingresso por ID com sucesso")
         void deveBuscarIngressoPorIdComSucesso() {
                 // ARRANGE
+                when(usuarioService.usuarioLogado()).thenReturn(clienteLogado);
                 when(ingressoRepository.findById(500L)).thenReturn(Optional.of(ingresso));
                 when(ingressoMapper.toDTO(ingresso)).thenReturn(ingressoResponseDTO);
 
@@ -479,6 +489,18 @@ class IngressoServiceTest {
                 // ASSERT
                 assertThat(resultado).isNotNull();
                 assertThat(resultado.id()).isEqualTo(500L);
+        }
+
+        @Test
+        @DisplayName("Deve impedir que um cliente consulte o ingresso de outro cliente")
+        void deveImpedirConsultaDeIngressoDeOutroCliente() {
+                when(usuarioService.usuarioLogado()).thenReturn(clienteLogado);
+                when(ingressoRepository.findById(500L)).thenReturn(Optional.of(ingresso));
+                ReflectionTestUtils.setField(ingresso, "usuario", outroCliente);
+
+                assertThatThrownBy(() -> ingressoService.buscarPorId(500L))
+                                .isInstanceOf(AccessDeniedException.class)
+                                .hasMessage("Você não tem permissão para acessar este ingresso.");
         }
 
         @Test

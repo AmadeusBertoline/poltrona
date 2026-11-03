@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -64,6 +65,9 @@ class PoltronaServiceTest {
 
         @Mock
         private SalaRepository salaRepository;
+
+        @Spy
+        private AcessoCinemaService acessoCinemaService = new AcessoCinemaService();
 
         @InjectMocks
         private PoltronaService poltronaService;
@@ -693,8 +697,7 @@ class PoltronaServiceTest {
                 // Act & Assert
                 assertThatThrownBy(() -> poltronaService.desativar(1000L))
                                 .isInstanceOf(AccessDeniedException.class)
-                                .hasMessage(
-                                                "Você não tem permissão para alterar poltronas deste cinema.");
+                                .hasMessage("Você não tem permissão para acessar este cinema.");
         }
 
         @Test
@@ -711,8 +714,7 @@ class PoltronaServiceTest {
                 // Act & Assert
                 assertThatThrownBy(() -> poltronaService.desativar(1000L))
                                 .isInstanceOf(AccessDeniedException.class)
-                                .hasMessage(
-                                                "Você não tem permissão para alterar poltronas de outro cinema.");
+                                .hasMessage("Você não tem permissão para acessar este cinema.");
         }
 
         @Test
@@ -729,7 +731,6 @@ class PoltronaServiceTest {
                 // Act & Assert
                 assertThatThrownBy(() -> poltronaService.desativar(1000L))
                                 .isInstanceOf(AccessDeniedException.class)
-                                .hasMessage(
-                                                "Usuário sem permissão para realizar esta operação.");
+                                .hasMessage("Você não tem permissão para acessar este cinema.");
         }
 }

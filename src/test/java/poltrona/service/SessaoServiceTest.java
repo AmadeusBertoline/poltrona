@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -33,6 +34,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import poltrona.dto.page.RespostaPaginadaDTO;
@@ -91,6 +93,9 @@ public class SessaoServiceTest {
 
         @Mock
         private UsuarioService usuarioService;
+
+        @Spy
+        private AcessoCinemaService acessoCinemaService = new AcessoCinemaService();
 
         @Mock
         private SessaoResponseDTO sessaoResponseDTO;
@@ -622,9 +627,6 @@ public class SessaoServiceTest {
         @DisplayName("Deve lançar ResourceNotFoundException ao tentar deletar sessão inexistente")
         void deveLancarExcecaoQuandoSessaoNaoEncontradaAoDeletar() {
                 // ARRANGE
-                when(usuarioService.usuarioLogado())
-                                .thenReturn(proprietario);
-
                 when(sessaoRepository.findByIdWithLock(999L))
                                 .thenReturn(Optional.empty());
 
@@ -899,9 +901,6 @@ public class SessaoServiceTest {
         @DisplayName("Deve lançar ResourceNotFoundException quando a sala não for encontrada")
         void deveLancarExcecaoQuandoSalaNaoEncontrada() {
                 // ARRANGE
-                when(usuarioService.usuarioLogado())
-                                .thenReturn(proprietario);
-
                 when(salaRepository.findByIdWithLock(99L))
                                 .thenReturn(Optional.empty());
 
@@ -923,9 +922,8 @@ public class SessaoServiceTest {
 
                 // ACT & ASSERT
                 assertThatThrownBy(() -> sessaoService.cadastrar(sessaoRequestDTO))
-                                .isInstanceOf(RegraNegocioException.class)
-                                .hasMessage(
-                                                "Você não tem permissão para acessar salas de um cinema que não lhe pertence.");
+                                .isInstanceOf(AccessDeniedException.class)
+                                .hasMessage("Você não tem permissão para acessar este cinema.");
         }
 
         @Test
@@ -943,9 +941,8 @@ public class SessaoServiceTest {
 
                 // ACT & ASSERT
                 assertThatThrownBy(() -> sessaoService.cadastrar(sessaoRequestDTO))
-                                .isInstanceOf(RegraNegocioException.class)
-                                .hasMessage(
-                                                "Você não tem permissão para acessar salas de um cinema que não opera.");
+                                .isInstanceOf(AccessDeniedException.class)
+                                .hasMessage("Você não tem permissão para acessar este cinema.");
         }
 
         // =========================================================================
@@ -964,9 +961,8 @@ public class SessaoServiceTest {
 
                 // ACT & ASSERT
                 assertThatThrownBy(() -> sessaoService.deletar(100L))
-                                .isInstanceOf(RegraNegocioException.class)
-                                .hasMessage(
-                                                "Você não tem permissão para acessar ou alterar sessões de outro proprietário.");
+                                .isInstanceOf(AccessDeniedException.class)
+                                .hasMessage("Você não tem permissão para acessar este cinema.");
 
                 verify(ingressoRepository, never()).countBySessaoId(any());
                 verify(sessaoRepository, never()).delete(any());
@@ -987,9 +983,8 @@ public class SessaoServiceTest {
 
                 // ACT & ASSERT
                 assertThatThrownBy(() -> sessaoService.deletar(100L))
-                                .isInstanceOf(RegraNegocioException.class)
-                                .hasMessage(
-                                                "Você não tem permissão para acessar ou alterar sessões de outro cinema.");
+                                .isInstanceOf(AccessDeniedException.class)
+                                .hasMessage("Você não tem permissão para acessar este cinema.");
 
                 verify(ingressoRepository, never()).countBySessaoId(any());
                 verify(sessaoRepository, never()).delete(any());
@@ -1007,8 +1002,8 @@ public class SessaoServiceTest {
 
                 // ACT & ASSERT
                 assertThatThrownBy(() -> sessaoService.deletar(100L))
-                                .isInstanceOf(RegraNegocioException.class)
-                                .hasMessage("Usuário sem permissão para realizar esta operação.");
+                                .isInstanceOf(AccessDeniedException.class)
+                                .hasMessage("Você não tem permissão para acessar este cinema.");
 
                 verify(ingressoRepository, never()).countBySessaoId(any());
                 verify(sessaoRepository, never()).delete(any());

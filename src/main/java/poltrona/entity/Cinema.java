@@ -91,6 +91,10 @@ public class Cinema {
         }
     }
 
+    public PoliticaOperacional getPoliticaOperacional() {
+        return politicaOperacional != null ? politicaOperacional : PoliticaOperacional.padrao();
+    }
+
     public void atualizarQuantidadeSalas() {
         this.quantidadeSalas = salas.size();
     }

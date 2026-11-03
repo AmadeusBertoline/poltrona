@@ -37,7 +37,7 @@ public class ClienteController implements ClienteControllerDoc {
     @PostMapping
     public ResponseEntity<ClienteResponseDTO> cadastrar(@Valid @RequestBody ClienteRequestDTO dto) {
         ClienteResponseDTO cliente = clienteService.cadastrar(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(cliente);
+        return ResponseEntity.created(ResponseLocation.forId(cliente.usuario().id())).body(cliente);
     }
 
     @Override

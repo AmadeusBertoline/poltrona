@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.EntityGraph;
+import java.util.Optional;
 import poltrona.entity.Ingresso;
 import poltrona.enums.ingresso.StatusIngresso;
 
@@ -45,7 +47,36 @@ public interface IngressoRepository extends JpaRepository<Ingresso, Long> {
 
         boolean existsByIdAndUsuarioId(Long id, Long usuarioId);
 
+        @EntityGraph(attributePaths = {
+                        "usuario", "sessao", "sessao.filme", "sessao.sala", "sessao.sala.cinema",
+                        "poltrona", "poltrona.sala", "poltrona.sala.cinema"
+        })
         Page<Ingresso> findAllByUsuarioIdOrderByDataCriacaoDesc(Long id, Pageable pageable);
+
+        @EntityGraph(attributePaths = {
+                        "usuario", "sessao", "sessao.filme", "sessao.sala", "sessao.sala.cinema",
+                        "poltrona", "poltrona.sala", "poltrona.sala.cinema"
+        })
+        Page<Ingresso> findAllBySessaoSalaCinemaId(Long cinemaId, Pageable pageable);
+
+        @EntityGraph(attributePaths = {
+                        "usuario", "sessao", "sessao.filme", "sessao.sala", "sessao.sala.cinema",
+                        "poltrona", "poltrona.sala", "poltrona.sala.cinema"
+        })
+        Page<Ingresso> findAllBySessaoSalaCinemaProprietarioId(Long proprietarioId, Pageable pageable);
+
+        @EntityGraph(attributePaths = {
+                        "usuario", "sessao", "sessao.filme", "sessao.sala", "sessao.sala.cinema",
+                        "poltrona", "poltrona.sala", "poltrona.sala.cinema"
+        })
+        @Override
+        Optional<Ingresso> findById(Long id);
+
+        @EntityGraph(attributePaths = {
+                        "usuario", "sessao", "sessao.filme", "sessao.sala", "sessao.sala.cinema",
+                        "poltrona", "poltrona.sala", "poltrona.sala.cinema"
+        })
+        Page<Ingresso> findAll(Pageable pageable);
 
         boolean existsBySessaoSalaId(Long salaId);
 
