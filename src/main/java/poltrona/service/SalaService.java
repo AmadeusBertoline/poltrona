@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.sala.AtualizaSalaRequestDTO;
@@ -15,8 +16,8 @@ import poltrona.dto.sala.SalaResponseDTO;
 import poltrona.entity.Cinema;
 import poltrona.entity.Gerente;
 import poltrona.entity.Poltrona;
-import poltrona.entity.Proprietario;
 import poltrona.entity.Sala;
+import poltrona.entity.Proprietario;
 import poltrona.entity.Usuario;
 import poltrona.enums.cinema.StatusCinema;
 import poltrona.enums.ingresso.StatusIngresso;
@@ -38,10 +39,11 @@ public class SalaService {
     private final UsuarioService usuarioService;
     private final IngressoRepository ingressoRepository;
     private final SessaoRepository sessaoRepository;
+    private final AcessoCinemaService acessoCinemaService;
 
     public SalaService(SalaRepository salaRepository, SalaMapper salaMapper, PoltronaService poltronaService,
             CinemaRepository cinemaRepository, UsuarioService usuarioService, IngressoRepository ingressoRepository,
-            SessaoRepository sessaoRepository) {
+            SessaoRepository sessaoRepository, AcessoCinemaService acessoCinemaService) {
         this.salaRepository = salaRepository;
         this.salaMapper = salaMapper;
         this.poltronaService = poltronaService;
@@ -49,32 +51,27 @@ public class SalaService {
         this.usuarioService = usuarioService;
         this.ingressoRepository = ingressoRepository;
         this.sessaoRepository = sessaoRepository;
+        this.acessoCinemaService = acessoCinemaService;
     }
 
     @Transactional
     public SalaResponseDTO cadastrar(SalaRequestDTO dto) {
 
-        final Cinema cinema;
         Usuario usuario = usuarioService.usuarioLogado();
-
+        final Cinema cinema;
         if (usuario instanceof Proprietario proprietario) {
-
             cinema = cinemaRepository.findByIdAndProprietarioId(dto.idCinema(), proprietario.getId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Cinema não encontrado ou não pertence a este proprietário: " + dto.idCinema()));
-
         } else if (usuario instanceof Gerente gerente) {
-
             if (!dto.idCinema().equals(gerente.getCinema().getId())) {
-                throw new RegraNegocioException(
-                        "Você não pode cadastrar salas em um cinema que não opera.");
+                throw new AccessDeniedException("Você não pode cadastrar salas em um cinema que não opera.");
             }
-
             cinema = gerente.getCinema();
-
         } else {
-            throw new RegraNegocioException("Usuário sem permissão para realizar esta operação.");
+            throw new AccessDeniedException("Usuário sem permissão para realizar esta operação.");
         }
+        acessoCinemaService.validarAcesso(usuario, cinema);
 
         if (cinema.getStatus() != StatusCinema.ATIVO) {
             throw new RegraNegocioException("Não é possível cadastrar salas para um cinema inativo.");
@@ -105,7 +102,8 @@ public class SalaService {
 
     @Transactional(readOnly = true)
     public SalaResponseDTO buscarPorId(Long id) {
-        Sala sala = buscarSalaEValidarAcesso(id);
+        Sala sala = salaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada de id: " + id));
         return salaMapper.toDTO(sala);
     }
 
@@ -210,28 +208,17 @@ public class SalaService {
     }
 
     private Sala buscarSalaEValidarAcesso(Long id) {
-
         Usuario usuario = usuarioService.usuarioLogado();
-
         if (usuario instanceof Proprietario proprietario) {
-
-            return salaRepository.findByIdAndCinemaProprietarioIdWithLock(id, proprietario.getId())
+            Sala sala = salaRepository.findByIdAndCinemaProprietarioIdWithLock(id, proprietario.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada de id: " + id));
-
-        } else if (usuario instanceof Gerente gerente) {
-
-            Sala sala = salaRepository.findByIdWithLock(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada de id: " + id));
-
-            if (!sala.getCinema().getId().equals(gerente.getCinema().getId())) {
-                throw new RegraNegocioException(
-                        "Você não tem permissão para acessar ou alterar salas de outro cinema.");
-            }
-
+            acessoCinemaService.validarAcesso(usuario, sala.getCinema());
             return sala;
-
         }
 
-        throw new RegraNegocioException("Usuário sem permissão para realizar esta operação.");
+        Sala sala = salaRepository.findByIdWithLock(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada de id: " + id));
+        acessoCinemaService.validarAcesso(usuario, sala.getCinema());
+        return sala;
     }
 }

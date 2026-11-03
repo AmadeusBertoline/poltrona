@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -32,6 +33,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import poltrona.dto.ingresso.IngressoRequestDTO;
@@ -46,6 +48,7 @@ import poltrona.entity.Ingresso;
 import poltrona.entity.ItemVenda;
 import poltrona.entity.Poltrona;
 import poltrona.entity.Produto;
+import poltrona.entity.Sala;
 import poltrona.entity.Sessao;
 import poltrona.entity.Venda;
 import poltrona.enums.ingresso.TipoIngresso;
@@ -57,7 +60,6 @@ import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.ItemVendaMapper;
 import poltrona.mapper.VendaMapper;
-import poltrona.repository.ProdutoRepository;
 import poltrona.repository.VendaRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,7 +82,13 @@ class VendaServiceTest {
         private IngressoService ingressoService;
 
         @Mock
-        private ProdutoRepository produtoRepository;
+        private ProdutoService produtoService;
+
+        @Spy
+        private AcessoCinemaService acessoCinemaService = new AcessoCinemaService();
+
+        @Spy
+        private PdfService pdfService = new PdfService(new QrCodeGenerator());
 
         @Mock
         private Cinema cinema;
@@ -90,6 +98,9 @@ class VendaServiceTest {
 
         @Mock
         private Poltrona poltrona;
+
+        @Mock
+        private Sala sala;
 
         @Mock
         private VendaResponseDTO vendaResponseDTO;
@@ -474,8 +485,8 @@ class VendaServiceTest {
                                 .thenReturn(Optional.of(venda));
 
                 assertThatThrownBy(() -> vendaService.gerarPdfComprovanteVenda(100L))
-                                .isInstanceOf(RegraNegocioException.class)
-                                .hasMessage("Você não pode baixar uma comprovante de uma venda que não te pertence");
+                                .isInstanceOf(AccessDeniedException.class)
+                                .hasMessage("Você não tem permissão para acessar esta venda.");
         }
 
         // =========================================================================
@@ -519,6 +530,9 @@ class VendaServiceTest {
                 when(ingressoService.cadastrar(
                                 ingressoRequestDTO))
                                 .thenReturn(ingresso);
+                when(sessao.getSala()).thenReturn(sala);
+                when(sala.getCinema()).thenReturn(cinema);
+                when(cinema.getId()).thenReturn(100L);
 
                 when(itemVendaMapper.toEntityIngresso(
                                 any(),
@@ -531,13 +545,10 @@ class VendaServiceTest {
                 when(produtoRequestDTO.quantidade())
                                 .thenReturn(2);
 
-                when(produtoRepository.reduzirEstoque(
+                when(produtoService.reduzirEstoqueParaVenda(
                                 5L,
+                                100L,
                                 2))
-                                .thenReturn(1);
-
-                // ALTERAÇÃO: a service usa getReferenceById() quando o estoque é reduzido.
-                when(produtoRepository.getReferenceById(5L))
                                 .thenReturn(produto);
 
                 when(itemVendaMapper.toEntityProduto(
@@ -560,11 +571,8 @@ class VendaServiceTest {
                 verify(ingressoService, times(1))
                                 .cadastrar(ingressoRequestDTO);
 
-                verify(produtoRepository, times(1))
-                                .reduzirEstoque(5L, 2);
-
-                verify(produtoRepository, times(1))
-                                .getReferenceById(5L);
+                verify(produtoService, times(1))
+                                .reduzirEstoqueParaVenda(5L, 100L, 2);
 
                 verify(vendaRepository, times(1))
                                 .save(venda);
@@ -591,6 +599,9 @@ class VendaServiceTest {
                 when(ingressoService.cadastrar(
                                 ingressoRequestDTO))
                                 .thenReturn(ingresso);
+                when(sessao.getSala()).thenReturn(sala);
+                when(sala.getCinema()).thenReturn(cinema);
+                when(cinema.getId()).thenReturn(100L);
 
                 when(itemVendaMapper.toEntityIngresso(
                                 any(),
@@ -613,8 +624,7 @@ class VendaServiceTest {
                 verify(ingressoService, times(1))
                                 .cadastrar(ingressoRequestDTO);
 
-                verify(produtoRepository, never())
-                                .findById(any());
+                verify(produtoService, never()).reduzirEstoqueParaVenda(any(), any(), any());
 
                 verify(vendaRepository, times(1))
                                 .save(venda);
@@ -641,6 +651,9 @@ class VendaServiceTest {
                 when(ingressoService.cadastrar(
                                 ingressoRequestDTO))
                                 .thenReturn(ingresso);
+                when(sessao.getSala()).thenReturn(sala);
+                when(sala.getCinema()).thenReturn(cinema);
+                when(cinema.getId()).thenReturn(100L);
 
                 when(itemVendaMapper.toEntityIngresso(
                                 any(),
@@ -649,13 +662,16 @@ class VendaServiceTest {
 
                 when(produtoRequestDTO.id())
                                 .thenReturn(5L);
+                when(produtoRequestDTO.quantidade())
+                                .thenReturn(2);
 
-                when(produtoRepository.findById(5L))
-                                .thenReturn(Optional.empty());
+                when(produtoService.reduzirEstoqueParaVenda(5L, 100L, 2))
+                                .thenThrow(new ResourceNotFoundException(
+                                                "Produto não encontrado no cinema da venda: 5"));
 
                 assertThatThrownBy(() -> vendaService.cadastrar(vendaRequestDTO))
                                 .isInstanceOf(ResourceNotFoundException.class)
-                                .hasMessage("Produto não encontrado ID: 5");
+                                .hasMessage("Produto não encontrado no cinema da venda: 5");
 
                 verify(vendaRepository, never())
                                 .save(any());
@@ -682,6 +698,9 @@ class VendaServiceTest {
                 when(ingressoService.cadastrar(
                                 ingressoRequestDTO))
                                 .thenReturn(ingresso);
+                when(sessao.getSala()).thenReturn(sala);
+                when(sala.getCinema()).thenReturn(cinema);
+                when(cinema.getId()).thenReturn(100L);
 
                 when(itemVendaMapper.toEntityIngresso(
                                 any(),
@@ -694,17 +713,13 @@ class VendaServiceTest {
                 when(produtoRequestDTO.quantidade())
                                 .thenReturn(2);
 
-                when(produtoRepository.findById(5L))
-                                .thenReturn(Optional.of(produto));
-
-                when(produtoRepository.reduzirEstoque(
-                                5L,
-                                2))
-                                .thenReturn(0);
+                when(produtoService.reduzirEstoqueParaVenda(5L, 100L, 2))
+                                .thenThrow(new RegraNegocioException(
+                                                "Estoque insuficiente para o produto Pipoca Grande."));
 
                 assertThatThrownBy(() -> vendaService.cadastrar(vendaRequestDTO))
                                 .isInstanceOf(RegraNegocioException.class)
-                                .hasMessage("Estoque do produto Pipoca Grande insuficiente");
+                                .hasMessage("Estoque insuficiente para o produto Pipoca Grande.");
 
                 verify(vendaRepository, never())
                                 .save(any());
@@ -717,6 +732,9 @@ class VendaServiceTest {
         @Test
         @DisplayName("Deve buscar venda por id com sucesso")
         void deveBuscarVendaPorIdComSucesso() {
+
+                when(usuarioService.usuarioLogado())
+                                .thenReturn(cliente);
 
                 when(vendaRepository.findById(100L))
                                 .thenReturn(Optional.of(venda));
@@ -754,8 +772,11 @@ class VendaServiceTest {
         @DisplayName("Deve listar todas as vendas paginadas por id do cliente")
         void deveListarTodasAsVendasPaginadas() {
 
+                when(usuarioService.usuarioLogado()).thenReturn(admin);
+
                 when(vendaRepository.buscarVendas(
                                 1L,
+                                null,
                                 pageable))
                                 .thenReturn(paginaVenda);
 
@@ -776,7 +797,7 @@ class VendaServiceTest {
                                 .isEqualTo(vendaResponseDTO);
 
                 verify(vendaRepository, times(1))
-                                .buscarVendas(1L, pageable);
+                                .buscarVendas(1L, null, pageable);
         }
 
         // =========================================================================
@@ -787,7 +808,8 @@ class VendaServiceTest {
         @DisplayName("Deve cancelar venda com sucesso e cancelar seus ingressos")
         void deveCancelarVendaComSucesso() {
 
-                when(vendaRepository.findById(100L))
+                when(usuarioService.usuarioLogado()).thenReturn(cliente);
+                when(vendaRepository.findByIdWithLock(100L))
                                 .thenReturn(Optional.of(venda));
 
                 when(vendaMapper.toDTO(venda))
@@ -803,14 +825,15 @@ class VendaServiceTest {
                                 .isEqualTo(StatusVenda.CANCELADA);
 
                 verify(vendaRepository, times(1))
-                                .findById(100L);
+                                .findByIdWithLock(100L);
         }
 
         @Test
         @DisplayName("Deve lançar ResourceNotFoundException ao tentar cancelar venda inexistente")
         void deveLancarExcecaoQuandoVendaNaoEncontradaAoCancelar() {
 
-                when(vendaRepository.findById(999L))
+                when(usuarioService.usuarioLogado()).thenReturn(cliente);
+                when(vendaRepository.findByIdWithLock(999L))
                                 .thenReturn(Optional.empty());
 
                 assertThatThrownBy(() -> vendaService.cancelar(999L))
@@ -819,10 +842,25 @@ class VendaServiceTest {
         }
 
         @Test
+        @DisplayName("Deve impedir que um cliente cancele a venda de outro cliente")
+        void deveImpedirCancelamentoDeVendaDeOutroCliente() {
+                when(usuarioService.usuarioLogado()).thenReturn(outroCliente);
+                when(vendaRepository.findByIdWithLock(100L)).thenReturn(Optional.of(venda));
+
+                assertThatThrownBy(() -> vendaService.cancelar(100L))
+                                .isInstanceOf(AccessDeniedException.class)
+                                .hasMessage("Você só pode cancelar suas próprias vendas.");
+
+                verify(ingressoService, never()).cancelarIngresso(any(Ingresso.class));
+                verify(produtoService, never()).devolverEstoque(any(), any());
+        }
+
+        @Test
         @DisplayName("Deve lançar RegraNegocioException ao tentar cancelar uma venda que já está cancelada")
         void deveLancarExcecaoQuandoVendaJaEstiverCancelada() {
 
-                when(vendaRepository.findById(101L))
+                when(usuarioService.usuarioLogado()).thenReturn(cliente);
+                when(vendaRepository.findByIdWithLock(101L))
                                 .thenReturn(Optional.of(vendaCancelada));
 
                 assertThatThrownBy(() -> vendaService.cancelar(101L))

@@ -1,28 +1,16 @@
 package poltrona.service;
 
-import java.io.ByteArrayOutputStream;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
-import com.lowagie.text.Document;
-import com.lowagie.text.Element;
-import com.lowagie.text.Font;
-import com.lowagie.text.FontFactory;
-import com.lowagie.text.Image;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.pdf.PdfWriter;
 
 import poltrona.dto.ingresso.IngressoRequestDTO;
 import poltrona.dto.produto.ProdutoRequestDTO;
@@ -31,15 +19,12 @@ import poltrona.dto.venda.VendaResponseDTO;
 import poltrona.entity.Cliente;
 import poltrona.entity.Ingresso;
 import poltrona.entity.ItemVenda;
-import poltrona.entity.Produto;
 import poltrona.entity.Usuario;
 import poltrona.entity.Venda;
-import poltrona.enums.venda.StatusVenda;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.ItemVendaMapper;
 import poltrona.mapper.VendaMapper;
-import poltrona.repository.ProdutoRepository;
 import poltrona.repository.VendaRepository;
 
 @Service
@@ -50,7 +35,9 @@ public class VendaService {
     private final ItemVendaMapper itemVendaMapper;
     private final UsuarioService usuarioService;
     private final IngressoService ingressoService;
-    private final ProdutoRepository produtoRepository;
+    private final ProdutoService produtoService;
+    private final AcessoCinemaService acessoCinemaService;
+    private final PdfService pdfService;
 
     public VendaService(
             VendaRepository vendaRepository,
@@ -58,23 +45,18 @@ public class VendaService {
             ItemVendaMapper itemVendaMapper,
             UsuarioService usuarioService,
             IngressoService ingressoService,
-            ProdutoRepository produtoRepository) {
+            ProdutoService produtoService,
+            AcessoCinemaService acessoCinemaService,
+            PdfService pdfService) {
         this.vendaRepository = vendaRepository;
         this.vendaMapper = vendaMapper;
         this.itemVendaMapper = itemVendaMapper;
         this.usuarioService = usuarioService;
         this.ingressoService = ingressoService;
-        this.produtoRepository = produtoRepository;
+        this.produtoService = produtoService;
+        this.acessoCinemaService = acessoCinemaService;
+        this.pdfService = pdfService;
 
-    }
-
-    private byte[] gerarQrCodeImage(String texto, int largura, int altura) throws Exception {
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
-        BitMatrix bitMatrix = qrCodeWriter.encode(texto, BarcodeFormat.QR_CODE, largura, altura);
-
-        ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
-        MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
-        return pngOutputStream.toByteArray();
     }
 
     @Transactional(readOnly = true)
@@ -85,91 +67,10 @@ public class VendaService {
         Venda venda = vendaRepository.findById(id)
                 .orElseThrow((() -> new ResourceNotFoundException("Venda não encontrada de id " + id)));
 
-        if (usuario instanceof Cliente) {
-            if (!venda.getCliente().getId().equals(usuario.getId())) {
-                throw new RegraNegocioException(
-                        "Você não pode baixar uma comprovante de uma venda que não te pertence");
-            }
-        }
+        acessoCinemaService.validarAcessoVenda(usuario, venda);
 
         VendaResponseDTO dto = vendaMapper.toDTO(venda);
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        Document document = new Document(PageSize.A6, 15, 15, 15, 15);
-
-        try {
-            PdfWriter.getInstance(document, out);
-            document.open();
-
-            Font fonteTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14);
-            Font fonteSubtitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10);
-            Font fonteTexto = FontFactory.getFont(FontFactory.HELVETICA, 8);
-            Font fonteDestaque = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9);
-
-            Paragraph titulo = new Paragraph("CINE POLTRONA", fonteTitulo);
-            titulo.setAlignment(Element.ALIGN_CENTER);
-            document.add(titulo);
-
-            Paragraph subtituloHeader = new Paragraph("COMPROVANTE DE VENDA", fonteSubtitulo);
-            subtituloHeader.setAlignment(Element.ALIGN_CENTER);
-            document.add(subtituloHeader);
-
-            Paragraph divisor = new Paragraph("--------------------------------------------------", fonteTexto);
-            divisor.setAlignment(Element.ALIGN_CENTER);
-            document.add(divisor);
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            String dataFormatada = dto.dataVenda() != null ? dto.dataVenda().format(formatter) : "N/A";
-
-            document.add(new Paragraph("Código Venda: " + dto.codigoComprovante(), fonteSubtitulo));
-            document.add(new Paragraph("Cinema: " + dto.cinema(), fonteTexto));
-            document.add(new Paragraph("Cliente: " + dto.cliente(), fonteTexto));
-            document.add(new Paragraph("Data: " + dataFormatada, fonteTexto));
-            document.add(new Paragraph("Forma Pagto: " + dto.formaPagamento(), fonteTexto));
-            document.add(new Paragraph("Status: " + dto.status(), fonteTexto));
-
-            document.add(divisor);
-
-            Paragraph tituloItens = new Paragraph("ITENS DA COMPRA:", fonteSubtitulo);
-            document.add(tituloItens);
-
-            if (dto.itens() != null && !dto.itens().isEmpty()) {
-                for (var item : dto.itens()) {
-
-                    String linhaItem = String.format("- %dx %s (R$ %.2f)",
-                            item.quantidade(),
-                            item.descricao(),
-                            item.precoUnitario());
-
-                    document.add(new Paragraph(linhaItem, fonteTexto));
-                }
-            } else {
-                document.add(new Paragraph("Nenhum item vinculado.", fonteTexto));
-            }
-
-            document.add(divisor);
-
-            String valorTotalFormatado = String.format("R$ %.2f", dto.valorTotal());
-            Paragraph totalParagraph = new Paragraph("VALOR TOTAL: " + valorTotalFormatado, fonteDestaque);
-            totalParagraph.setAlignment(Element.ALIGN_RIGHT);
-            document.add(totalParagraph);
-
-            String conteudoQrCode = "POLTRONA-COMPROVANTE-CODIGO:" + dto.codigoComprovante() + "-VENDA-ID:" + dto.id();
-
-            byte[] qrCodeBytes = gerarQrCodeImage(conteudoQrCode, 100, 100);
-            Image qrCodeImage = Image.getInstance(qrCodeBytes);
-            qrCodeImage.setAlignment(Element.ALIGN_CENTER);
-
-            document.add(new Paragraph(" ", fonteTexto));
-            document.add(qrCodeImage);
-
-            document.close();
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar PDF do comprovante de venda", e);
-        }
-
-        return out.toByteArray();
+        return pdfService.gerarComprovanteVenda(dto);
     }
 
     @Transactional
@@ -178,10 +79,20 @@ public class VendaService {
         if (dto.ingressos() == null || dto.ingressos().isEmpty()) {
             throw new RegraNegocioException("Nenhum ingresso selecionado");
         }
+        if (dto.produtos() != null) {
+            Set<Long> produtos = new HashSet<>();
+            if (dto.produtos().stream().anyMatch(produto -> !produtos.add(produto.id()))) {
+                throw new RegraNegocioException("Cada produto deve aparecer uma única vez na venda.");
+            }
+        }
 
-        Usuario cliente = usuarioService.usuarioLogado();
+        Usuario usuario = usuarioService.usuarioLogado();
+        if (!(usuario instanceof Cliente cliente)) {
+            throw new AccessDeniedException("Somente clientes podem realizar vendas.");
+        }
         Venda venda = vendaMapper.toEntity(dto, cliente);
         List<ItemVenda> itens = new ArrayList<>();
+        Long cinemaIdVenda = null;
 
         // ordenar ingressos (o cadastro de ingressos bloqueia poltronas)
         List<IngressoRequestDTO> ingressosOrdenados = dto.ingressos().stream()
@@ -190,6 +101,11 @@ public class VendaService {
 
         for (IngressoRequestDTO ingressoDto : ingressosOrdenados) {
             Ingresso ingresso = ingressoService.cadastrar(ingressoDto);
+            Long cinemaIdIngresso = ingresso.getSessao().getSala().getCinema().getId();
+            if (cinemaIdVenda != null && !cinemaIdVenda.equals(cinemaIdIngresso)) {
+                throw new RegraNegocioException("Todos os ingressos da venda devem pertencer ao mesmo cinema.");
+            }
+            cinemaIdVenda = cinemaIdIngresso;
 
             ItemVenda itemIngresso = itemVendaMapper.toEntityIngresso(
                     ingresso,
@@ -206,20 +122,10 @@ public class VendaService {
 
             for (ProdutoRequestDTO produtoDto : produtosOrdenados) {
 
-                int linhasAfetadas = produtoRepository.reduzirEstoque(
+                poltrona.entity.Produto produto = produtoService.reduzirEstoqueParaVenda(
                         produtoDto.id(),
+                        cinemaIdVenda,
                         produtoDto.quantidade());
-
-                if (linhasAfetadas == 0) {
-                    Produto produto = produtoRepository.findById(produtoDto.id())
-                            .orElseThrow(() -> new ResourceNotFoundException(
-                                    "Produto não encontrado ID: " + produtoDto.id()));
-
-                    throw new RegraNegocioException(
-                            "Estoque do produto " + produto.getNome() + " insuficiente");
-                }
-
-                Produto produto = produtoRepository.getReferenceById(produtoDto.id());
 
                 ItemVenda itemProduto = itemVendaMapper.toEntityProduto(
                         produto,
@@ -237,30 +143,51 @@ public class VendaService {
 
     @Transactional(readOnly = true)
     public VendaResponseDTO buscarPorId(Long id) {
+        Usuario usuario = usuarioService.usuarioLogado();
         Venda venda = vendaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Venda não encontrada de id " + id));
+        acessoCinemaService.validarAcessoVenda(usuario, venda);
         return vendaMapper.toDTO(venda);
     }
 
     @Transactional(readOnly = true)
     public Page<VendaResponseDTO> listarTodas(Long clienteId, Pageable pageable) {
-        return vendaRepository.buscarVendas(clienteId, pageable)
-                .map(vendaMapper::toDTO);
+        Usuario usuario = usuarioService.usuarioLogado();
+        if (usuario instanceof poltrona.entity.Admin) {
+            return vendaRepository.buscarVendas(clienteId, null, pageable).map(vendaMapper::toDTO);
+        }
+        if (usuario instanceof poltrona.entity.Gerente gerente) {
+            return vendaRepository.buscarVendas(clienteId, gerente.getCinema().getId(), pageable)
+                    .map(vendaMapper::toDTO);
+        }
+        if (usuario instanceof poltrona.entity.Proprietario proprietario) {
+            return vendaRepository.findAllByProprietarioId(proprietario.getId(), clienteId, pageable)
+                    .map(vendaMapper::toDTO);
+        }
+        throw new AccessDeniedException("Você não tem permissão para listar vendas.");
     }
 
     @Transactional
     public VendaResponseDTO cancelar(Long id) {
-        Venda venda = vendaRepository.findById(id)
+        Usuario usuario = usuarioService.usuarioLogado();
+        if (!(usuario instanceof Cliente cliente)) {
+            throw new AccessDeniedException("Somente clientes podem cancelar vendas.");
+        }
+        Venda venda = vendaRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Venda não encontrada de id " + id));
 
-        if (venda.getStatus() == StatusVenda.CANCELADA) {
-            throw new RegraNegocioException("Esta venda já se encontra cancelada.");
+        if (!venda.getCliente().getId().equals(cliente.getId())) {
+            throw new AccessDeniedException("Você só pode cancelar suas próprias vendas.");
         }
 
-        venda.setStatus(StatusVenda.CANCELADA);
-
-        if (venda.getIngressos() != null) {
-            venda.getIngressos().forEach(ingresso -> ingresso.cancelar());
+        venda.cancelar();
+        for (Ingresso ingresso : venda.getIngressos()) {
+            ingressoService.cancelarIngresso(ingresso);
+        }
+        for (ItemVenda item : venda.getItens()) {
+            if (item.getProduto() != null) {
+                produtoService.devolverEstoque(item.getProduto().getId(), item.getQuantidade());
+            }
         }
 
         return vendaMapper.toDTO(venda);

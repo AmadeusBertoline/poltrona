@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 import poltrona.dto.venda.ItemVendaResponseDTO;
 import poltrona.dto.venda.VendaRequestDTO;
 import poltrona.dto.venda.VendaResponseDTO;
-import poltrona.entity.Usuario;
+import poltrona.entity.Cliente;
 import poltrona.entity.Venda;
 import java.util.List;
 
@@ -17,7 +17,7 @@ public class VendaMapper {
         this.itemVendaMapper = itemVendaMapper;
     }
 
-    public Venda toEntity(VendaRequestDTO dto, Usuario cliente) {
+    public Venda toEntity(VendaRequestDTO dto, Cliente cliente) {
         if (dto == null) {
             return null;
         }

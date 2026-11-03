@@ -4,7 +4,6 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +38,7 @@ public class ProdutoController implements ProdutoControllerDoc {
     @PostMapping
     public ResponseEntity<ProdutoResponseDTO> cadastrar(@Valid @RequestBody CadastroProdutoRequestDTO dto) {
         ProdutoResponseDTO response = produtoService.cadastrar(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.created(ResponseLocation.forId(response.id())).body(response);
     }
 
     @Override

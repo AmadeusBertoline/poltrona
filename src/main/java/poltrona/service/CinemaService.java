@@ -15,6 +15,7 @@ import poltrona.dto.cinema.CinemaFiltroDTO;
 import poltrona.dto.cinema.CinemaRequestDTO;
 import poltrona.dto.cinema.CinemaResponseDTO;
 import poltrona.entity.Cinema;
+import poltrona.entity.PoliticaOperacional;
 import poltrona.entity.Proprietario;
 import poltrona.enums.cinema.StatusCinema;
 import poltrona.enums.usuario.StatusConta;
@@ -104,8 +105,10 @@ public class CinemaService {
         }
 
         if (dto.politica() != null) {
-            cinema.getPoliticaOperacional().atualizar(dto.politica().toleranciaMinutosCompra(),
+            PoliticaOperacional politica = cinema.getPoliticaOperacional();
+            politica.atualizar(dto.politica().toleranciaMinutosCompra(),
                     dto.politica().antecedenciaMinutosCancelamento(), dto.politica().intervaloLimpezaMinutos());
+            cinema.atualizarPoliticaOperacional(politica);
         }
 
         if (dto.endereco() != null) {

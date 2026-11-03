@@ -63,7 +63,7 @@ O foco do projeto é a **consistência de dados sob concorrência**: dois client
 | Atualizações concorrentes de sessão e produto | **Lock otimista** com `@Version` |
 | Compra simultânea com edição de sessão, poltrona ou sala | Na compra, **lock pessimista compartilhado** (`PESSIMISTIC_READ`) na sessão e **exclusivo** (`PESSIMISTIC_WRITE`) na poltrona; as edições usam `PESSIMISTIC_WRITE`: compras de poltronas diferentes não se bloqueiam entre si |
 | Deadlock em compras com vários itens | **Ordem determinística de locks**: ingressos ordenados por `id` da poltrona e produtos por `id` |
-| Conflitos de concorrência chegando como erro 500 | **Ainda não resolvido**: só `ResourceAlreadyExistsException` retorna 409; conflitos de índice único, `@Version` e lock/deadlock ainda chegam como 500 (veja a seção 7 e o roadmap) |
+| Conflitos de concorrência chegando como erro 500 | Índice único, `@Version` e falhas de lock retornam **409 Conflict**, sem expor detalhes internos do banco |
 | Cadastro de programação extensa | **Grade de sessões em lote** com validação de conflitos em memória + banco e `saveAll` |
 | Leituras repetidas de catálogo | **Cache Redis** com TTL de 10 min e invalidação nas escritas |
 | Layout de sala flexível | **Mapa de poltronas dinâmico** (fileira → quantidade) com reativação/inativação segura |
@@ -76,6 +76,7 @@ O foco do projeto é a **consistência de dados sob concorrência**: dois client
 - Catálogo de filmes com **cadastro em lote** (`POST /filmes/lote`)
 - Sessões individuais ou em **grade** (`POST /sessoes/grade`): intervalo de datas × lista de horários
 - Política operacional por cinema: intervalo de limpeza entre sessões, tolerância de compra após o início e antecedência mínima para cancelamento
+- Política operacional opcional no cadastro com padrão consistente de **15 minutos** para cada regra não informada
 - Preço por formato de exibição e ingresso `INTEIRA` / `MEIA`
 - **Mapa de poltronas da sessão** com assentos livres/ocupados
 - Venda combinada de ingressos + produtos, cancelamento de venda e de ingresso
@@ -171,13 +172,13 @@ int reduzirEstoque(Long id, Integer quantidade);
 
 Se `0` linhas forem afetadas, o estoque era insuficiente e uma `RegraNegocioException` aborta a venda inteira. O InnoDB mantém o *row lock* até o commit, então duas vendas simultâneas do último item nunca resultam em estoque negativo.
 
-**Limitação conhecida:** essa query não incrementa `version`, então o `@Version` do produto não percebe a venda. Uma edição de estoque feita por um gerente com a tela desatualizada ainda pode sobrescrever a baixa (previsto no roadmap).
+O `UPDATE` também incrementa `version` e só baixa estoque de produto ativo vinculado ao cinema da sessão. O cancelamento usa um incremento atômico equivalente.
 
 ### 4. Atomicidade da venda
 
 `VendaService.cadastrar` é **uma única transação**. Ingressos (via `IngressoService.cadastrar`, que participa da mesma transação), baixa de estoque, `Venda` e `ItemVenda` (cascade) são persistidos juntos. Se qualquer poltrona estiver ocupada, a sessão encerrada ou o estoque insuficiente, **nada é gravado** — nem ingresso, nem baixa de estoque. O *rollback* acontece automaticamente porque `RegraNegocioException` é uma `RuntimeException`.
 
-O cancelamento de venda também é transacional: marca a venda como `CANCELADA` e cancela todos os ingressos (via *dirty checking*), liberando as poltronas pelo mesmo índice condicional.
+O cancelamento de venda é restrito ao cliente proprietário, respeita a antecedência mínima de todos os ingressos ativos e é transacional: cancela os ingressos e devolve ao estoque os produtos da venda. Ingressos já cancelados são ignorados sem bloquear o cancelamento.
 
 ### 5. Lock otimista (`@Version`)
 
@@ -193,7 +194,7 @@ O cancelamento de venda também é transacional: marca a venda como `CANCELADA` 
 
 ### 7. Conflitos de concorrência na resposta HTTP
 
-Hoje o `GlobalExceptionHandler` só devolve **409 Conflict** para `ResourceAlreadyExistsException`. `DataIntegrityViolationException` (índice único), `ObjectOptimisticLockingFailureException` (`@Version`) e `PessimisticLockingFailureException` (deadlock ou timeout de lock) **ainda não têm handler** e chegam ao cliente como **500**. A integridade dos dados não é afetada (a transação perdedora sofre *rollback* completo e nada é gravado), mas a resposta correta seria 409. O mapeamento está previsto no roadmap. Não há retry automático.
+`ResourceAlreadyExistsException`, violações de integridade, conflitos de `@Version` e falhas de lock retornam **409 Conflict** com mensagens seguras. Erros inesperados são registrados no log e não revelam detalhes internos. JSON inválido e parâmetros incompatíveis retornam **400**; rotas inexistentes retornam **404**. Não há retry automático.
 
 ### 8. Outras decisões transacionais
 
@@ -233,14 +234,14 @@ erDiagram
 ## 🔐 Segurança
 
 - **JWT stateless** (`jjwt`), validado por um filtro (`JwtAuthFilter`) antes da cadeia do Spring Security.
-- Autorização por papel em `SecurityConfig` e **verificação de propriedade nos serviços**: proprietário só mexe nos próprios cinemas, gerente só no cinema que opera, cliente só baixa/cancela os próprios ingressos.
+- Autorização por papel em `SecurityConfig` e **verificação de propriedade nos serviços**: proprietário e gerente só consultam os dados dos cinemas sob sua gestão; clientes só consultam e cancelam suas próprias compras e ingressos.
 - Handlers customizados para `401` (`AuthenticationEntryPoint`) e `403` (`AccessDeniedHandler`) com resposta JSON padronizada.
 - Segredos (`JWT_SECRET`, credenciais do banco) lidos de **variáveis de ambiente**; o `.env` não é versionado e o modelo está em `.env.example`.
 
 ## ⚡ Cache com Redis
 
 - `@EnableCaching` com Redis como provedor, TTL de **10 minutos**, valores em JSON e sem cache de `null`.
-- Cacheados: listagem/consulta de **sessões** e **produtos**; invalidados (`@CacheEvict`) nas operações de escrita de sessões e produtos. A **venda não invalida** o cache de produtos, então o estoque exibido no catálogo pode ficar defasado por até 10 minutos (veja o roadmap).
+- Cacheados: listagem/consulta de **sessões** e **produtos**; invalidados (`@CacheEvict`) nas operações de escrita, incluindo a baixa e a devolução de estoque em vendas.
 - O **mapa de poltronas** não é cacheado de propósito: muda a cada venda e precisa refletir o estado real.
 
 ## 🛠️ Tecnologias
@@ -277,6 +278,7 @@ Há um modelo pronto em [`.env.example`](.env.example).
 | `DB_USERNAME` / `DB_PASSWORD` | Credenciais do banco |
 | `JWT_SECRET` | Chave de assinatura do JWT (gere com `openssl rand -hex 32`) |
 | `JWT_EXPIRATION` | Validade do token, em milissegundos |
+| `APP_TIME_ZONE` | Fuso horário usado pela aplicação (padrão `America/Sao_Paulo`) |
 | `REDIS_PORT` | Porta do Redis em produção (padrão `6379`). Em execução local o host é `localhost`; no Docker Compose, `SPRING_DATA_REDIS_HOST` já está configurado |
 | `REDIS_URL` | URL do Redis em produção (ex.: `redis://usuario:senha@host:6379`) |
 
@@ -321,17 +323,13 @@ O Flyway cria o schema automaticamente na primeira execução.
 
 Suíte de **testes unitários** (JUnit 5 + Mockito) cobrindo as 15 classes de serviço, com mais de 220 testes — regras de negócio, validações de acesso por papel, cenários de erro e fluxos de venda/cancelamento.
 
-O GitHub Actions executa build e testes a cada push, com MySQL e Redis reais. Os testes cobrem as regras de negócio; a concorrência em si ainda não tem teste automatizado (veja o roadmap). Usando CI.
+O GitHub Actions executa build e testes a cada push, com MySQL e Redis reais. Os testes cobrem as regras de negócio; a concorrência em si ainda não tem teste automatizado (veja o roadmap).
 
 ## 🗺️ Roadmap
 
-- [ ] Mapear conflitos de concorrência (índice único, `@Version`, lock e deadlock) para **HTTP 409 Conflict** no `GlobalExceptionHandler`
-- [ ] Incrementar `version` do produto em `reduzirEstoque` para o `@Version` detectar edições concorrentes de estoque
-- [ ] Invalidar o cache de produtos quando uma venda baixar o estoque
 - [ ] Testes de integração de concorrência com **Testcontainers** (MySQL real), disparando N compras simultâneas da mesma poltrona
 - [ ] Retry automático da transação em caso de deadlock
 - [ ] Reserva temporária de assento com expiração (hold) usando Redis
-- [ ] Devolução de estoque no cancelamento de venda
 - [ ] Respostas de erro no padrão RFC 7807 (`ProblemDetail`)
 
 ## 📄 Licença

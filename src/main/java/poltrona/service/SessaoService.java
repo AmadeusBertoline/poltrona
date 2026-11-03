@@ -22,13 +22,10 @@ import poltrona.dto.sessao.SessaoFiltroDTO;
 import poltrona.dto.sessao.SessaoRequestDTO;
 import poltrona.dto.sessao.SessaoResponseDTO;
 import poltrona.entity.Filme;
-import poltrona.entity.Gerente;
 import poltrona.entity.Poltrona;
 import poltrona.entity.Preco;
-import poltrona.entity.Proprietario;
 import poltrona.entity.Sala;
 import poltrona.entity.Sessao;
-import poltrona.entity.Usuario;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.SessaoMapper;
@@ -50,11 +47,12 @@ public class SessaoService {
         private final PoltronaRepository poltronaRepository;
         private final IngressoRepository ingressoRepository;
         private final UsuarioService usuarioService;
+        private final AcessoCinemaService acessoCinemaService;
 
         public SessaoService(SessaoRepository sessaoRepository, FilmeRepository filmeRepository,
                         SalaRepository salaRepository, SessaoMapper sessaoMapper, PrecoRepository precoRepository,
                         PoltronaRepository poltronaRepository, IngressoRepository ingressoRepository,
-                        UsuarioService usuarioService) {
+                        UsuarioService usuarioService, AcessoCinemaService acessoCinemaService) {
                 this.sessaoRepository = sessaoRepository;
                 this.filmeRepository = filmeRepository;
                 this.salaRepository = salaRepository;
@@ -63,6 +61,7 @@ public class SessaoService {
                 this.poltronaRepository = poltronaRepository;
                 this.ingressoRepository = ingressoRepository;
                 this.usuarioService = usuarioService;
+                this.acessoCinemaService = acessoCinemaService;
         }
 
         @CacheEvict(value = "sessoes", allEntries = true)
@@ -264,48 +263,17 @@ public class SessaoService {
         }
 
         private Sala buscarSalaEValidarAcesso(Long salaId) {
-                Usuario usuario = usuarioService.usuarioLogado();
-
                 Sala sala = salaRepository.findByIdWithLock(salaId)
                                 .orElseThrow(() -> new ResourceNotFoundException("Sala não encontrada"));
-
-                if (usuario instanceof Proprietario proprietario) {
-                        if (!sala.getCinema().getProprietario().getId().equals(proprietario.getId())) {
-                                throw new RegraNegocioException(
-                                                "Você não tem permissão para acessar salas de um cinema que não lhe pertence.");
-                        }
-                } else if (usuario instanceof Gerente gerente) {
-                        if (!sala.getCinema().getId().equals(gerente.getCinema().getId())) {
-                                throw new RegraNegocioException(
-                                                "Você não tem permissão para acessar salas de um cinema que não opera.");
-                        }
-                } else {
-                        throw new RegraNegocioException("Usuário sem permissão para realizar esta operação.");
-                }
-
+                acessoCinemaService.validarAcesso(usuarioService.usuarioLogado(), sala.getCinema());
                 return sala;
         }
 
         private Sessao buscarSessaoEValidarAcesso(Long id) {
-                Usuario usuario = usuarioService.usuarioLogado();
-
                 Sessao sessao = sessaoRepository.findByIdWithLock(id)
                                 .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada de id " + id));
-
-                if (usuario instanceof Proprietario proprietario) {
-                        if (!sessao.getSala().getCinema().getProprietario().getId().equals(proprietario.getId())) {
-                                throw new RegraNegocioException(
-                                                "Você não tem permissão para acessar ou alterar sessões de outro proprietário.");
-                        }
-                } else if (usuario instanceof Gerente gerente) {
-                        if (!sessao.getSala().getCinema().getId().equals(gerente.getCinema().getId())) {
-                                throw new RegraNegocioException(
-                                                "Você não tem permissão para acessar ou alterar sessões de outro cinema.");
-                        }
-                } else {
-                        throw new RegraNegocioException("Usuário sem permissão para realizar esta operação.");
-                }
-
+                acessoCinemaService.validarAcesso(usuarioService.usuarioLogado(),
+                                sessao.getSala().getCinema());
                 return sessao;
         }
 }

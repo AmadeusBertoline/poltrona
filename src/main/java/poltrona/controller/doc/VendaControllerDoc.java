@@ -1,7 +1,6 @@
 package poltrona.controller.doc;
 
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import poltrona.dto.venda.VendaRequestDTO;
 import poltrona.dto.venda.VendaResponseDTO;
+import poltrona.dto.page.RespostaPaginadaDTO;
 
 @Tag(name = "Vendas", description = "Gerenciamento e processamento de vendas de ingressos e produtos da bomboniere")
 public interface VendaControllerDoc {
@@ -34,7 +34,7 @@ public interface VendaControllerDoc {
                         @ApiResponse(responseCode = "200", description = "Lista de vendas retornada com sucesso"),
                         @ApiResponse(responseCode = "403", description = "Acesso negado")
         })
-        ResponseEntity<Page<VendaResponseDTO>> listarTodas(
+        ResponseEntity<RespostaPaginadaDTO<VendaResponseDTO>> listarTodas(
                         @Parameter(description = "ID do cliente para filtragem opcional") Long clienteId,
 
                         @ParameterObject Pageable pageable);
@@ -44,7 +44,7 @@ public interface VendaControllerDoc {
                         @ApiResponse(responseCode = "200", description = "Histórico de compras retornado com sucesso"),
                         @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
         })
-        ResponseEntity<Page<VendaResponseDTO>> me(
+        ResponseEntity<RespostaPaginadaDTO<VendaResponseDTO>> me(
                         @ParameterObject Pageable pageable);
 
         @Operation(summary = "Buscar venda por ID", description = "Busca os detalhes completos de uma transação de venda pelo seu identificador")

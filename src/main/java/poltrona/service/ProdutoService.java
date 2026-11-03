@@ -5,6 +5,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.page.RespostaPaginadaDTO;
@@ -31,40 +32,37 @@ public class ProdutoService {
     private final ProdutoMapper produtoMapper;
     private final UsuarioService usuarioService;
     private final CinemaRepository cinemaRepository;
+    private final AcessoCinemaService acessoCinemaService;
 
     public ProdutoService(ProdutoRepository produtoRepository, ProdutoMapper produtoMapper,
-            UsuarioService usuarioService, CinemaRepository cinemaRepository) {
+            UsuarioService usuarioService, CinemaRepository cinemaRepository,
+            AcessoCinemaService acessoCinemaService) {
         this.produtoRepository = produtoRepository;
         this.produtoMapper = produtoMapper;
         this.usuarioService = usuarioService;
         this.cinemaRepository = cinemaRepository;
+        this.acessoCinemaService = acessoCinemaService;
     }
 
     @CacheEvict(value = "produtos", allEntries = true)
     @Transactional
     public ProdutoResponseDTO cadastrar(CadastroProdutoRequestDTO dto) {
 
-        final Cinema cinema;
         Usuario usuario = usuarioService.usuarioLogado();
-
+        final Cinema cinema;
         if (usuario instanceof Proprietario proprietario) {
-
             cinema = cinemaRepository.findByIdAndProprietarioId(dto.cinemaId(), proprietario.getId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Cinema não encontrado ou não pertence a este proprietário: " + dto.cinemaId()));
-
         } else if (usuario instanceof Gerente gerente) {
-
             if (!dto.cinemaId().equals(gerente.getCinema().getId())) {
-                throw new RegraNegocioException(
-                        "Você não pode cadastrar um produto em um cinema que não opera");
+                throw new AccessDeniedException("Você não pode cadastrar um produto em um cinema que não opera.");
             }
-
             cinema = gerente.getCinema();
-
         } else {
-            throw new RegraNegocioException("Usuário sem permissão para realizar esta operação.");
+            throw new AccessDeniedException("Usuário sem permissão para realizar esta operação.");
         }
+        acessoCinemaService.validarAcesso(usuario, cinema);
 
         if (produtoRepository.existsByNomeIgnoreCaseAndCinemaId(dto.nome(), cinema.getId())) {
             throw new ResourceAlreadyExistsException("Produto já existente com o nome: " + dto.nome());
@@ -74,6 +72,38 @@ public class ProdutoService {
         Produto salvo = produtoRepository.save(produto);
 
         return produtoMapper.toDTO(salvo);
+    }
+
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "produtos", allEntries = true),
+            @CacheEvict(value = "produtoPorId", key = "#produtoId")
+    })
+    public Produto reduzirEstoqueParaVenda(Long produtoId, Long cinemaId, Integer quantidade) {
+        Produto produto = produtoRepository.findByIdAndCinemaId(produtoId, cinemaId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Produto não encontrado no cinema da venda: " + produtoId));
+
+        if (!produto.getAtivo()) {
+            throw new RegraNegocioException("O produto " + produto.getNome() + " está inativo.");
+        }
+
+        if (produtoRepository.reduzirEstoque(produtoId, cinemaId, quantidade) == 0) {
+            throw new RegraNegocioException("Estoque insuficiente para o produto " + produto.getNome() + ".");
+        }
+
+        return produto;
+    }
+
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "produtos", allEntries = true),
+            @CacheEvict(value = "produtoPorId", key = "#produtoId")
+    })
+    public void devolverEstoque(Long produtoId, Integer quantidade) {
+        if (produtoRepository.incrementarEstoque(produtoId, quantidade) == 0) {
+            throw new ResourceNotFoundException("Produto não encontrado: " + produtoId);
+        }
     }
 
     @Cacheable(value = "produtos", key = "{ #ativo, #nome, #tipoProduto, #pageable.pageNumber, #pageable.pageSize, #pageable.sort.toString() }")
@@ -94,7 +124,8 @@ public class ProdutoService {
     @Cacheable(value = "produtoPorId", key = "#id")
     @Transactional(readOnly = true)
     public ProdutoResponseDTO buscarPorId(Long id) {
-        Produto produto = buscarProdutoEValidarAcesso(id);
+        Produto produto = produtoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado de id: " + id));
         return produtoMapper.toDTO(produto);
     }
 
@@ -157,28 +188,15 @@ public class ProdutoService {
     }
 
     private Produto buscarProdutoEValidarAcesso(Long id) {
-
         Usuario usuario = usuarioService.usuarioLogado();
-
         if (usuario instanceof Proprietario proprietario) {
-
             return produtoRepository.findByIdAndCinemaProprietarioId(id, proprietario.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado de id: " + id));
-
-        } else if (usuario instanceof Gerente gerente) {
-
-            Produto produto = produtoRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado de id: " + id));
-
-            if (!produto.getCinema().getId().equals(gerente.getCinema().getId())) {
-                throw new RegraNegocioException(
-                        "Você não tem permissão para acessar ou alterar produtos de outro cinema.");
-            }
-
-            return produto;
-
         }
 
-        throw new RegraNegocioException("Usuário sem permissão para realizar esta operação.");
+        Produto produto = produtoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado de id: " + id));
+        acessoCinemaService.validarAcesso(usuario, produto.getCinema());
+        return produto;
     }
 }

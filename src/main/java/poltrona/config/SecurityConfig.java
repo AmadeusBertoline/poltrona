@@ -46,9 +46,11 @@ public class SecurityConfig {
                         .hasAnyAuthority("ADMIN", "GERENTE", "PROPRIETARIO")
                         .requestMatchers(HttpMethod.GET, "/ingressos/meus")
                         .hasAuthority("CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/ingressos/*")
+                        .hasAnyAuthority("ADMIN", "GERENTE", "PROPRIETARIO", "CLIENTE")
                         .requestMatchers(HttpMethod.GET, "/ingressos/*/download")
                         .hasAnyAuthority("ADMIN", "GERENTE", "PROPRIETARIO", "CLIENTE")
-                        .requestMatchers(HttpMethod.DELETE, "/ingressos/*")
+                        .requestMatchers(HttpMethod.PATCH, "/ingressos/*/cancelar")
                         .hasAuthority("CLIENTE")
 
                         // GERENTES
@@ -81,7 +83,7 @@ public class SecurityConfig {
 
                         // POLTRONAS
                         .requestMatchers(HttpMethod.GET, "/poltronas/**", "/poltronas").permitAll()
-                        .requestMatchers("/poltronas").hasAnyAuthority("PROPRIETARIO", "GERENTE")
+                        .requestMatchers(HttpMethod.PATCH, "/poltronas/**").hasAnyAuthority("PROPRIETARIO", "GERENTE")
 
                         // PRECOS
                         .requestMatchers(HttpMethod.POST, "/precos").hasAuthority("PROPRIETARIO")

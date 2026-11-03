@@ -37,7 +37,7 @@ public class CinemaController implements CinemaControllerDoc {
     @PostMapping
     public ResponseEntity<CinemaResponseDTO> cadastrar(@Valid @RequestBody CinemaRequestDTO dto) {
         CinemaResponseDTO cinema = cinemaService.cadastrar(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(cinema);
+        return ResponseEntity.created(ResponseLocation.forId(cinema.id())).body(cinema);
     }
 
     @Override

@@ -55,12 +55,12 @@ public class Venda {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id", nullable = false)
-    private Usuario cliente;
+    private Cliente cliente;
 
     @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemVenda> itens = new ArrayList<>();
 
-    public Venda(Usuario cliente, FormaPagamento formaPagamento) {
+    public Venda(Cliente cliente, FormaPagamento formaPagamento) {
         if (cliente == null) {
             throw new IllegalArgumentException("O cliente é obrigatório para registrar a venda.");
         }
@@ -90,17 +90,13 @@ public class Venda {
 
     public void cancelar() {
         if (this.status == StatusVenda.CANCELADA) {
-            throw new IllegalStateException("Esta venda já se encontra cancelada.");
+            throw new poltrona.exception.RegraNegocioException("Esta venda já se encontra cancelada.");
         }
         this.status = StatusVenda.CANCELADA;
     }
 
     public List<ItemVenda> getItens() {
         return Collections.unmodifiableList(this.itens);
-    }
-
-    public void setStatus(StatusVenda statusVenda) {
-        this.status = statusVenda;
     }
 
     public List<Ingresso> getIngressos() {

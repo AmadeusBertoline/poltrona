@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +31,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import poltrona.dto.poltrona.PoltronaRequestDTO;
@@ -76,6 +78,9 @@ class SalaServiceTest {
 
     @Mock
     private SessaoRepository sessaoRepository;
+
+    @Spy
+    private AcessoCinemaService acessoCinemaService = new AcessoCinemaService();
 
     @InjectMocks
     private SalaService salaService;
@@ -355,7 +360,7 @@ class SalaServiceTest {
                 .thenReturn(gerente);
 
         assertThatThrownBy(() -> salaService.cadastrar(salaRequestDTOOutroCinema))
-                .isInstanceOf(RegraNegocioException.class)
+                .isInstanceOf(AccessDeniedException.class)
                 .hasMessage(
                         "Você não pode cadastrar salas em um cinema que não opera.");
 
@@ -371,7 +376,7 @@ class SalaServiceTest {
                 .thenReturn(clienteComum);
 
         assertThatThrownBy(() -> salaService.cadastrar(salaRequestDTO))
-                .isInstanceOf(RegraNegocioException.class)
+                .isInstanceOf(AccessDeniedException.class)
                 .hasMessage(
                         "Usuário sem permissão para realizar esta operação.");
 
@@ -515,15 +520,9 @@ class SalaServiceTest {
     // ==============================================
 
     @Test
-    @DisplayName("Deve buscar sala por id com sucesso como Proprietario")
+    @DisplayName("Deve buscar sala por id publicamente")
     void deveBuscarPorIdComSucessoComoProprietario() {
-
-        when(usuarioService.usuarioLogado())
-                .thenReturn(proprietario);
-
-        when(salaRepository.findByIdAndCinemaProprietarioIdWithLock(
-                100L,
-                1L)).thenReturn(Optional.of(sala));
+        when(salaRepository.findById(100L)).thenReturn(Optional.of(sala));
 
         when(salaMapper.toDTO(sala))
                 .thenReturn(salaResponseDTO);
@@ -534,19 +533,13 @@ class SalaServiceTest {
                 .isNotNull();
 
         verify(salaRepository)
-                .findByIdAndCinemaProprietarioIdWithLock(
-                        100L,
-                        1L);
+                .findById(100L);
     }
 
     @Test
-    @DisplayName("Deve buscar sala por id com sucesso como Gerente do mesmo cinema")
+    @DisplayName("Deve buscar sala por id sem exigir autenticação")
     void deveBuscarPorIdComSucessoComoGerente() {
-
-        when(usuarioService.usuarioLogado())
-                .thenReturn(gerente);
-
-        when(salaRepository.findByIdWithLock(100L))
+        when(salaRepository.findById(100L))
                 .thenReturn(Optional.of(sala));
 
         when(salaMapper.toDTO(sala))
@@ -558,23 +551,17 @@ class SalaServiceTest {
                 .isNotNull();
 
         verify(salaRepository)
-                .findByIdWithLock(100L);
+                .findById(100L);
     }
 
     @Test
-    @DisplayName("Deve lançar RegraNegocioException quando Gerente tentar buscar sala de outro cinema")
-    void deveLancarExcecaoQuandoGerenteBuscarSalaDeOutroCinema() {
-
-        when(usuarioService.usuarioLogado())
-                .thenReturn(gerente);
-
-        when(salaRepository.findByIdWithLock(200L))
+    @DisplayName("Deve permitir consulta pública de sala de outro cinema")
+    void deveConsultarSalaDeOutroCinemaPublicamente() {
+        when(salaRepository.findById(200L))
                 .thenReturn(Optional.of(salaOutroCinema));
+        when(salaMapper.toDTO(salaOutroCinema)).thenReturn(salaResponseDTO);
 
-        assertThatThrownBy(() -> salaService.buscarPorId(200L))
-                .isInstanceOf(RegraNegocioException.class)
-                .hasMessage(
-                        "Você não tem permissão para acessar ou alterar salas de outro cinema.");
+        assertThat(salaService.buscarPorId(200L)).isEqualTo(salaResponseDTO);
     }
 
     // ==============================================

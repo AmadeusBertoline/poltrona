@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import poltrona.dto.page.RespostaPaginadaDTO;
@@ -37,7 +39,6 @@ import poltrona.entity.Produto;
 import poltrona.entity.Proprietario;
 import poltrona.entity.Usuario;
 import poltrona.enums.produto.TipoProduto;
-import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceAlreadyExistsException;
 import poltrona.exception.ResourceNotFoundException;
 import poltrona.mapper.ProdutoMapper;
@@ -59,6 +60,9 @@ class ProdutoServiceTest {
 
         @Mock
         private CinemaRepository cinemaRepository;
+
+        @Spy
+        private AcessoCinemaService acessoCinemaService = new AcessoCinemaService();
 
         @InjectMocks
         private ProdutoService produtoService;
@@ -193,6 +197,7 @@ class ProdutoServiceTest {
                                 50);
 
                 produtoResponseDTO = new ProdutoResponseDTO(
+                                1L,
                                 "Pipoca Grande",
                                 "Descrição",
                                 BigDecimal.valueOf(25.00),
@@ -308,9 +313,9 @@ class ProdutoServiceTest {
 
                 // ACT + ASSERT
                 assertThatThrownBy(() -> produtoService.cadastrar(cadastroCinemaOutroDTO))
-                                .isInstanceOf(RegraNegocioException.class)
+                                .isInstanceOf(AccessDeniedException.class)
                                 .hasMessage(
-                                                "Você não pode cadastrar um produto em um cinema que não opera");
+                                                "Você não pode cadastrar um produto em um cinema que não opera.");
 
                 verify(produtoRepository, never())
                                 .save(any());
@@ -326,7 +331,7 @@ class ProdutoServiceTest {
 
                 // ACT + ASSERT
                 assertThatThrownBy(() -> produtoService.cadastrar(cadastroDTO))
-                                .isInstanceOf(RegraNegocioException.class)
+                                .isInstanceOf(AccessDeniedException.class)
                                 .hasMessage(
                                                 "Usuário sem permissão para realizar esta operação.");
 
@@ -401,38 +406,10 @@ class ProdutoServiceTest {
         // ==============================================
 
         @Test
-        @DisplayName("Deve buscar produto por ID com sucesso quando usuário for Proprietário")
+        @DisplayName("Deve buscar produto por ID publicamente")
         void deveBuscarPorIdComSucessoQuandoProprietario() {
 
                 // ARRANGE
-                when(usuarioService.usuarioLogado())
-                                .thenReturn(proprietario);
-
-                when(produtoRepository.findByIdAndCinemaProprietarioId(1L, 10L))
-                                .thenReturn(Optional.of(produto));
-
-                when(produtoMapper.toDTO(produto))
-                                .thenReturn(produtoResponseDTO);
-
-                // ACT
-                ProdutoResponseDTO resultado = produtoService.buscarPorId(1L);
-
-                // ASSERT
-                assertThat(resultado)
-                                .isNotNull();
-
-                verify(produtoRepository)
-                                .findByIdAndCinemaProprietarioId(1L, 10L);
-        }
-
-        @Test
-        @DisplayName("Deve buscar produto por ID com sucesso quando usuário for Gerente do mesmo cinema")
-        void deveBuscarPorIdComSucessoQuandoGerente() {
-
-                // ARRANGE
-                when(usuarioService.usuarioLogado())
-                                .thenReturn(gerente);
-
                 when(produtoRepository.findById(1L))
                                 .thenReturn(Optional.of(produto));
 
@@ -451,21 +428,38 @@ class ProdutoServiceTest {
         }
 
         @Test
-        @DisplayName("Deve lançar RegraNegocioException quando Gerente tentar buscar produto de outro cinema")
-        void deveLancarExcecaoQuandoGerenteAcessarProdutoDeOutroCinema() {
+        @DisplayName("Deve buscar produto por ID com sucesso quando usuário for Gerente do mesmo cinema")
+        void deveBuscarPorIdComSucessoQuandoGerente() {
 
                 // ARRANGE
-                when(usuarioService.usuarioLogado())
-                                .thenReturn(gerenteOutroCinema);
-
                 when(produtoRepository.findById(1L))
                                 .thenReturn(Optional.of(produto));
 
-                // ACT + ASSERT
-                assertThatThrownBy(() -> produtoService.buscarPorId(1L))
-                                .isInstanceOf(RegraNegocioException.class)
-                                .hasMessage(
-                                                "Você não tem permissão para acessar ou alterar produtos de outro cinema.");
+                when(produtoMapper.toDTO(produto))
+                                .thenReturn(produtoResponseDTO);
+
+                // ACT
+                ProdutoResponseDTO resultado = produtoService.buscarPorId(1L);
+
+                // ASSERT
+                assertThat(resultado)
+                                .isNotNull();
+
+                verify(produtoRepository)
+                                .findById(1L);
+        }
+
+        @Test
+        @DisplayName("Deve permitir consulta pública do produto de outro cinema")
+        void deveLancarExcecaoQuandoGerenteAcessarProdutoDeOutroCinema() {
+
+                // ARRANGE
+                when(produtoRepository.findById(1L))
+                                .thenReturn(Optional.of(produto));
+
+                when(produtoMapper.toDTO(produto)).thenReturn(produtoResponseDTO);
+
+                assertThat(produtoService.buscarPorId(1L)).isEqualTo(produtoResponseDTO);
         }
 
         @Test
@@ -473,10 +467,7 @@ class ProdutoServiceTest {
         void deveLancarExcecaoQuandoProdutoNaoEncontradoPorId() {
 
                 // ARRANGE
-                when(usuarioService.usuarioLogado())
-                                .thenReturn(proprietario);
-
-                when(produtoRepository.findByIdAndCinemaProprietarioId(99L, 10L))
+                when(produtoRepository.findById(99L))
                                 .thenReturn(Optional.empty());
 
                 // ACT + ASSERT

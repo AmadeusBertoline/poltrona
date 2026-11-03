@@ -41,9 +41,7 @@ public class FilmeController implements FilmeControllerDoc {
 
         FilmeResponseDTO filme = filmeService.cadastrar(dto);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(filme);
+        return ResponseEntity.created(ResponseLocation.forId(filme.id())).body(filme);
     }
 
     @Override

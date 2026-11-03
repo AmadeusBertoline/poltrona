@@ -5,18 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import poltrona.dto.poltrona.PoltronaRequestDTO;
 import poltrona.dto.poltrona.PoltronaResponseDTO;
 import poltrona.dto.poltrona.TipoPoltronaRequestDTO;
-import poltrona.entity.Cinema;
-import poltrona.entity.Gerente;
 import poltrona.entity.Poltrona;
-import poltrona.entity.Proprietario;
 import poltrona.entity.Sala;
-import poltrona.entity.Usuario;
 import poltrona.enums.ingresso.StatusIngresso;
 import poltrona.exception.RegraNegocioException;
 import poltrona.exception.ResourceNotFoundException;
@@ -33,14 +28,17 @@ public class PoltronaService {
     private final IngressoRepository ingressoRepository;
     private final UsuarioService usuarioService;
     private final SalaRepository salaRepository;
+    private final AcessoCinemaService acessoCinemaService;
 
     public PoltronaService(PoltronaRepository poltronaRepository, PoltronaMapper poltronaMapper,
-            IngressoRepository ingressoRepository, UsuarioService usuarioService, SalaRepository salaRepository) {
+            IngressoRepository ingressoRepository, UsuarioService usuarioService, SalaRepository salaRepository,
+            AcessoCinemaService acessoCinemaService) {
         this.poltronaRepository = poltronaRepository;
         this.poltronaMapper = poltronaMapper;
         this.ingressoRepository = ingressoRepository;
         this.usuarioService = usuarioService;
         this.salaRepository = salaRepository;
+        this.acessoCinemaService = acessoCinemaService;
     }
 
     @Transactional
@@ -234,24 +232,7 @@ public class PoltronaService {
         Poltrona poltrona = poltronaRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Poltrona não encontrada de id " + id));
 
-        Usuario usuario = usuarioService.usuarioLogado();
-        Cinema cinema = poltrona.getSala().getCinema();
-
-        if (usuario instanceof Proprietario proprietario) {
-
-            if (!cinema.getProprietario().getId().equals(proprietario.getId())) {
-                throw new AccessDeniedException("Você não tem permissão para alterar poltronas deste cinema.");
-            }
-
-        } else if (usuario instanceof Gerente gerente) {
-
-            if (!cinema.getId().equals(gerente.getCinema().getId())) {
-                throw new AccessDeniedException("Você não tem permissão para alterar poltronas de outro cinema.");
-            }
-
-        } else {
-            throw new AccessDeniedException("Usuário sem permissão para realizar esta operação.");
-        }
+        acessoCinemaService.validarAcesso(usuarioService.usuarioLogado(), poltrona.getSala().getCinema());
 
         return poltrona;
     }
